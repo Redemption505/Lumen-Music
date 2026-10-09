@@ -1,0 +1,19 @@
+Lumen Music 0.1.0 | 许可与第三方组件
+
+Lumen Music 应用源码采用 GNU GPL v3，许可证全文为发布 ZIP 根目录的 LICENSE.txt。对应源码在同目录的 SOURCE.zip 中；其中 third-party/ 收录 vlcj 4.11.0 和 vlcj-natives 4.8.3 的 Maven 源码 JAR。以下 app/、runtime/ 路径相对于安装后的 LumenMusic 程序目录。第三方组件各自受其许可证约束。
+
+Java 运行时与 JavaFX
+Java 运行时的模块许可证和附加条款位于 runtime/legal/。JavaFX 21.0.12 的 Windows JAR 位于 app/javafx-*.jar；对应版本源码：https://repo.maven.apache.org/maven2/org/openjfx/javafx-base/21.0.12/javafx-base-21.0.12-sources.jar （graphics、controls、media 模块可按相同目录规则取得）。
+
+Python 3.13.15
+官方 Windows 嵌入式运行时位于 app/python/，许可证位于 app/python/LICENSE.txt。对应版本源码：https://www.python.org/ftp/python/3.13.15/Python-3.13.15.tgz 。
+
+VLC 3.0.23
+LibVLC 及插件位于 app/vlc/，随包许可证文本位于 app/vlc/COPYING.txt。对应版本源码：https://download.videolan.org/pub/videolan/vlc/3.0.23/vlc-3.0.23.tar.xz 。
+
+JNA 与 vlcj
+JNA 5.13.0/5.14.0 相关 JAR 位于 app/jna-*.jar、app/jna-platform-*.jar；许可证文本可在相应 JAR 的 META-INF/LICENSE 中查看。对应版本源码：https://repo.maven.apache.org/maven2/net/java/dev/jna/jna/5.13.0/jna-5.13.0-sources.jar 、https://repo.maven.apache.org/maven2/net/java/dev/jna/jna-jpms/5.14.0/jna-jpms-5.14.0-sources.jar 。
+vlcj 4.11.0 与 vlcj-natives 4.8.3 位于 app/vlcj-*.jar。其发布元数据标注 GPL v3；对应源码同时附在 SOURCE.zip/third-party/，原始下载地址：https://repo.maven.apache.org/maven2/uk/co/caprica/vlcj/4.11.0/vlcj-4.11.0-sources.jar 、https://repo.maven.apache.org/maven2/uk/co/caprica/vlcj-natives/4.8.3/vlcj-natives-4.8.3-sources.jar 。许可证全文见发布 ZIP 根目录的 LICENSE.txt。
+
+Rust 音频侧车
+app/stream-proxy/lumen-stream-proxy.exe 的源码在 SOURCE.zip/stream-proxy/。直接依赖的固定版本源码：Axum 0.8.9 https://crates.io/api/v1/crates/axum/0.8.9/download ，Tokio 1.53.1 https://crates.io/api/v1/crates/tokio/1.53.1/download ，Reqwest 0.12.28 https://crates.io/api/v1/crates/reqwest/0.12.28/download ，Bytes 1.12.1 https://crates.io/api/v1/crates/bytes/1.12.1/download ，futures-util 0.3.34 https://crates.io/api/v1/crates/futures-util/0.3.34/download ，url 2.5.8 https://crates.io/api/v1/crates/url/2.5.8/download 。其余传递依赖的精确版本见 SOURCE.zip/stream-proxy/Cargo.lock。

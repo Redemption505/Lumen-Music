@@ -1,0 +1,58 @@
+name: Verify
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: desktop/pom.xml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Python service tests
+        env:
+          PYTHONPATH: service
+        run: python -m unittest discover -s service/tests -v
+      - name: Axum stream proxy tests
+        run: cargo test --manifest-path stream-proxy/Cargo.toml --locked
+      - name: Java build and unit tests
+        run: |
+          chmod +x desktop/mvnw
+          ./desktop/mvnw -B -ntp -f desktop/pom.xml verify
+      - name: Java and Python integration
+        run: python scripts/ci-demo.py
+
+  windows-demo:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: desktop/pom.xml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Windows PowerShell and Maven Wrapper demo integration
+        shell: pwsh
+        run: ./scripts/check.ps1 -Component Demo -Python (Get-Command python).Source -JavaHome $env:JAVA_HOME

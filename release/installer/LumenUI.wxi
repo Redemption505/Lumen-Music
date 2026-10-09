@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Binary Id="LumenInstallerActions" SourceFile="$(var.LumenResourceDir)/LumenInstallerActions.CA.dll"/>
+  <CustomAction Id="LumenChooseDirectory" BinaryKey="LumenInstallerActions" DllEntry="ChooseDirectory" Execute="immediate" Return="check"/>
+  <CustomAction Id="LumenPreserveInstallDirectory" BinaryKey="LumenInstallerActions" DllEntry="PreserveInstallDirectory" Execute="immediate" Return="check"/>
+  <InstallUISequence>
+    <Custom Action="LumenPreserveInstallDirectory" Before="CostInitialize">NOT Installed</Custom>
+  </InstallUISequence>
+  <InstallExecuteSequence>
+    <Custom Action="LumenPreserveInstallDirectory" Before="CostInitialize">NOT Installed</Custom>
+  </InstallExecuteSequence>
+  <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR"/>
+  <Property Id="DefaultUIFont" Value="WixUI_Font_Normal"/>
+  <UI Id="LumenUI">
+    <TextStyle Id="WixUI_Font_Normal" FaceName="Microsoft YaHei UI" Size="9"/>
+    <TextStyle Id="WixUI_Font_Bigger" FaceName="Microsoft YaHei UI" Size="12"/>
+    <TextStyle Id="WixUI_Font_Title" FaceName="Microsoft YaHei UI" Size="10" Bold="yes"/>
+    <DialogRef Id="ErrorDlg"/>
+    <DialogRef Id="FatalError"/>
+    <DialogRef Id="UserExit"/>
+    <DialogRef Id="ExitDialog"/>
+    <DialogRef Id="FilesInUse"/>
+    <DialogRef Id="MsiRMFilesInUse"/>
+    <DialogRef Id="PrepareDlg"/>
+    <DialogRef Id="ProgressDlg"/>
+    <DialogRef Id="ResumeDlg"/>
+    <DialogRef Id="VerifyReadyDlg"/>
+    <DialogRef Id="WelcomeDlg"/>
+    <DialogRef Id="MaintenanceWelcomeDlg"/>
+    <DialogRef Id="MaintenanceTypeDlg"/>
+    <DialogRef Id="DiskCostDlg"/>
+    <DialogRef Id="CancelDlg"/>
+    <Dialog Id="LumenInstallDirDlg" Width="370" Height="270" Title="Lumen Music 安装程序">
+      <Control Id="Title" Type="Text" X="20" Y="18" Width="330" Height="22" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Bigger}选择安装位置"/>
+      <Control Id="Description" Type="Text" X="20" Y="52" Width="330" Height="35" Text="安装 Lumen Music [ProductVersion]。选择一个文件夹，或直接输入完整安装路径。"/>
+      <Control Id="FolderLabel" Type="Text" X="20" Y="100" Width="330" Height="15" Text="安装文件夹："/>
+      <Control Id="Folder" Type="PathEdit" X="20" Y="121" Width="255" Height="20" Property="INSTALLDIR"/>
+      <Control Id="ChooseFolder" Type="PushButton" X="282" Y="121" Width="68" Height="20" Text="浏览…">
+        <Publish Event="DoAction" Value="LumenChooseDirectory" Order="2">1</Publish>
+        <Publish Property="INSTALLDIR" Value="[LUMEN_CHOSEN_INSTALLDIR]" Order="3">1</Publish>
+        <Publish Event="SetTargetPath" Value="INSTALLDIR" Order="4">1</Publish>
+      </Control>
+      <Control Id="Hint" Type="Text" X="20" Y="161" Width="330" Height="45" Text="只为当前 Windows 用户安装。安装后可从开始菜单或安装文件夹中的“卸载 Lumen Music”移除程序；个人曲库与设置会保留。"/>
+      <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0"/>
+      <Control Id="Back" Type="PushButton" X="180" Y="244" Width="56" Height="17" Text="上一步">
+        <Publish Event="NewDialog" Value="WelcomeDlg">1</Publish>
+      </Control>
+      <Control Id="Next" Type="PushButton" X="236" Y="244" Width="56" Height="17" Default="yes" Text="下一步">
+        <Publish Event="SetTargetPath" Value="INSTALLDIR" Order="1">1</Publish>
+        <Publish Event="NewDialog" Value="VerifyReadyDlg" Order="2">1</Publish>
+      </Control>
+      <Control Id="Cancel" Type="PushButton" X="304" Y="244" Width="56" Height="17" Cancel="yes" Text="取消">
+        <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+      </Control>
+    </Dialog>
+    <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LumenInstallDirDlg">NOT Installed</Publish>
+    <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="LumenInstallDirDlg" Order="1">NOT Installed</Publish>
+    <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2">Installed</Publish>
+    <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
+    <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+    <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+    <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
+    <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+    <Property Id="ARPNOMODIFY" Value="1"/>
+    <InstallUISequence>
+      <Show Dialog="WelcomeDlg" Before="ProgressDlg">NOT Installed</Show>
+      <Show Dialog="MaintenanceWelcomeDlg" Before="ProgressDlg">Installed AND NOT RESUME AND NOT Preselected</Show>
+      <Show Dialog="ResumeDlg" Before="ProgressDlg">Installed AND (RESUME OR Preselected)</Show>
+      <Show Dialog="ProgressDlg" Before="ExecuteAction"/>
+      <Show Dialog="ExitDialog" OnExit="success"/>
+      <Show Dialog="UserExit" OnExit="cancel"/>
+      <Show Dialog="FatalError" OnExit="error"/>
+    </InstallUISequence>
+  </UI>
+  <UIRef Id="WixUI_Common"/>
+</Include>

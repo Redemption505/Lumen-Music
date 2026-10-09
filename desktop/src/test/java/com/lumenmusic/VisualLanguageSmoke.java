@@ -1,0 +1,649 @@
+package com.lumenmusic;
+
+import com.lumenmusic.audio.AudioPlayer;
+import com.lumenmusic.audio.JavaFxAudioPlayer;
+import com.sun.net.httpserver.HttpServer;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.EnumMap;
+import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.geometry.Bounds;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.ButtonBase;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.Labeled;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TabPane;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Shape;
+import javafx.scene.text.Text;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+
+/** Stage 4 / 3.1: real window, rendered pixels and uninterrupted local playback. */
+public final class VisualLanguageSmoke extends Application {
+    private static final String LONG_TITLE = "漫长的中文与 English title — ".repeat(10).strip();
+    private static final int[] COVER_MARKERS = {0xFF00FFFF, 0xFFFFFF00, 0xFFFF00FF, 0xFF00FF00};
+    private final AtomicBoolean finished = new AtomicBoolean();
+    private volatile String phase = "startup";
+    private LumenFxApp app;
+    private Stage stage;
+    private Path root;
+    private HttpServer coverServer;
+    private Track first;
+    private Track missing;
+    private String playlistId;
+    private String emptyPlaylistId;
+    private AudioPlayer originalAudio;
+    private PlayerQueue.Snapshot originalQueue;
+    private long originalLoad;
+    private final EnumMap<ThemeController.Mode, Paint> savedFavoriteColors = new EnumMap<>(ThemeController.Mode.class);
+
+    @Override public void start(Stage initial) {
+        stage = initial;
+        Platform.setImplicitExit(false);
+        Thread watchdog = new Thread(() -> {
+            try { Thread.sleep(285_000); } catch (InterruptedException ignored) { return; }
+            if (finished.compareAndSet(false, true)) {
+                System.err.println("FAIL visual language watchdog: " + phase);
+                System.exit(1);
+            }
+        }, "visual-language-watchdog");
+        watchdog.setDaemon(true);
+        watchdog.start();
+        Thread driver = new Thread(() -> {
+            try { exercise(); finish(0); }
+            catch (Throwable error) {
+                System.err.println("FAIL visual language phase: " + phase);
+                error.printStackTrace(System.err);
+                try { fx(() -> screenshot(stage.getScene(), "failure.png")); } catch (Exception ignored) { }
+                finish(1);
+            }
+        }, "visual-language-driver");
+        driver.setDaemon(true);
+        driver.start();
+    }
+
+    private void exercise() throws Exception {
+        prepareFixture();
+        fx(() -> {
+            app = new LumenFxApp(); app.startUi(stage, List.of());
+            stage.setWidth(1280); stage.setHeight(800);
+        });
+        System.out.println("OUTPUT SCALE: " + fxValue(() -> stage.getOutputScaleX())
+                + " x " + fxValue(() -> stage.getOutputScaleY()));
+        await(15_000, () -> fxValue(() -> picker().getItems().size() == 2), "fixture playlists not loaded");
+        await(15_000, () -> fxValue(() -> field("versionCatalog", VersionCatalog.class).findByResourceId(first.id()).isPresent()), "fixture performer metadata not loaded");
+        phase = "real local playback and browse restoration";
+        fx(() -> {
+            openPlaylist(playlistId);
+            ListView<Track> tracks = list("playlist-tracks");
+            tracks.getSelectionModel().clearAndSelect(0); tracks.fireEvent(doubleClick());
+        });
+        awaitPlaying(first.id());
+        await(4_000, () -> fxValue(() -> ((ButtonBase) node("favorite-current")).getText().equals("取消收藏")),
+                "pre-favorited local fixture did not reach playback controls");
+        originalAudio = fxValue(this::audio);
+        originalLoad = fxValue(() -> field("loadVersion", Long.class));
+        originalQueue = fxValue(() -> field("queue", PlayerQueue.class).snapshot());
+        check(originalQueue.tracks().size() == 24, "fixture queue lacks enough rows to exercise scrolling");
+        await(8_000, () -> fxValue(() -> ((ImageView) node("immersive-artwork-image")).getImage() != null
+                && ((ImageView) node("immersive-artwork-image")).getImage().getProgress() >= 1), "cover not loaded");
+        fx(this::checkRowIdentity);
+        fx(() -> {
+            list("playlist-tracks").scrollTo(18);
+            ((ScrollPane) node("playlist-scroll")).setVvalue(.7);
+            layout();
+        });
+        pause(300);
+        double scroll = fxValue(() -> ((ScrollPane) node("playlist-scroll")).getVvalue());
+        int firstVisible = fxValue(this::firstVisibleRow);
+        double before = fxValue(() -> audio().position().toSeconds());
+        fx(() -> click("open-immersive")); settle();
+        fx(() -> {
+            checkFullArtwork(); checkFavoriteState(true); checkDisabledSource();
+            click("immersive-collapse");
+        }); settle();
+        fx(() -> {
+            check(((TabPane) node("main-tabs")).getSelectionModel().getSelectedIndex() == 4,
+                    "immersive return lost playlist browse page");
+            check(Math.abs(((ScrollPane) node("playlist-scroll")).getVvalue() - scroll) < .03,
+                    "immersive return lost page scroll position");
+            check(firstVisibleRow() == firstVisible, "immersive return lost list scroll position");
+            preserved(before, true);
+        });
+        System.out.println("PASS local WAV browse/immersive/return preserves audio, loadVersion, queue and both scroll positions; clock advances");
+
+        phase = "four scenes five themes two sizes";
+        for (ThemeController.Mode mode : ThemeController.Mode.values()) {
+            fx(() -> chooseTheme(mode));
+            for (int[] size : new int[][] {{1280, 800}, {860, 600}}) {
+                fx(() -> { stage.setWidth(size[0]); stage.setHeight(size[1]); });
+                for (String scene : List.of("home", "playlist", "immersive", "settings")) {
+                    phase = mode + " " + scene + " " + size[0] + "x" + size[1];
+                    fx(() -> openScene(scene)); settle();
+                    fx(() -> checkScene(scene));
+                    // Let restored glyph opacity reach the next paint before retaining QA screenshots.
+                    pause(100);
+                    fx(() -> {
+                        if (size[0] == 1280 || mode == ThemeController.Mode.DARK || mode == ThemeController.Mode.LIGHT)
+                            screenshot(stage.getScene(), mode.name().toLowerCase() + "-" + scene + "-" + size[0] + "x" + size[1] + ".png");
+                    });
+                    if (scene.equals("immersive")) {
+                        popupCheck(mode, size[0]);
+                        fx(() -> click("immersive-collapse"));
+                    }
+                }
+            }
+        }
+        fx(() -> preserved(before, true));
+        System.out.println("PASS home/playlist/immersive/settings, five themes, 1280x800 + 860x600, rendered contrast, long bilingual titles and popup boundaries");
+        phase = "keyboard focus remains visible";
+        for (ThemeController.Mode mode : List.of(ThemeController.Mode.DARK, ThemeController.Mode.LIGHT)) {
+            fx(() -> { chooseTheme(mode); openScene("home"); }); settle();
+            keyboardFocusCheck(mode);
+        }
+
+        phase = "empty playlist and missing artwork/lyrics";
+        fx(() -> { chooseTheme(ThemeController.Mode.LIGHT); openPlaylist(emptyPlaylistId); }); settle();
+        fx(() -> {
+            check(list("playlist-tracks").getItems().isEmpty(), "empty playlist fixture not selected");
+            Node placeholder = list("playlist-tracks").getPlaceholder();
+            check(placeholder != null && placeholder.isVisible(), "empty playlist has no visible explanation");
+            screenshot(stage.getScene(), "empty-playlist-small.png");
+            openPlaylist(playlistId);
+            list("playlist-tracks").getSelectionModel().clearAndSelect(1);
+            list("playlist-tracks").fireEvent(doubleClick());
+        });
+        awaitPlaying(missing.id());
+        fx(() -> {
+            invoke("setLyrics", new Class<?>[] {List.class, String.class}, List.of(), "暂无同步歌词");
+            click("open-immersive");
+        }); settle();
+        fx(() -> {
+            checkFavoriteState(false);
+            ImageView image = (ImageView) node("immersive-artwork-image");
+            check(image.getImage() == null, "missing-artwork track reused preceding artwork");
+            Label placeholder = node("immersive-cover").lookupAll(".artwork-placeholder").stream()
+                    .filter(Label.class::isInstance).map(Label.class::cast).findFirst().orElseThrow();
+            check(placeholder.isVisible() && !placeholder.getText().isBlank(), "missing cover has no visible placeholder");
+            Node lyricPlaceholder = list("immersive-lyrics").getPlaceholder();
+            check(lyricPlaceholder != null && lyricPlaceholder.isVisible(), "missing lyrics has no visible explanation");
+            fits(node("immersive-cover")); fits(node("immersive-lyrics"));
+            screenshot(stage.getScene(), "missing-cover-lyrics-small.png");
+            click("immersive-collapse");
+        });
+        System.out.println("PASS empty playlist, missing cover and no-lyrics states remain readable in small window");
+
+        phase = "reduced motion immediately updates active window";
+        fx(() -> {
+            chooseTheme(ThemeController.Mode.DYNAMIC); click("sidebar-settings");
+            ScrollPane settings = (ScrollPane) node("settings-scroll"); settings.setVvalue(0); layout();
+            CheckBox reduced = (CheckBox) node("reduce-motion");
+            if (reduced.isSelected()) reduced.fire();
+        });
+        String moving = fxValue(() -> stage.getScene().getRoot().getStyle());
+        pause(550);
+        check(!moving.equals(fxValue(() -> stage.getScene().getRoot().getStyle())), "dynamic theme did not animate before reduced motion");
+        fx(() -> {
+            ((CheckBox) node("reduce-motion")).fire();
+            check(MotionPreferences.reduced(), "UI reduced-motion preference did not apply immediately");
+            click("open-immersive"); click("immersive-collapse");
+            click("toggle-queue"); click("toggle-queue");
+            check(stage.getScene().getRoot().lookupAll("#queue-exit-snapshot").isEmpty(), "reduced motion left queue exit animation");
+        });
+        String stopped = fxValue(() -> stage.getScene().getRoot().getStyle()); pause(600);
+        fx(() -> {
+            check(stopped.equals(stage.getScene().getRoot().getStyle()), "reduced motion did not freeze dynamic background immediately");
+            check(audio().state() == JavaFxAudioPlayer.State.PLAYING, "reduced motion interrupted playback");
+            check(Window.getWindows().stream().filter(Window::isShowing).count() == 1, "navigation created extra windows");
+        });
+        System.out.println("PASS reduced motion immediately freezes background and removes transition while navigation/audio remain usable");
+    }
+
+    private void checkScene(String scene) {
+        layout();
+        fits(node("playback-bar")); fits(node("play-button")); fits(node("progress-slider"));
+        fits(node("now-playing")); fits(node("timing"));
+        if (scene.equals("home") || scene.equals("playlist"))
+            checkArtworkCorners(node("player-track-entry").lookup(".cover-pane"), 4, "playback artwork");
+        readable((Labeled) node("now-playing"), 4.5);
+        readable((Labeled) node("timing"), 3.0);
+        switch (scene) {
+            case "home" -> {
+                fits(node("home-page")); fits(node("home-scroll"));
+                noHorizontalScroll(node("home-scroll"));
+                revealHomeDiscovery();
+                fits(node("home-query")); fits(node("home-search-button"));
+                readable((Labeled) node("home-search-button"), 4.5);
+            }
+            case "playlist" -> {
+                fits(node("playlist-scroll")); fits(node("playlist-page-name"));
+                readable((Labeled) node("playlist-page-name"), 4.5);
+                readable((Labeled) node("playlist-page-count"), 3.0);
+                check(((Label) node("playlist-page-name")).getText().equals(LONG_TITLE), "long playlist title changed");
+                Bounds listArea = node("playlist-tracks").localToScene(node("playlist-tracks").getBoundsInLocal());
+                Bounds scrollArea = node("playlist-scroll").localToScene(node("playlist-scroll").getBoundsInLocal());
+                check(listArea.intersects(scrollArea) && listArea.getWidth() >= 100,
+                        "playlist tracks cannot be reached through page viewport");
+                noHorizontalScroll(list("playlist-tracks"));
+            }
+            case "immersive" -> {
+                for (String id : List.of("immersive-shell", "immersive-cover", "immersive-lyrics", "immersive-actions", "immersive-collapse")) fits(node(id));
+                Label title = field("immersiveTrackTitle", Label.class);
+                fits(title); readable(title, 4.5);
+                check(title.getText().equals(LONG_TITLE), "long track title changed");
+                check(title.getTooltip() != null && title.getTooltip().getText().equals(LONG_TITLE), "long title cannot be read in full");
+                check(field("immersiveTrackArtist", Label.class).getText().equals("Fixture 演唱者 · 录音室版"),
+                        "version performer was replaced by resource author");
+                checkFullArtwork();
+                checkFavoriteState(true);
+            }
+            case "settings" -> {
+                fits(node("settings-page")); fits(node("settings-scroll")); fits(node("settings-back"));
+                readable((Labeled) node("settings-back"), 4.5);
+                noHorizontalScroll(node("settings-scroll"));
+            }
+            default -> throw new AssertionError("unknown scene " + scene);
+        }
+    }
+
+    private void popupCheck(ThemeController.Mode mode, int width) throws Exception {
+        fx(() -> click("immersive-more")); pause(150);
+        fx(() -> {
+            ContextMenu menu = Window.getWindows().stream().filter(ContextMenu.class::isInstance)
+                    .map(ContextMenu.class::cast).filter(Window::isShowing).findFirst().orElseThrow();
+            Scene popup = menu.getScene(); popup.getRoot().applyCss(); popup.getRoot().layout();
+            check(menu.getWidth() > 100 && menu.getHeight() > 40, "More popup has no usable bounds");
+            check(menu.getX() >= stage.getX() - 1 && menu.getX() + menu.getWidth() <= stage.getX() + stage.getWidth() + 1,
+                    "More popup extends beyond main-window width");
+            int readableItems = 0;
+            for (Node item : popup.getRoot().lookupAll(".label")) if (item instanceof Labeled label
+                    && label.isVisible() && !label.getText().isBlank()) { readable(label, 4.5); readableItems++; }
+            check(readableItems >= 3, "More popup has no readable actions");
+        });
+        pause(100);
+        fx(() -> {
+            ContextMenu menu = Window.getWindows().stream().filter(ContextMenu.class::isInstance)
+                    .map(ContextMenu.class::cast).filter(Window::isShowing).findFirst().orElseThrow();
+            if (width == 1280) screenshot(menu.getScene(), mode.name().toLowerCase() + "-more-popup.png");
+            menu.hide();
+        });
+    }
+
+    /** Compare actual glyph color against the composited window behind that same label. */
+    private void readable(Labeled label, double minimum) {
+        check(label.getText() != null && !label.getText().isBlank(), "empty key label " + label.getId());
+        Text text = (Text) label.lookup(".text");
+        check(text != null && text.isVisible() && text.getOpacity() > 0 && !text.getText().isBlank(),
+                "key label did not render " + label.getId());
+        Paint foreground = text.getFill();
+        check(foreground instanceof Color, "unsupported text paint " + label.getId());
+        Bounds bounds = text.localToScene(text.getBoundsInLocal());
+        Scene scene = label.getScene();
+        check(bounds.getMaxX() <= scene.getWidth() + 1 && bounds.getMinX() >= -1,
+                "rendered text exceeds scene " + label.getId());
+        Bounds labelBounds = label.localToScene(label.getBoundsInLocal());
+        check(bounds.getMaxX() <= labelBounds.getMaxX() + 1 && bounds.getMinX() >= labelBounds.getMinX() - 1,
+                "rendered text exceeds its label " + label.getId());
+        double originalOpacity = text.getOpacity();
+        WritableImage shown = scene.snapshot(null);
+        try {
+            // Opacity leaves the skin's managed text layout intact while sampling its backdrop.
+            text.setOpacity(0);
+            WritableImage background = scene.snapshot(null);
+            int x = (int) Math.max(0, Math.min(background.getWidth() - 1, bounds.getCenterX()));
+            int y = (int) Math.max(0, Math.min(background.getHeight() - 1, bounds.getCenterY()));
+            Color backdrop = background.getPixelReader().getColor(x, y);
+            Color glyph = composite((Color) foreground, backdrop);
+            double light = luminance(glyph), dark = luminance(backdrop);
+            double contrast = (Math.max(light, dark) + .05) / (Math.min(light, dark) + .05);
+            check(contrast >= minimum - .1, "text contrast " + label.getId() + "/" + label.getText()
+                    + " is " + String.format(java.util.Locale.ROOT, "%.2f", contrast) + ", expected " + minimum);
+            int glyphPixels = 0;
+            for (int row = (int) Math.max(0, bounds.getMinY()); row < Math.min(shown.getHeight(), bounds.getMaxY()); row++)
+                for (int column = (int) Math.max(0, bounds.getMinX()); column < Math.min(shown.getWidth(), bounds.getMaxX()); column++)
+                    if (shown.getPixelReader().getArgb(column, row) != background.getPixelReader().getArgb(column, row)) glyphPixels++;
+            check(glyphPixels >= 10, "label has no rendered glyphs " + label.getId());
+        } finally { text.setOpacity(originalOpacity); }
+    }
+
+    private static Color composite(Color front, Color back) {
+        double alpha = front.getOpacity();
+        return new Color(front.getRed() * alpha + back.getRed() * (1 - alpha),
+                front.getGreen() * alpha + back.getGreen() * (1 - alpha),
+                front.getBlue() * alpha + back.getBlue() * (1 - alpha), 1);
+    }
+    private static double luminance(Color color) {
+        return .2126 * linear(color.getRed()) + .7152 * linear(color.getGreen()) + .0722 * linear(color.getBlue());
+    }
+    private static double linear(double value) { return value <= .04045 ? value / 12.92 : Math.pow((value + .055) / 1.055, 2.4); }
+
+    /** Four saturated corner markers prove the entire portrait artwork survived rendering. */
+    private void checkFullArtwork() {
+        // Snapshot the clipped artwork frame, not the ImageView alone: a parent crop must fail too.
+        checkArtworkCorners(node("immersive-cover"), 10, "immersive artwork");
+    }
+    private void checkArtworkCorners(Node artwork, int minimumPixels, String description) {
+        check(artwork != null, "missing " + description);
+        WritableImage rendered = artwork.snapshot(null, null);
+        int[] counts = new int[4];
+        for (int y = 0; y < rendered.getHeight(); y++) for (int x = 0; x < rendered.getWidth(); x++) {
+            int pixel = rendered.getPixelReader().getArgb(x, y);
+            for (int i = 0; i < COVER_MARKERS.length; i++) if (pixel == COVER_MARKERS[i]) counts[i]++;
+        }
+        for (int i = 0; i < counts.length; i++) check(counts[i] > minimumPixels, description + " corner " + i + " cropped from rendered cover");
+    }
+
+    private void checkFavoriteState(boolean saved) {
+        ButtonBase main = (ButtonBase) node("favorite-current");
+        ButtonBase immersive = (ButtonBase) node("immersive-favorite");
+        String expected = saved ? "取消收藏" : "收藏当前";
+        check(main.getTooltip() != null && expected.equals(main.getTooltip().getText()), "main favorite tooltip does not describe current action");
+        check(immersive.getTooltip() != null && expected.equals(immersive.getTooltip().getText()), "immersive favorite tooltip is stale");
+        Paint mainColor = ((Shape) main.lookup(".ui-icon")).getFill();
+        Paint immersiveColor = ((Shape) immersive.lookup(".ui-icon")).getFill();
+        check(mainColor.equals(immersiveColor), "immersive favorite color disagrees with playback bar");
+        ThemeController.Mode mode = field("themeMode", ThemeController.Mode.class);
+        if (saved) savedFavoriteColors.put(mode, mainColor);
+        else {
+            Paint selected = savedFavoriteColors.get(mode);
+            check(selected != null && !selected.equals(mainColor), "saved and unsaved favorites are visually indistinguishable");
+        }
+    }
+
+    private void checkDisabledSource() {
+        ButtonBase source = (ButtonBase) node("immersive-open-source");
+        check(source.isDisabled(), "local fixture unexpectedly enables external source button");
+        int[] actions = {0}; EventHandler<ActionEvent> observer = event -> actions[0]++;
+        source.addEventHandler(ActionEvent.ACTION, observer);
+        long load = field("loadVersion", Long.class);
+        PlayerQueue.Snapshot queue = field("queue", PlayerQueue.class).snapshot();
+        try { source.fire(); } finally { source.removeEventHandler(ActionEvent.ACTION, observer); }
+        check(actions[0] == 0, "disabled source button dispatched an action");
+        check(load == field("loadVersion", Long.class) && queue.equals(field("queue", PlayerQueue.class).snapshot()), "disabled action changed playback state");
+        check(source.getOpacity() < .8 && source.getOpacity() > .2, "disabled source state cannot be distinguished visually");
+        check(source.getTooltip() != null && !source.getTooltip().getText().isBlank(), "disabled source has no readable purpose");
+        renderedIconContrast((Shape) source.lookup(".ui-icon"), 2.0);
+    }
+
+    private void renderedIconContrast(Shape icon, double minimum) {
+        check(icon != null && icon.isVisible(), "missing interaction icon");
+        Scene scene = icon.getScene(); Bounds bounds = icon.localToScene(icon.getBoundsInLocal());
+        WritableImage shown = scene.snapshot(null);
+        try {
+            icon.setVisible(false); WritableImage hidden = scene.snapshot(null);
+            int changedPixels = 0; double maximumContrast = 1;
+            for (int y = (int) Math.max(0, bounds.getMinY()); y < Math.min(shown.getHeight(), bounds.getMaxY()); y++)
+                for (int x = (int) Math.max(0, bounds.getMinX()); x < Math.min(shown.getWidth(), bounds.getMaxX()); x++) {
+                    Color glyph = shown.getPixelReader().getColor(x, y), background = hidden.getPixelReader().getColor(x, y);
+                    double first = luminance(glyph), second = luminance(background);
+                    double ratio = (Math.max(first, second) + .05) / (Math.min(first, second) + .05);
+                    if (ratio > 1.25) changedPixels++;
+                    maximumContrast = Math.max(maximumContrast, ratio);
+                }
+            check(changedPixels > 10 && maximumContrast >= minimum,
+                    "disabled icon is unreadable after compositing opacity: pixels=" + changedPixels + ", contrast=" + maximumContrast);
+        } finally { icon.setVisible(true); }
+    }
+
+    private void keyboardFocusCheck(ThemeController.Mode mode) throws Exception {
+        WritableImage[] unfocused = {null}; Bounds[] before = {null};
+        fx(() -> {
+            revealHomeDiscovery();
+            node("home-query").requestFocus(); layout();
+            before[0] = node("home-search-button").getBoundsInLocal();
+            unfocused[0] = node("home-search-button").snapshot(null, null);
+            node("home-query").fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB, false, false, false, false));
+        });
+        pause(100);
+        fx(() -> {
+            layout(); Node focused = node("home-search-button");
+            check(stage.getScene().getFocusOwner() == focused, "Tab traversal did not reach recommendation action");
+            check(before[0].equals(focused.getBoundsInLocal()), "keyboard focus changed button bounds: "
+                    + before[0] + " -> " + focused.getBoundsInLocal());
+            WritableImage after = focused.snapshot(null, null); int perimeterChanges = 0;
+            int width = (int) after.getWidth(), height = (int) after.getHeight();
+            check(width == (int) unfocused[0].getWidth() && height == (int) unfocused[0].getHeight(), "focus changed rendered button dimensions");
+            for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
+                if (x > 3 && x < width - 4 && y > 3 && y < height - 4) continue;
+                if (after.getPixelReader().getArgb(x, y) != unfocused[0].getPixelReader().getArgb(x, y)) perimeterChanges++;
+            }
+            check(perimeterChanges >= 20, "keyboard focus has no visible boundary");
+            readable((Labeled) focused, 4.5);
+            fits(focused);
+        });
+        pause(100);
+        fx(() -> screenshot(stage.getScene(), mode.name().toLowerCase() + "-keyboard-focus.png"));
+    }
+
+    private void noHorizontalScroll(Node item) {
+        check(item.lookupAll(".scroll-bar").stream().filter(ScrollBar.class::isInstance)
+                .map(ScrollBar.class::cast).noneMatch(bar -> bar.getOrientation() == Orientation.HORIZONTAL
+                        && bar.isVisible() && bar.getLayoutBounds().getHeight() > 0), "horizontal scrollbar in " + item.getId());
+    }
+    /** Stage 3.2 wraps the original discovery controls in the personal-home viewport. */
+    private void revealHomeDiscovery() {
+        ScrollPane scroll = (ScrollPane) node("home-scroll");
+        for (int pass = 0; pass < 3; pass++) {
+            layout();
+            Node viewportNode = scroll.lookup(".viewport");
+            Bounds viewport = viewportNode.localToScene(viewportNode.getLayoutBounds());
+            Bounds query = node("home-query").localToScene(node("home-query").getLayoutBounds());
+            double extent = scroll.getContent().getLayoutBounds().getHeight() - scroll.getViewportBounds().getHeight();
+            if (extent <= 0) return;
+            double delta = query.getMinY() < viewport.getMinY() ? query.getMinY() - viewport.getMinY() - 12
+                    : query.getMaxY() > viewport.getMaxY() ? query.getMaxY() - viewport.getMaxY() + 12 : 0;
+            scroll.setVvalue(Math.max(0, Math.min(1, scroll.getVvalue() + delta / extent)));
+        }
+        layout();
+    }
+    private void checkRowIdentity() {
+        ListView<Track> tracks = list("playlist-tracks"); tracks.scrollTo(0); layout();
+        ListCell<?> known = renderedCell(0);
+        Label knownPerformer = (Label) known.lookup(".track-artist");
+        check(knownPerformer.getText().equals("Fixture 演唱者 · 录音室版"), "list replaced known performer with resource author");
+        readable(knownPerformer, 3.0);
+        ButtonBase rowFavorite = (ButtonBase) known.lookup(".track-favorite");
+        check(rowFavorite.getTooltip() != null && rowFavorite.getTooltip().getText().equals("取消收藏"), "favorite row tooltip is stale");
+        check(((Shape) rowFavorite.lookup(".ui-icon")).getFill().equals(((Shape) node("favorite-current").lookup(".ui-icon")).getFill()),
+                "favorite row and playback bar use different saved-state colors");
+        checkArtworkCorners(known.lookup(".track-artwork"), 2, "playlist artwork");
+        checkArtworkCorners(node("player-track-entry").lookup(".cover-pane"), 4, "playback artwork");
+        ListCell<?> uploaded = renderedCell(2);
+        check(((Label) uploaded.lookup(".track-artist")).getText().equals("UP 主：FixtureUploader"),
+                "Bilibili author is shown as an unqualified performer");
+        Label title = (Label) uploaded.lookup(".track-title");
+        check(title.getText().equals("上传资源演示") && !title.getText().contains("BV"), "resource identity replaced readable song title");
+        check(title.getTooltip() != null && title.getTooltip().getText().contains("BV1FixtureVisual"),
+                "resource identity is unavailable from tooltip");
+    }
+    private ListCell<?> renderedCell(int index) {
+        return list("playlist-tracks").lookupAll(".list-cell").stream().filter(ListCell.class::isInstance)
+                .map(ListCell.class::cast).filter(cell -> cell.getIndex() == index && !cell.isEmpty()).findFirst().orElseThrow();
+    }
+    private int firstVisibleRow() {
+        ListView<Track> tracks = list("playlist-tracks");
+        Bounds viewport = tracks.localToScene(tracks.getBoundsInLocal());
+        return tracks.lookupAll(".list-cell").stream().filter(ListCell.class::isInstance).map(ListCell.class::cast)
+                .filter(cell -> !cell.isEmpty() && cell.getIndex() >= 0
+                        && cell.localToScene(cell.getBoundsInLocal()).getMaxY() > viewport.getMinY() + 2
+                        && cell.localToScene(cell.getBoundsInLocal()).getMinY() < viewport.getMaxY() - 2)
+                .mapToInt(ListCell::getIndex).min().orElse(-1);
+    }
+    private void preserved(double before, boolean advancing) {
+        check(audio() == originalAudio, "navigation replaced AudioPlayer");
+        check(field("loadVersion", Long.class) == originalLoad, "navigation reloaded audio");
+        check(field("queue", PlayerQueue.class).snapshot().equals(originalQueue), "navigation changed queue");
+        check(audio().state() == JavaFxAudioPlayer.State.PLAYING, "navigation stopped playback");
+        check(audio().position().toSeconds() >= before + (advancing ? .2 : -.1), "playback clock stopped or reset");
+    }
+    private void chooseTheme(ThemeController.Mode mode) {
+        for (int i = 0; i < ThemeController.Mode.values().length && field("themeMode", ThemeController.Mode.class) != mode; i++) click("theme-button");
+        check(field("themeMode", ThemeController.Mode.class) == mode, "theme selection failed " + mode);
+    }
+    private void openScene(String name) {
+        switch (name) {
+            case "home" -> click("nav-home");
+            case "playlist" -> { openPlaylist(playlistId); ((ScrollPane) node("playlist-scroll")).setVvalue(0); list("playlist-tracks").scrollTo(0); }
+            case "immersive" -> click("open-immersive");
+            case "settings" -> { click("sidebar-settings"); ((ScrollPane) node("settings-scroll")).setVvalue(0); }
+            default -> throw new AssertionError(name);
+        }
+    }
+    private void openPlaylist(String id) {
+        click("nav-playlists"); picker().setValue(picker().getItems().stream().filter(item -> id.equals(item.id())).findFirst().orElseThrow()); layout();
+    }
+    private void prepareFixture() throws Exception {
+        root = Path.of(required("LUMEN_LIBRARY_PATH")).toAbsolutePath().normalize().getParent();
+        check(root != null && root.toString().contains("visual-language-smoke") && !Files.exists(root.resolve("library.json")), "fresh isolated visual profile required");
+        for (String key : List.of("LOCALAPPDATA", "LUMEN_PREFERENCES_PATH", "LUMEN_HISTORY_PATH", "LUMEN_AI_SETTINGS_PATH")) {
+            Path path = Path.of(required(key)).toAbsolutePath().normalize();
+            check(path.equals(root) || root.equals(path.getParent()), key + " outside isolated profile");
+        }
+        check(System.getenv("OPENAI_API_KEY") == null && System.getenv("LUMEN_AI_API_KEY") == null, "API keys entered smoke profile");
+        URI service = URI.create(required("LUMEN_SERVICE_URL"));
+        check("http".equals(service.getScheme()) && "127.0.0.1".equals(service.getHost()) && service.getPort() > 0, "loopback demo service required");
+        Path wav = root.resolve("visual-local-180s.wav");
+        int rate = 11_025, seconds = 180; byte[] pcm = new byte[rate * seconds * 2];
+        for (int frame = 0; frame < rate * seconds; frame++) {
+            short value = (short) (1600 * Math.sin(frame * 2 * Math.PI * 220 / rate));
+            pcm[frame * 2] = (byte) value; pcm[frame * 2 + 1] = (byte) (value >>> 8);
+        }
+        try (AudioInputStream stream = new AudioInputStream(new ByteArrayInputStream(pcm), new AudioFormat(rate, 16, 1, true, false), rate * seconds)) {
+            check(AudioSystem.write(stream, AudioFileFormat.Type.WAVE, wav.toFile()) > 0, "WAV not written");
+        }
+        Path cover = root.resolve("portrait-cover.png");
+        BufferedImage png = new BufferedImage(300, 500, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < 500; y++) for (int x = 0; x < 300; x++) {
+            int color = 0xFFEB2D3A;
+            if (x < 60 && y < 60) color = COVER_MARKERS[0];
+            if (x >= 240 && y < 60) color = COVER_MARKERS[1];
+            if (x < 60 && y >= 440) color = COVER_MARKERS[2];
+            if (x >= 240 && y >= 440) color = COVER_MARKERS[3];
+            png.setRGB(x, y, color);
+        }
+        check(ImageIO.write(png, "png", cover.toFile()), "cover not written");
+        Path background = root.resolve("background.png"); Files.copy(cover, background);
+        Properties preferences = new Properties(); preferences.setProperty("theme", "dark");
+        preferences.setProperty("background", background.toString()); preferences.setProperty("pet", "HIDDEN");
+        preferences.setProperty("sidebar.collapsed", "false"); preferences.setProperty("sidebar.width", "176");
+        try (var output = Files.newOutputStream(Path.of(required("LUMEN_PREFERENCES_PATH")))) { preferences.store(output, "Visual language fixture"); }
+        coverServer = HttpServer.create(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), 0), 0);
+        coverServer.createContext("/cover.png", exchange -> {
+            try (exchange) {
+                byte[] bytes = Files.readAllBytes(cover); exchange.getResponseHeaders().set("Content-Type", "image/png");
+                if ("HEAD".equals(exchange.getRequestMethod())) exchange.sendResponseHeaders(200, -1);
+                else { exchange.sendResponseHeaders(200, bytes.length); exchange.getResponseBody().write(bytes); }
+            }
+        }); coverServer.start();
+        URI artwork = URI.create("http://127.0.0.1:" + coverServer.getAddress().getPort() + "/cover.png");
+        first = new Track("visual-first", LONG_TITLE, "Fixture 源作者", seconds, "local", wav.toUri(), null, 0, artwork);
+        missing = new Track("visual-missing", "缺封面与歌词 Missing artwork", "Fixture", seconds, "local", wav.toUri(), null, 0, null);
+        LibraryClient library = new LibraryClient(service);
+        check(library.load().playlists().isEmpty(), "demo library not empty");
+        playlistId = library.createPlaylist(LONG_TITLE).playlists().get(0).id();
+        library.addToPlaylist(playlistId, first); library.addToPlaylist(playlistId, missing);
+        library.favorite(first);
+        library.addToPlaylist(playlistId, new Track("visual-upload", "上传资源演示", "FixtureUploader", seconds,
+                "bilibili", wav.toUri(), "BV1FixtureVisual", 1, artwork));
+        for (int i = 3; i < 24; i++) library.addToPlaylist(playlistId, new Track("visual-row-" + i, "Scroll row " + i + " 曲目", "Fixture", seconds, "local", wav.toUri(), null, 0, artwork));
+        new VersionCatalogClient(service).create(LONG_TITLE, "视觉身份验收", List.of(new VersionCatalog.Version("录音室版", "Fixture 演唱者", first)));
+        emptyPlaylistId = library.createPlaylist("空歌单 Empty playlist").playlists().stream().filter(item -> !item.id().equals(playlistId)).findFirst().orElseThrow().id();
+    }
+
+    private void fits(Node item) {
+        check(item.isVisible() && item.isManaged(), "hidden key control " + item.getId());
+        Bounds bounds = item.localToScene(item.getLayoutBounds()); Scene scene = item.getScene();
+        check(bounds.getMinX() >= -1 && bounds.getMaxX() <= scene.getWidth() + 1 && bounds.getMinY() >= -1 && bounds.getMaxY() <= scene.getHeight() + 1,
+                "control overflow " + item.getId() + ": " + bounds);
+    }
+    private void screenshot(Scene scene, String name) {
+        try {
+            WritableImage image = scene.snapshot(null);
+            BufferedImage png = new BufferedImage((int) image.getWidth(), (int) image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            for (int y = 0; y < png.getHeight(); y++) for (int x = 0; x < png.getWidth(); x++) png.setRGB(x, y, image.getPixelReader().getArgb(x, y));
+            Path target = root.resolve(name);
+            check(ImageIO.write(png, "png", target.toFile()) && Files.size(target) > 1_000, "screenshot missing " + name);
+            System.out.println("SCREENSHOT: " + target);
+        } catch (Exception error) { throw new AssertionError("screenshot failed " + name, error); }
+    }
+    private void layout() { stage.getScene().getRoot().applyCss(); stage.getScene().getRoot().layout(); }
+    private void click(String id) { ((ButtonBase) node(id)).fire(); }
+    private Node node(String id) { Node value = stage.getScene().lookup("#" + id); check(value != null, "missing UI #" + id); return value; }
+    @SuppressWarnings("unchecked") private ListView<Track> list(String id) { return (ListView<Track>) node(id); }
+    @SuppressWarnings("unchecked") private ComboBox<LibraryClient.Playlist> picker() { return (ComboBox<LibraryClient.Playlist>) node("playlist-picker"); }
+    private AudioPlayer audio() { return field("audio", AudioPlayer.class); }
+    private <T> T field(String name, Class<T> type) {
+        try { Field value = LumenFxApp.class.getDeclaredField(name); value.setAccessible(true); return type.cast(value.get(app)); }
+        catch (ReflectiveOperationException error) { throw new AssertionError("cannot inspect " + name, error); }
+    }
+    private Object invoke(String name, Class<?>[] types, Object... args) {
+        try { Method value = LumenFxApp.class.getDeclaredMethod(name, types); value.setAccessible(true); return value.invoke(app, args); }
+        catch (ReflectiveOperationException error) { throw new AssertionError("cannot invoke " + name, error); }
+    }
+    private static MouseEvent doubleClick() { return new MouseEvent(MouseEvent.MOUSE_CLICKED, 8, 8, 8, 8, MouseButton.PRIMARY, 2, false, false, false, false, true, false, false, true, false, false, null); }
+    private void settle() throws Exception { pause(420); fx(this::layout); }
+    private void awaitPlaying(String id) throws Exception {
+        await(15_000, () -> fxValue(() -> audio().state() == JavaFxAudioPlayer.State.PLAYING && id.equals(field("loadedTrack", Track.class).id()) && audio().position().toSeconds() > .2), "local audio did not play " + id);
+    }
+    private static String required(String key) { String value = System.getenv(key); check(value != null && !value.isBlank(), "missing " + key); return value; }
+    private static void check(boolean value, String message) { if (!value) throw new AssertionError(message); }
+    private static void pause(long millis) throws InterruptedException { Thread.sleep(millis); }
+    private void await(long millis, CheckedBoolean condition, String message) throws Exception {
+        long deadline = System.nanoTime() + millis * 1_000_000L;
+        while (System.nanoTime() < deadline) { if (condition.get()) return; pause(70); }
+        throw new AssertionError(message + "; phase=" + phase);
+    }
+    private void fx(Checked action) throws Exception { fxValue(() -> { action.run(); return null; }); }
+    private <T> T fxValue(CheckedValue<T> action) throws Exception {
+        CompletableFuture<T> result = new CompletableFuture<>();
+        Platform.runLater(() -> { try { result.complete(action.get()); } catch (Throwable error) { result.completeExceptionally(error); } });
+        return result.get(15, TimeUnit.SECONDS);
+    }
+    private void finish(int code) {
+        if (!finished.compareAndSet(false, true)) return;
+        try { fx(() -> { if (app != null) app.stop(); for (Window window : List.copyOf(Window.getWindows())) window.hide(); }); }
+        catch (Exception error) { error.printStackTrace(System.err); }
+        if (coverServer != null) coverServer.stop(0);
+        System.exit(code);
+    }
+    @FunctionalInterface private interface Checked { void run() throws Exception; }
+    @FunctionalInterface private interface CheckedValue<T> { T get() throws Exception; }
+    @FunctionalInterface private interface CheckedBoolean { boolean get() throws Exception; }
+}

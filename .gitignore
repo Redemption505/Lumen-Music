@@ -1,0 +1,39 @@
+build/
+desktop/target/
+stream-proxy/target/
+__pycache__/
+*.pyc
+.venv/
+.idea/
+*.log
+
+# Local audit notes, tool state and generated evidence
+/.planning/
+/.codex/
+/.agents/
+.pytest_cache/
+.cache/
+
+# Personal state and credentials (including recovery copies)
+userdata/
+personal-data/
+ai-secret.json*
+.ai-settings-recovery.json*
+ai-settings.json*
+appearance.properties*
+playback-state.xml*
+diagnostics.xml*
+.env
+.env.*
+!.env.example
+!.env.sample
+credentials.json*
+cookies.txt
+
+# Private signing material; public certificates require an explicit review
+/signing/
+/certificates/
+*.pfx
+*.p12
+*.key
+*.pem
