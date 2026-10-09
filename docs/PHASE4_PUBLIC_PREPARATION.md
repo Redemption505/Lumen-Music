@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | Git 基线 | 开发根仓库的 `main` 关联准确 `origin`，正常合并远程初始历史后上传；精确暂存路径、原字节及忽略规则核验 | 若后续改变可见性或发布附件，核对相应范围及授权 |
 | 源码范围 | 实际 Git 忽略探针、文本扫描和暂存内容比对；排除个人状态、密钥、备份、签名材料、缓存与工具记录 | 新增内容及公开素材来源仍须按实际对象复核 |
-| CI | Ubuntu 基础测试及 Java/Python 集成；Windows PowerShell/Maven Wrapper demo 路径 | 实际运行以 [GitHub Actions](https://github.com/Redemption505/Lumen-Music/actions) 为准，不以配置存在声明成功 |
+| CI | Ubuntu 基础测试及 Java/Python 集成；Windows 完整 Java 单元检查及 PowerShell/Maven Wrapper demo | 实际运行以 [GitHub Actions](https://github.com/Redemption505/Lumen-Music/actions) 为准，不以配置存在声明成功 |
 | 发行材料 | 从当前 D 镜像、对应源码和校验匹配的本地缓存整理许可/NOTICE与来源证据 | 平台/歌词/素材范围及部分 native 组件完整对应材料，见[具体材料](PHASE4_RELEASE_MATERIALS.md) |
 | 朋友试用 | [试用说明](FRIEND_TRIAL.md)、[反馈模板](FRIEND_FEEDBACK.md)与唯一 D 构建可供使用 | 非开发电脑独立使用、原闪退者复测 |
 
@@ -42,7 +42,7 @@ python scripts/ci-demo.py --offline
 
 本地准备使用 Windows、Python 3.12.14、OpenJDK 23.0.2、PowerShell 7.6.5，实际成功调用、故意错误 JDK 引起的 Maven 失败后服务清理，以及 Windows 推荐 demo 入口均通过。Windows 本地结果不能冒充 Ubuntu 或远程 Temurin 21 成功；推送后的执行与结论从上述 Actions 入口核验，源码、窗口、安装与音频范围仍分别验收。
 
-D 的 Java322、Python362/2跳过、Rust7/1忽略及安装/音频证据保留其原构建与日期。E 未改应用生产代码，按源码影响范围复用这些结果；本轮实际新增执行与复用结果分别登记。
+D 的 Java322、Python362/2跳过、Rust7/1忽略及安装/音频证据保留其原构建与日期。E 未改应用生产代码。首次 Ubuntu 执行发现 Win32 `THUMBBUTTON` 布局测试误用于 Unix JNA 的 4 字节 WCHAR；该 ABI 断言仍保留完整预期，在 Windows job 的全量 Java 检查运行，Ubuntu 继续运行该类的通用逻辑和其余测试，不将这个 Windows 布局判断写成 Linux 桌面支持。
 
 ## 3. 使用本地快照与下一步
 

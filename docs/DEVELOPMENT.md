@@ -172,7 +172,7 @@ Wrapper 固定分发 URL，目前未配置 `distributionSha256Sum`；Rust 固定
 
 | 检查层 | 当前覆盖 | 不由该层证明 |
 | --- | --- | --- |
-| `.github/workflows/verify.yml` | Ubuntu、Temurin 21、Python 3.12基础测试与隔离 demo；另有 Windows PowerShell/Maven Wrapper demo job | 远程实际成功、Windows JavaFX 界面、VLC/FLAC 发声、安装/升级/卸载及发行归档 |
+| `.github/workflows/verify.yml` | Ubuntu、Temurin 21、Python 3.12基础测试与隔离 demo；Windows 完整 Java 单元检查及 PowerShell/Maven Wrapper demo | 远程实际成功、Windows JavaFX 界面、VLC/FLAC 发声、安装/升级/卸载及发行归档 |
 | Windows 基本 `check.ps1` | 本机的相同工程入口与隔离 demo 协议 | 安装版已更新、用户原始数据回归、朋友独立使用 |
 | Windows 场景和安装专项 | 显式 classes/JAR、合成或允许使用的媒体、缩放/UI/播放、真实安装目标与数据保护 | 未运行的其他目标镜像/系统、外部朋友实际反馈 |
 | 发行候选 | 冻结源码/BuildId、必要完整回归、真实安装版、完整/增量/SOURCE字节与校验和 | 外部发布成功；发布还需真实远程、可见性及相应授权 |

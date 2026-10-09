@@ -10,6 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 class WindowsTaskbarControlsTest {
     @Test void routesOnlyKnownThumbnailCommands() {
@@ -40,8 +42,11 @@ class WindowsTaskbarControlsTest {
         assertEquals("取消收藏", Native.toString(button.szTip));
     }
 
-    @Test void thumbnailButtonMatchesWin32MemoryLayout() {
+    @Test
+    @EnabledOnOs(value = OS.WINDOWS, disabledReason = "Win32 ABI requires 2-byte WCHAR; Unix JNA uses the host ABI")
+    void thumbnailButtonMatchesWin32MemoryLayout() {
         // THUMBBUTTON: DWORD, UINT, UINT, pointer, WCHAR[260], DWORD.
+        assertEquals(2, Native.WCHAR_SIZE);
         assertEquals(Native.POINTER_SIZE == 8 ? 552 : 540,
                 new WindowsTaskbarControls.ThumbButton().size());
     }

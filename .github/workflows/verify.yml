@@ -38,6 +38,7 @@ jobs:
         run: python scripts/ci-demo.py
 
   windows-demo:
+    name: Windows Java and demo
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
@@ -53,6 +54,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Windows Java build and unit tests
+        shell: pwsh
+        run: ./scripts/check.ps1 -Component Java -JavaHome $env:JAVA_HOME
       - name: Windows PowerShell and Maven Wrapper demo integration
         shell: pwsh
         run: ./scripts/check.ps1 -Component Demo -Python (Get-Command python).Source -JavaHome $env:JAVA_HOME
