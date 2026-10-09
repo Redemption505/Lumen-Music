@@ -1,20 +1,20 @@
 # 第四阶段 E：本地第三方材料准备
 
-核对日期：2026-10-09。**已完成 D 内测候选的本地材料收集与精确版本清单；仍有原生组件、对应源码与内容来源未决项，未取得公开分发完成结论。** 用户当前授权为先完成本地准备、暂不推送。没有推送、上传、发布、联系朋友或服务方，没有新增或升级依赖。
+核对日期：2026-10-09。**已完成 D 内测候选的本地材料收集与精确版本清单；仍有原生组件、对应源码与内容来源未决项，未取得二进制公开分发完成结论。** 用户已另行授权源码上传至指定私有 GitHub 仓库；此页所述材料归档不在本次上传范围。材料收集没有新增或升级依赖，也没有联系朋友或服务方。
 
 ## 1. 对象与证据
 
-基线为 v0.2.2 / `lumen-0.2.2-20261009.2`，主 JAR SHA-256 为 `ce77801d4e0586c301d70591fae31cf08c8806ee3d867bdc3e55a898777e364c`。收集器先验证 [D 验证摘要](../build/phase4-release-d/final-verification.json) 中的完整包、内嵌 SOURCE 与主 JAR 哈希，再核对 SOURCE 的 BuildId、启动器及 Rust 二进制哈希，以及当前 Cargo.toml、Cargo.lock、POM 与该 SOURCE 的字节。新材料和本文没有改写已经冻结的 D 包；工作区新增文件不能被说成已进入 D 的 SOURCE。
+基线为 v0.2.2 / `lumen-0.2.2-20261009.2`，主 JAR SHA-256 为 `ce77801d4e0586c301d70591fae31cf08c8806ee3d867bdc3e55a898777e364c`。收集器先验证 D 验证摘要（本地证据/归档：`build/phase4-release-d/final-verification.json`，不随源码上传） 中的完整包、内嵌 SOURCE 与主 JAR 哈希，再核对 SOURCE 的 BuildId、启动器及 Rust 二进制哈希，以及当前 Cargo.toml、Cargo.lock、POM 与该 SOURCE 的字节。新材料和本文没有改写已经冻结的 D 包；工作区新增文件不能被说成已进入 D 的 SOURCE。
 
 可审阅的本地结果均在默认不公开的 `build/`：
 
-- [材料 manifest](../build/phase4-public-e/materials/manifest.json)：每个材料的来源、归属、大小与 SHA-256，以及镜像全部文件、JAR/native 成员、精确 Rust 图和未决状态。
-- [材料校验和](../build/phase4-public-e/materials/SHA256SUMS.txt)：411 份材料和 manifest 的字节校验；不把验证摘要自身写进该清单。
-- [Windows 普通依赖图](../build/phase4-public-e/materials/rust-windows-normal.txt)：从当前锁定源码离线重取，去重后按名称与版本排列，不输出开发者绝对路径。
-- [本轮验证摘要](../build/phase4-public-e/materials/verification.json)：材料哈希、清单唯一性、路径边界与旧 C 图版本集合复核。
-- [收集器复现与写入边界](../build/phase4-public-e/materials-collector-boundaries.json)：411 份材料原字节及镜像清单复现一致，拒绝覆盖既有输出或向被检查的 AppHome 新建材料目录。
+- 材料 manifest（本地证据/归档：`build/phase4-public-e/materials/manifest.json`，不随源码上传）：每个材料的来源、归属、大小与 SHA-256，以及镜像全部文件、JAR/native 成员、精确 Rust 图和未决状态。
+- 材料校验和（本地证据/归档：`build/phase4-public-e/materials/SHA256SUMS.txt`，不随源码上传）：411 份材料和 manifest 的字节校验；不把验证摘要自身写进该清单。
+- Windows 普通依赖图（本地证据/归档：`build/phase4-public-e/materials/rust-windows-normal.txt`，不随源码上传）：从当前锁定源码离线重取，去重后按名称与版本排列，不输出开发者绝对路径。
+- 本轮验证摘要（本地证据/归档：`build/phase4-public-e/materials/verification.json`，不随源码上传）：材料哈希、清单唯一性、路径边界与旧 C 图版本集合复核。
+- 收集器复现与写入边界（本地证据/归档：`build/phase4-public-e/materials-collector-boundaries.json`，不随源码上传）：411 份材料原字节及镜像清单复现一致，拒绝覆盖既有输出或向被检查的 AppHome 新建材料目录。
 
-材料目录的 `existing/` 是 D 已有文本/源码的原字节副本；`supplemented/` 是本轮从匹配版本的现成缓存补出的许可、NOTICE、作者致谢或元数据。收集器给 AppHome 的全部 785 个文件记录哈希，包括构建镜像标记 `app/.jpackage.xml`。与实际安装只读相减后，仅此标记不在安装目录，其余 784 个运行文件全部 SHA-256 相同；[差项证据](../build/phase4-public-e/installed-image-difference.json) 记录该范围。现有 `install-phase3-release.ps1` 明确将该非运行标记排除于安装验收，因此 D 的 784 与这里的 785 是不同清单范围，不是应用负载缺失，也不是 Hidden 属性差异。
+材料目录的 `existing/` 是 D 已有文本/源码的原字节副本；`supplemented/` 是本轮从匹配版本的现成缓存补出的许可、NOTICE、作者致谢或元数据。收集器给 AppHome 的全部 785 个文件记录哈希，包括构建镜像标记 `app/.jpackage.xml`。与实际安装只读相减后，仅此标记不在安装目录，其余 784 个运行文件全部 SHA-256 相同；差项证据（本地证据/归档：`build/phase4-public-e/installed-image-difference.json`，不随源码上传） 记录该范围。现有 `install-phase3-release.ps1` 明确将该非运行标记排除于安装验收，因此 D 的 784 与这里的 785 是不同清单范围，不是应用负载缺失，也不是 Hidden 属性差异。
 
 ## 2. 已有与补齐材料
 
@@ -52,4 +52,4 @@ python scripts/collect-release-materials.py `
 
 2026-10-09 的有限官方核对取得 [JNA 5.14.0 许可文件](https://github.com/java-native-access/jna/blob/5.14.0/LICENSE)，支持其 Java 许可可选择 Apache-2.0 或 LGPL-2.1 及之后版本；取得 [OpenJFX jfx21 许可文件](https://github.com/openjdk/jfx/blob/jfx21/LICENSE)，但该分支资料不能单独证明本机 21.0.12 native 组件及材料完整。[OpenJDK 归档入口](https://jdk.java.net/archive/) 返回 403，没有用它确认本机 JDK 的原始下载链。许可正文收集主要依据已验证本机归档，未下载新依赖，也没有为失败页面编造原文或授权结论。
 
-音源/平台接口、两类歌词、图标来源和公开展示素材仍遵循 [第三方来源核对](THIRD_PARTY_REVIEW.md) 的具体未决项。朋友独立电脑试用及原首次启动闪退反馈者复测仍无结果。此页完成的是本地可审阅材料准备，不能作为开始推送、公开附件或 Release 的授权，也不能把材料复制写成上述条件已通过。
+音源/平台接口、两类歌词、图标来源和公开展示素材仍遵循 [第三方来源核对](THIRD_PARTY_REVIEW.md) 的具体未决项。朋友独立电脑试用及原首次启动闪退反馈者复测仍无结果。此页完成本地可审阅材料准备；本轮源码上传的授权不覆盖材料附件、仓库改为公开或二进制 Release，材料复制也不代表上述条件已通过。

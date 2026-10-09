@@ -1,5 +1,7 @@
 # Windows 朋友试用说明
 
+本页本地证据与归档位于未随源码上传的 `build/`；不是 GitHub 下载入口。
+
 ## 转发前确认
 
 本页提供待转发材料，当前未联系或发送给朋友，独立电脑试用和原首次启动闪退复测仍待外部验证。本轮提供 **v0.2.2 / `lumen-0.2.2-20261009.2` 私下内测候选**，包含第四阶段 B/C 修复及最近播放启动反馈修复；用户已确认先交付内测候选。
@@ -9,9 +11,9 @@
 | 本轮交付身份 | 当前材料 |
 | --- | --- |
 | 版本 / 完整构建号 | v0.2.2 / `lumen-0.2.2-20261009.2`，私下内测候选 |
-| 完整包文件名 / 本地交付位置 | [Lumen-Music-v0.2.2-Windows-x64.zip](../build/releases/Lumen-Music-v0.2.2-Windows-x64.zip) |
-| 完整包 SHA-256 | [对应旁置校验文件](../build/releases/Lumen-Music-v0.2.2-Windows-x64.zip.sha256) |
-| 增量包适用原版本 / 文件名 / SHA-256 | 仅 v0.2.1：[更新 ZIP](../build/releases/Lumen-Music-v0.2.1-to-v0.2.2-Windows-x64-Update.zip)、[校验文件](../build/releases/Lumen-Music-v0.2.1-to-v0.2.2-Windows-x64-Update.zip.sha256)；早期 v0.2.2 使用完整安装器 |
+| 完整包文件名 / 本地交付位置 | Lumen-Music-v0.2.2-Windows-x64.zip（本地路径：`build/releases/Lumen-Music-v0.2.2-Windows-x64.zip`） |
+| 完整包 SHA-256 | 对应旁置校验文件（本地路径：`build/releases/Lumen-Music-v0.2.2-Windows-x64.zip.sha256`） |
+| 增量包适用原版本 / 文件名 / SHA-256 | 仅 v0.2.1：更新 ZIP（本地路径：`build/releases/Lumen-Music-v0.2.1-to-v0.2.2-Windows-x64-Update.zip`）、校验文件（本地路径：`build/releases/Lumen-Music-v0.2.1-to-v0.2.2-Windows-x64-Update.zip.sha256`）；早期 v0.2.2 使用完整安装器 |
 | 包内 SOURCE.zip 的 BUILD-INFO 身份 | 目标构建号及主 JAR 哈希见 [D 候选说明](PHASE4_RELEASE_CANDIDATE.md) |
 | 新安装、升级及资料保留的验收记录 | [本地 D 验收](PHASE4_RELEASE_CANDIDATE.md)；独立朋友电脑验收仍待登记 |
 | 试用联系人 / 朋友可访问的交付位置 / 反馈方式 | 由转发者填写；当前没有公开下载地址 |

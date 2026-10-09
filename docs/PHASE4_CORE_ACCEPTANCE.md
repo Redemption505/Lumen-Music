@@ -1,5 +1,7 @@
 # 第四阶段 B：核心工程质量验收
 
+本页本地证据与归档位于未随源码上传的 `build/`；不是 GitHub 下载入口。
+
 日期：2026-10-08。范围为 [A 冻结的 B-01～B-05](PHASE4_AUDIT_SCOPE.md) 及直接关联回归。本轮修改当前源码，沿用已有依赖；已安装版和发行 ZIP 仍为 `lumen-0.2.2-20261007.4`。下列开发环境结果不代表新安装包或公开发布通过。
 
 ## 1. 修复与恢复方式
@@ -22,18 +24,18 @@ AI 的 `.ai-settings-recovery.json` 与 `ai-secret.json` 一样包含凭据，�
 
 | 验证 | 实际结果 | 记录 |
 | --- | --- | --- |
-| Java 完整构建与单元回归 | JDK 23.0.2，编译目标 17；320 项全部通过 | [完整日志](../build/phase4-core-b/java-full.txt) |
-| Python 完整回归 | Python 3.13.15；364 项中 362 通过、2 跳过，零失败/错误；18 项新增边界全部通过 | [完整摘要](../build/phase4-core-b/ai/full-summary.json)、[边界摘要](../build/phase4-core-b/ai/boundary-summary.json) |
-| 原版本受控复现 | 下载中的快照 0 秒；四个忙队列关闭返回 9104 毫秒 | [原版本证据](../build/phase4-core-b/ui-baseline/normal-a9b08acc2e3c474c89124703319d1ab8/phase4-core-evidence.txt) |
-| 下载中关闭/排队写入/再次打开 | 60 秒、58 毫秒；真实列表/歌词写入与暂停恢复通过，外部服务仍健康 | [证据](../build/phase4-core-b/ui-pending/normal-ae616148629a49d0a3ff1f88756eba49/phase4-core-evidence.txt) |
-| 完整文件 READY 前关闭 | 19.2 秒、77 毫秒；在真实 AAC 的 LOADING 回调排队关闭，验证尚未 READY；实际再次打开保持暂停 | [证据](../build/phase4-core-b/ui-before-ready/normal-6715b1cf675c443faeb65404cef16015/phase4-core-evidence.txt) |
-| 正常完整文件暂停定位 | 到达 19.2 秒，保持未播放；关闭返回 160 毫秒，写入和再次打开通过 | [证据](../build/phase4-core-b/ui-after-ready/normal-fba45f6a6b254796a30c7e9f031cf0e6/phase4-core-evidence.txt) |
-| 实际 Java→Python 写入协议 | 收藏、普通歌单、排序、去重、XML、本地引用和片段增删改通过 | [客户端日志](../build/phase4-core-b/library-contract/normal-1454c131827341c7b29da3b40bea084f/desktop.stdout.log) |
-| 自有 Python 进程生命周期 | 当前 Java + 已有标准 Python 3.12.14；随机端口启动、健康复用、数据源冲突拒绝、复用关闭不杀服务、自有关闭后不再健康 | [日志](../build/phase4-core-b/service-lifecycle/normal-47af122c663a4242a7b6e2979e408424/desktop.stdout.log) |
-| 真实本地 FLAC 界面 | 正常及 150% 显示通过；服务等待/失败时两曲播放/暂停/拖动/恢复/切歌，偏好和歌词恢复，退出及持久化；真实 VLC 关闭返回 143/146 毫秒 | [正常证据](../build/phase4-core-b/local/normal-d6190cfe0618406ca1ea62ba5d820585/phase4-local-evidence.txt)、[150% 证据](../build/phase4-core-b/local/hidpi-941fc24062ef405782a8c4062971f0b4/phase4-local-evidence.txt) |
-| 关联启动 | 服务等待时导航/主题/界面心跳、HTTP 失败/重试及已有队列/位置/本地列表保持；原生音频初始化待处理时心跳 20 次 | [证据](../build/phase4-core-b/startup-ui-smoke/normal-e973479f1e6742c68b4547f2c1f08d90/startup-ui-evidence.txt) |
-| 桌宠关联退出 | 按钮、窗口关闭、最小化、沉浸、迷你、离开/返回桌面七种方式通过；附属窗口/动画释放，七个 Java 进程自然退出 | [全部场景](../build/pet-exit-smoke/eebac3898e7d46c0993dfceaeeff907a/) |
-| 片段关联回归 | 自产 AAC、真实 VLC；源偏移/相对拖动/结束切段/单曲重复、独立歌词、共享缓存、实际重启恢复及 UI 预览/取消/创建/编辑/删除通过 | [日志与截图](../build/segment-smoke/5b47c157208c4f1384d6d63170b2a655/) |
+| Java 完整构建与单元回归 | JDK 23.0.2，编译目标 17；320 项全部通过 | 完整日志（本地路径：`build/phase4-core-b/java-full.txt`） |
+| Python 完整回归 | Python 3.13.15；364 项中 362 通过、2 跳过，零失败/错误；18 项新增边界全部通过 | 完整摘要（本地路径：`build/phase4-core-b/ai/full-summary.json`）、边界摘要（本地路径：`build/phase4-core-b/ai/boundary-summary.json`） |
+| 原版本受控复现 | 下载中的快照 0 秒；四个忙队列关闭返回 9104 毫秒 | 原版本证据（本地路径：`build/phase4-core-b/ui-baseline/normal-a9b08acc2e3c474c89124703319d1ab8/phase4-core-evidence.txt`） |
+| 下载中关闭/排队写入/再次打开 | 60 秒、58 毫秒；真实列表/歌词写入与暂停恢复通过，外部服务仍健康 | 证据（本地路径：`build/phase4-core-b/ui-pending/normal-ae616148629a49d0a3ff1f88756eba49/phase4-core-evidence.txt`） |
+| 完整文件 READY 前关闭 | 19.2 秒、77 毫秒；在真实 AAC 的 LOADING 回调排队关闭，验证尚未 READY；实际再次打开保持暂停 | 证据（本地路径：`build/phase4-core-b/ui-before-ready/normal-6715b1cf675c443faeb65404cef16015/phase4-core-evidence.txt`） |
+| 正常完整文件暂停定位 | 到达 19.2 秒，保持未播放；关闭返回 160 毫秒，写入和再次打开通过 | 证据（本地路径：`build/phase4-core-b/ui-after-ready/normal-fba45f6a6b254796a30c7e9f031cf0e6/phase4-core-evidence.txt`） |
+| 实际 Java→Python 写入协议 | 收藏、普通歌单、排序、去重、XML、本地引用和片段增删改通过 | 客户端日志（本地路径：`build/phase4-core-b/library-contract/normal-1454c131827341c7b29da3b40bea084f/desktop.stdout.log`） |
+| 自有 Python 进程生命周期 | 当前 Java + 已有标准 Python 3.12.14；随机端口启动、健康复用、数据源冲突拒绝、复用关闭不杀服务、自有关闭后不再健康 | 日志（本地路径：`build/phase4-core-b/service-lifecycle/normal-47af122c663a4242a7b6e2979e408424/desktop.stdout.log`） |
+| 真实本地 FLAC 界面 | 正常及 150% 显示通过；服务等待/失败时两曲播放/暂停/拖动/恢复/切歌，偏好和歌词恢复，退出及持久化；真实 VLC 关闭返回 143/146 毫秒 | 正常证据（本地路径：`build/phase4-core-b/local/normal-d6190cfe0618406ca1ea62ba5d820585/phase4-local-evidence.txt`）、150% 证据（本地路径：`build/phase4-core-b/local/hidpi-941fc24062ef405782a8c4062971f0b4/phase4-local-evidence.txt`） |
+| 关联启动 | 服务等待时导航/主题/界面心跳、HTTP 失败/重试及已有队列/位置/本地列表保持；原生音频初始化待处理时心跳 20 次 | 证据（本地路径：`build/phase4-core-b/startup-ui-smoke/normal-e973479f1e6742c68b4547f2c1f08d90/startup-ui-evidence.txt`） |
+| 桌宠关联退出 | 按钮、窗口关闭、最小化、沉浸、迷你、离开/返回桌面七种方式通过；附属窗口/动画释放，七个 Java 进程自然退出 | 全部场景（本地路径：`build/pet-exit-smoke/eebac3898e7d46c0993dfceaeeff907a/`） |
+| 片段关联回归 | 自产 AAC、真实 VLC；源偏移/相对拖动/结束切段/单曲重复、独立歌词、共享缓存、实际重启恢复及 UI 预览/取消/创建/编辑/删除通过 | 日志与截图（本地路径：`build/segment-smoke/5b47c157208c4f1384d6d63170b2a655/`） |
 
 FLAC 验证经生产选曲/加载路径使用真实 VLC，分别在服务等待和失败时检查两曲起播、时钟推进、暂停、拖动约 12 秒、恢复和切歌；还检查设置/歌词恢复、最后暂停位置、VLC 关闭、偏好/列表/歌词重新读取与恢复副本。界面测试不接管鼠标；原生状态与时间检查不等于声学音质或实际扬声器采集。
 
@@ -53,4 +55,4 @@ FLAC 验证经生产选曲/加载路径使用真实 VLC，分别在服务等待�
 
 片段入口是 [segment-smoke.ps1](../scripts/segment-smoke.ps1)，本轮显式指定 JDK 23.0.2 和 `-AudioFixture build/phase4-core-b/ui-before-ready/normal-6715b1cf675c443faeb65404cef16015/cache-fixture.m4a`。该 AAC 来自本轮自产音频，应用代码仍来自当前 `desktop/target/classes`；未指定已安装目录。本轮未验证该脚本默认 WAV 的最终结果。
 
-修改前已保存 [314 文件的私有源码基线](../build/phase4-core-b/baseline/a1f7a6a42d0340ff879b3943ef7d791a/workspace-baseline.zip)，SHA-256 为 `75c659add0e3e646410bdbd811dded7ea1e74b798289355c95ed694d40c8938f`；该快照和构建证据不属于公共源码候选。本轮未初始化 Git、改变依赖、更新真实安装、重打发行 ZIP 或发布；全量发行、长时/跨设备收听、外网来源与朋友独立复验属于 C/D 后续门槛。
+修改前已保存 314 文件的私有源码基线（本地路径：`build/phase4-core-b/baseline/a1f7a6a42d0340ff879b3943ef7d791a/workspace-baseline.zip`），SHA-256 为 `75c659add0e3e646410bdbd811dded7ea1e74b798289355c95ed694d40c8938f`；该快照和构建证据不属于公共源码候选。本轮未初始化 Git、改变依赖、更新真实安装、重打发行 ZIP 或发布；全量发行、长时/跨设备收听、外网来源与朋友独立复验属于 C/D 后续门槛。

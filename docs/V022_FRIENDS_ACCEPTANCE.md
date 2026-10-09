@@ -1,5 +1,7 @@
 # v0.2.2 朋友反馈验收
 
+本页本地证据与归档位于未随源码上传的 `build/`；不是 GitHub 下载入口。
+
 版本保持 **v0.2.2**，本次构建为 `lumen-0.2.2-20261007.3`。本报告对应八项歌词与交互反馈；第四阶段功能范围见[第四阶段](../第四阶段.md)，前一构建的滚动、长视频片段和退出修复见[历史验收](V022_FIXES_ACCEPTANCE.md)。
 
 ## 当前行为
@@ -26,30 +28,30 @@
 | 李荣浩《恋人》百万豪装录音棚大声听，BV1d1bnzVErx | 274 秒 | 276 秒 | 网易云候选，自动匹配，简体正文 |
 | 在百万豪装录音棚大声听 郁可唯《路过人间》【Hi-res】，BV1tF411k7uV | 248 秒 | 247 秒 | LRCLIB 候选，自动匹配，简体正文；候选曲名为“路過人間” |
 
-证据：[发行服务真实 API](../build/friends-live-api/evidence.json)、[四个公开视频候选](../build/lyrics-round2-real-evidence.json)。自动匹配仍取决于来源是否收录该录音；简繁检索使用内置常见字映射，不改写原始歌词。
+证据：发行服务真实 API（本地路径：`build/friends-live-api/evidence.json`）、四个公开视频候选（本地路径：`build/lyrics-round2-real-evidence.json`）。自动匹配仍取决于来源是否收录该录音；简繁检索使用内置常见字映射，不改写原始歌词。
 
 ## 验收范围
 
 | 验证 | 结果与证据 |
 | --- | --- |
-| Java 全套 | 274 通过，零失败：[日志](../build/v022-friends-maven-tests.log) |
-| Python 全套 | 343 项运行，341 通过、2 项既有公网测试跳过：[日志](../build/v022-friends-python-tests.log) |
-| 整理曲库与版本 | 窄窗口完整按钮、标签/文件夹/歌单取消零写入、版本替换取消及确认通过：[整理](../build/v022-friends-smart.log)、[版本](../build/v022-friends-version.log) |
-| 最近播放删除与备份 | 单备注、空白保存删除、单歌词、双备注及双歌词批量：取消不改 HTTP 快照与磁盘曲库，确认只影响目标；五主题、导出/备份/重启恢复通过：[日志](../build/v022-friends-diary.log) |
-| 桌宠与拖动 | 两档缩放各 54 项检查通过：首次即长句、中英文/表情字符、完整原句与合法显示前缀、真实两行及完整裁剪区域、事件切换、屏幕跟随、暂停/隐藏/返回/关闭，长按锚点、控件排除与边缘缩放：[日志](../build/v022-friends-pet-drag.log) |
-| 提示及迷你播放器 | 两档缩放下，三主题透明提示、侧栏对齐、迷你尺寸/圆角/滚动/暂停/返回连续性通过：[无鼠标整合](../build/v022-friends-ui-preflight.log)。原生鼠标：125% 三主题持续悬停及迷你进度条拖动/实际定位/窗口不移动通过；150% 三主题持续悬停通过：[125% 完整驱动](../build/friends-feedback-smoke/normal-8e53f48099c144a88c29a2e92a9274e7/desktop.stdout.log)、[150% 悬停证据](../build/friends-feedback-smoke/hidpi-1.5-f3331cd544e847eaad1a2aee6897f51b/desktop.stdout.log) |
-| 既有音频与退出 | 滚动两档缩放、实际片段边界/定位/结束/循环及编辑删除、七种自然退出通过：[滚动](../build/v022-friends-scroll.log)、[片段](../build/v022-friends-segment.log)、[退出](../build/v022-friends-pet-exit.log) |
-| 第四阶段 3.1～3.3 | 五主题、1280×800 / 860×600、实际 125% / 150% 输出缩放；视觉语言 80 组、个人首页 20 组、收藏与记忆 100 组通过：[3.1](../build/v022-friends-visual.log)、[3.2](../build/v022-friends-home.log)、[3.3](../build/v022-friends-collection.log) |
+| Java 全套 | 274 通过，零失败：日志（本地路径：`build/v022-friends-maven-tests.log`） |
+| Python 全套 | 343 项运行，341 通过、2 项既有公网测试跳过：日志（本地路径：`build/v022-friends-python-tests.log`） |
+| 整理曲库与版本 | 窄窗口完整按钮、标签/文件夹/歌单取消零写入、版本替换取消及确认通过：整理（本地路径：`build/v022-friends-smart.log`）、版本（本地路径：`build/v022-friends-version.log`） |
+| 最近播放删除与备份 | 单备注、空白保存删除、单歌词、双备注及双歌词批量：取消不改 HTTP 快照与磁盘曲库，确认只影响目标；五主题、导出/备份/重启恢复通过：日志（本地路径：`build/v022-friends-diary.log`） |
+| 桌宠与拖动 | 两档缩放各 54 项检查通过：首次即长句、中英文/表情字符、完整原句与合法显示前缀、真实两行及完整裁剪区域、事件切换、屏幕跟随、暂停/隐藏/返回/关闭，长按锚点、控件排除与边缘缩放：日志（本地路径：`build/v022-friends-pet-drag.log`） |
+| 提示及迷你播放器 | 两档缩放下，三主题透明提示、侧栏对齐、迷你尺寸/圆角/滚动/暂停/返回连续性通过：无鼠标整合（本地路径：`build/v022-friends-ui-preflight.log`）。原生鼠标：125% 三主题持续悬停及迷你进度条拖动/实际定位/窗口不移动通过；150% 三主题持续悬停通过：125% 完整驱动（本地路径：`build/friends-feedback-smoke/normal-8e53f48099c144a88c29a2e92a9274e7/desktop.stdout.log`）、150% 悬停证据（本地路径：`build/friends-feedback-smoke/hidpi-1.5-f3331cd544e847eaad1a2aee6897f51b/desktop.stdout.log`） |
+| 既有音频与退出 | 滚动两档缩放、实际片段边界/定位/结束/循环及编辑删除、七种自然退出通过：滚动（本地路径：`build/v022-friends-scroll.log`）、片段（本地路径：`build/v022-friends-segment.log`）、退出（本地路径：`build/v022-friends-pet-exit.log`） |
+| 第四阶段 3.1～3.3 | 五主题、1280×800 / 860×600、实际 125% / 150% 输出缩放；视觉语言 80 组、个人首页 20 组、收藏与记忆 100 组通过：3.1（本地路径：`build/v022-friends-visual.log`）、3.2（本地路径：`build/v022-friends-home.log`）、3.3（本地路径：`build/v022-friends-collection.log`） |
 
 测试使用独立资料目录，界面驱动核验生产类来自被测镜像 JAR，并检查代表截图。150% 原生驱动在悬停通过后的曲库读取发生 HTTP 超时，未运行该档原生滑块，不计作通过；随后两档无鼠标整合复查均通过，数据取消与确认逻辑没有复现超时。最终桌宠换行调整单独复验受影响路径；其余界面与音频结果复用已通过的生产类验收。
 
-代表截图：[125% 桌宠歌词](../build/friends-feedback-smoke/normal-59a701459783488790bb56f8c6c398ea/desktop-long-lyric.png)、[150% 桌宠歌词](../build/friends-feedback-smoke/hidpi-1.5-de4d64f80567412cbdf655802c7532e9/desktop-long-lyric.png)、[460px 浅色迷你窗](../build/friends-feedback-smoke/normal-59a701459783488790bb56f8c6c398ea/light-mini-460-paused-rounded.png)。首次弹出后按实际字体和缩放完成布局，完整的一行或两行文字不会被边界裁掉；特别长的桌宠歌词显示省略号，迷你窗仍滚动显示完整原句。
+代表截图：125% 桌宠歌词（本地路径：`build/friends-feedback-smoke/normal-59a701459783488790bb56f8c6c398ea/desktop-long-lyric.png`）、150% 桌宠歌词（本地路径：`build/friends-feedback-smoke/hidpi-1.5-de4d64f80567412cbdf655802c7532e9/desktop-long-lyric.png`）、460px 浅色迷你窗（本地路径：`build/friends-feedback-smoke/normal-59a701459783488790bb56f8c6c398ea/light-mini-460-paused-rounded.png`）。首次弹出后按实际字体和缩放完成布局，完整的一行或两行文字不会被边界裁掉；特别长的桌宠歌词显示省略号，迷你窗仍滚动显示完整原句。
 
 ## 本地安装与发行
 
 程序镜像：`build/dist/20261007-154547-639/LumenMusic`。完整安装器：`build/dist/20261007-170111-136/LumenMusic-0.2.2.exe`。本机安装目录：`%LOCALAPPDATA%/LumenMusic`。
 
-更新前已[备份](../build/phase3-release-backup/20261007-154444-7f38c189a64641b6879d65ae839d1dc5/) 805 个安装目录文件及 315 个个人资料文件。本次带备份原子同步主 JAR、歌词服务和新增简繁检索模块；784 个程序文件与最终镜像一致，315 个个人资料文件大小及哈希不变。Windows Installer 的唯一 0.2.2 登记保持正常，本轮未运行 MSI 修复事务。
+更新前已备份（本地路径：`build/phase3-release-backup/20261007-154444-7f38c189a64641b6879d65ae839d1dc5/`） 805 个安装目录文件及 315 个个人资料文件。本次带备份原子同步主 JAR、歌词服务和新增简繁检索模块；784 个程序文件与最终镜像一致，315 个个人资料文件大小及哈希不变。Windows Installer 的唯一 0.2.2 登记保持正常，本轮未运行 MSI 修复事务。
 
 从实际安装 EXE 启动，移除开发 PATH 与 Java/Python 环境变量后，捆绑 JVM、Python 服务与搜索、Rust 转发和正常退出后的自有进程清理均通过；测试资料与个人资料隔离。
 
@@ -60,9 +62,9 @@
 
 安装与发行的机器可读证据入口：
 
-- [本地同步证据](../build/v022-friends-install-verification.json)
-- [原生安装版运行](../build/v022-friends-runtime-verification.txt)
-- [真实更新、回滚及重启](../build/v022-friends-update-verification.json)
-- [完整发行一致性](../build/v022-friends-final-verification.json)
+- 本地同步证据（本地路径：`build/v022-friends-install-verification.json`）
+- 原生安装版运行（本地路径：`build/v022-friends-runtime-verification.txt`）
+- 真实更新、回滚及重启（本地路径：`build/v022-friends-update-verification.json`）
+- 完整发行一致性（本地路径：`build/v022-friends-final-verification.json`）
 
-发行入口：[Windows x64 完整包](../build/releases/Lumen-Music-v0.2.2-Windows-x64.zip)、[v0.2.1 → v0.2.2 更新包](../build/releases/Lumen-Music-v0.2.1-to-v0.2.2-Windows-x64-Update.zip)。两包均附对应源码、GPLv3、第三方声明与校验和。安卓、其他桌面平台及真实 AI 调用不在本轮验收范围。
+发行入口：Windows x64 完整包（本地路径：`build/releases/Lumen-Music-v0.2.2-Windows-x64.zip`）、v0.2.1 → v0.2.2 更新包（本地路径：`build/releases/Lumen-Music-v0.2.1-to-v0.2.2-Windows-x64-Update.zip`）。两包均附对应源码、GPLv3、第三方声明与校验和。安卓、其他桌面平台及真实 AI 调用不在本轮验收范围。

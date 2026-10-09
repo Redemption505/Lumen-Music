@@ -16,7 +16,8 @@ import uuid
 
 TREES = ('desktop/src', 'desktop/.mvn', 'service/lumen_service', 'service/tests',
          'stream-proxy/src', 'scripts', 'release', 'docs', '.github/workflows')
-FILES = ('README.md', '第四阶段.md', 'LICENSE.txt', '.gitignore', 'service/README.md',
+FILES = ('README.md', 'AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md',
+         '第四阶段.md', 'LICENSE.txt', '.gitignore', 'service/README.md',
          'desktop/pom.xml', 'desktop/mvnw', 'desktop/mvnw.cmd',
          'stream-proxy/Cargo.toml', 'stream-proxy/Cargo.lock')
 PRIVATE_DIRS = {'.git', 'build', '.planning', '.codex', '.agents', 'userdata',
@@ -92,10 +93,14 @@ def digest(data):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument('--output', type=Path, help='Report directory inside the repository build/ tree')
     parser.add_argument('--check-index', action='store_true', help='Verify exact candidate paths and staged byte hashes; do not stage')
     args = parser.parse_args()
     root = args.root.resolve()
-    out = root / 'build/phase4-public-e/scope'
+    out = args.output or Path('build/phase4-public-e/scope')
+    out = (out if out.is_absolute() else root / out).resolve()
+    if not out.is_relative_to((root / 'build').resolve()):
+        parser.error('--output must stay inside the repository build/ tree')
     out.mkdir(parents=True, exist_ok=True)
     rehearsal = out / ('git-rehearsal-' + uuid.uuid4().hex)
     rehearsal.mkdir()

@@ -1,5 +1,7 @@
 # 第四阶段 §3.2：个人首页验收
 
+本页本地证据与归档位于未随源码上传的 `build/`；不是 GitHub 下载入口。
+
 ## 结论与交付范围
 
 2026-10-07，个人首页已完成实现及本机数据、真实窗口与播放验收。使用说明见[个人首页](PERSONAL_HOME.md)。本轮功能已纳入 v0.2.2，最终发行 JAR 的两档 DPI 回归与安装交付见[综合验收](V022_ACCEPTANCE.md)。以下保留 §3.2 当轮证据，未新增依赖。
@@ -45,15 +47,15 @@
 
 | 验证 | 日志或结果 |
 | --- | --- |
-| 首页最终 125% | [stdout](../build/personal-home-smoke/normal-6c70f86e070844b686e24dacb33a425a/desktop.stdout.log) |
-| 首页最终 150% | [stdout](../build/personal-home-smoke/hidpi-1.5-52797010286e4abcb43850b14a9a0ef5/desktop.stdout.log) |
-| 原视觉回归 125% | [stdout](../build/visual-language-smoke/normal-a748afdba4bf44ddaa0e7ebbff70beac/desktop.stdout.log) |
-| 原视觉回归 150% | [stdout](../build/visual-language-smoke/hidpi-1.5-0fe7db8132ee419bbe3310421a80027d/desktop.stdout.log) |
-| 私人电台回归 | [stdout](../build/radio-smoke/d21729d80d894484bf27600e6e1aa72c/desktop.stdout.log) |
-| Python 首页最终 6 项 | [日志](../build/personal-home-tests.log) |
-| Java HTTP / 重逢 | [HomeClientTest](../desktop/target/surefire-reports/com.lumenmusic.HomeClientTest.txt)、[HomeReunionTest](../desktop/target/surefire-reports/com.lumenmusic.HomeReunionTest.txt) |
+| 首页最终 125% | stdout（本地路径：`build/personal-home-smoke/normal-6c70f86e070844b686e24dacb33a425a/desktop.stdout.log`） |
+| 首页最终 150% | stdout（本地路径：`build/personal-home-smoke/hidpi-1.5-52797010286e4abcb43850b14a9a0ef5/desktop.stdout.log`） |
+| 原视觉回归 125% | stdout（本地路径：`build/visual-language-smoke/normal-a748afdba4bf44ddaa0e7ebbff70beac/desktop.stdout.log`） |
+| 原视觉回归 150% | stdout（本地路径：`build/visual-language-smoke/hidpi-1.5-0fe7db8132ee419bbe3310421a80027d/desktop.stdout.log`） |
+| 私人电台回归 | stdout（本地路径：`build/radio-smoke/d21729d80d894484bf27600e6e1aa72c/desktop.stdout.log`） |
+| Python 首页最终 6 项 | 日志（本地路径：`build/personal-home-tests.log`） |
+| Java HTTP / 重逢 | HomeClientTest（本地证据/归档：`desktop/target/surefire-reports/com.lumenmusic.HomeClientTest.txt`，不随源码上传）、HomeReunionTest（本地证据/归档：`desktop/target/surefire-reports/com.lumenmusic.HomeReunionTest.txt`，不随源码上传） |
 
-截图：[Lumen 首页](../build/personal-home-smoke/normal-6c70f86e070844b686e24dacb33a425a/lumen-home-top-1280x800.png)、[静默恢复](../build/personal-home-smoke/normal-6c70f86e070844b686e24dacb33a425a/paused-restored.png)、[空首页](../build/personal-home-smoke/hidpi-1.5-52797010286e4abcb43850b14a9a0ef5/new-listener.png)、[浅色小窗口调整](../build/personal-home-smoke/hidpi-1.5-52797010286e4abcb43850b14a9a0ef5/light-customize-small.png)。截图标题与超长歌单名为合成验收内容。
+截图：Lumen 首页（本地路径：`build/personal-home-smoke/normal-6c70f86e070844b686e24dacb33a425a/lumen-home-top-1280x800.png`）、静默恢复（本地路径：`build/personal-home-smoke/normal-6c70f86e070844b686e24dacb33a425a/paused-restored.png`）、空首页（本地路径：`build/personal-home-smoke/hidpi-1.5-52797010286e4abcb43850b14a9a0ef5/new-listener.png`）、浅色小窗口调整（本地路径：`build/personal-home-smoke/hidpi-1.5-52797010286e4abcb43850b14a9a0ef5/light-customize-small.png`）。截图标题与超长歌单名为合成验收内容。
 
 源码 CSS 与被测 `target/classes/lumen-theme.css` 的 SHA-256 相同：`b7f59e704fc1aa580ae88fb53051959bf2ff99d5b086d1de5ffa5d6d4d8e893d`。
 

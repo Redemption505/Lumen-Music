@@ -1,5 +1,7 @@
 # 第四阶段 §3.1：视觉统一验收
 
+本页本地证据与归档位于未随源码上传的 `build/`；不是 GitHub 下载入口。
+
 ## 结论与交付范围
 
 2026-10-07，首页、普通歌单、沉浸播放和设置的视觉统一已完成源码实现与本机验收。五档主题保持，未新增依赖。使用规则见[视觉语言](VISUAL_LANGUAGE.md)。
@@ -37,12 +39,12 @@
 
 | 验收 | 最终日志 |
 | --- | --- |
-| 视觉窗口 125% | [stdout](../build/visual-language-smoke/normal-859f6bbe369a4d0aa1886b40490a3f39/desktop.stdout.log) |
-| 视觉窗口 150% | [stdout](../build/visual-language-smoke/hidpi-1.5-d7a65b02b04242cc955d53f9b95bffc1/desktop.stdout.log) |
-| 播放场景 125% | [stdout](../build/playback-scene-smoke/normal-e03c20868d16443c9c4bae2a6759e1c6/desktop.stdout.log) |
-| Java 主题测试 | [结果](../desktop/target/surefire-reports/com.lumenmusic.ThemePaletteTest.txt) |
+| 视觉窗口 125% | stdout（本地路径：`build/visual-language-smoke/normal-859f6bbe369a4d0aa1886b40490a3f39/desktop.stdout.log`） |
+| 视觉窗口 150% | stdout（本地路径：`build/visual-language-smoke/hidpi-1.5-d7a65b02b04242cc955d53f9b95bffc1/desktop.stdout.log`） |
+| 播放场景 125% | stdout（本地路径：`build/playback-scene-smoke/normal-e03c20868d16443c9c4bae2a6759e1c6/desktop.stdout.log`） |
+| Java 主题测试 | 结果（本地证据/归档：`desktop/target/surefire-reports/com.lumenmusic.ThemePaletteTest.txt`，不随源码上传） |
 
-截图：[Lumen 沉浸页](../build/visual-language-smoke/normal-859f6bbe369a4d0aa1886b40490a3f39/lumen-immersive-1280x800.png)、[浅色小窗口设置](../build/visual-language-smoke/normal-859f6bbe369a4d0aa1886b40490a3f39/light-settings-860x600.png)、[深色键盘焦点](../build/visual-language-smoke/normal-859f6bbe369a4d0aa1886b40490a3f39/dark-keyboard-focus.png)、[空歌单](../build/visual-language-smoke/normal-859f6bbe369a4d0aa1886b40490a3f39/empty-playlist-small.png)。封面的强烈角标用于检查完整性，不代表正式视觉素材。
+截图：Lumen 沉浸页（本地路径：`build/visual-language-smoke/normal-859f6bbe369a4d0aa1886b40490a3f39/lumen-immersive-1280x800.png`）、浅色小窗口设置（本地路径：`build/visual-language-smoke/normal-859f6bbe369a4d0aa1886b40490a3f39/light-settings-860x600.png`）、深色键盘焦点（本地路径：`build/visual-language-smoke/normal-859f6bbe369a4d0aa1886b40490a3f39/dark-keyboard-focus.png`）、空歌单（本地路径：`build/visual-language-smoke/normal-859f6bbe369a4d0aa1886b40490a3f39/empty-playlist-small.png`）。封面的强烈角标用于检查完整性，不代表正式视觉素材。
 
 窗口检查实现为 [VisualLanguageSmoke](../desktop/src/test/java/com/lumenmusic/VisualLanguageSmoke.java)，入口为 [visual-language-smoke.ps1](../scripts/visual-language-smoke.ps1)。源码 CSS 与被测 `target/classes/lumen-theme.css` 的 SHA-256 一致：`969d11df629d781a962148943f51262e8832be97eb65138c809a00f9f6f09a61`。
 

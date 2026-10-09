@@ -1,6 +1,6 @@
-# 第四阶段 E：本地仓库与公开交付准备
+# 第四阶段 E：GitHub 源码与交付准备
 
-日期：2026-10-09。用户本轮选择**先完成本地准备，暂不推送**，尚无独立朋友电脑或原首次启动闪退的复测结果。本地 Git、CI 支持和材料整理服务于后续维护；远程仓库、实际 Actions 和公开 Release 继续待确认。
+日期：2026-10-09。本地准备完成后，用户已明确授权上传至 [Redemption505/Lumen-Music](https://github.com/Redemption505/Lumen-Music)。GitHub 实际身份确认仓库为私有、当前用户具有 Push 权限；保持现有可见性并保留原始 README 提交历史。本次交付源码与工程文档，独立朋友电脑和原首次启动闪退复测、第三方二进制公开材料及 Release 继续按实际条件处理。
 
 ## 1. 当前交付边界
 
@@ -8,13 +8,13 @@
 
 | 对象 | 本地准备内容 | 仍需的外部结果 |
 | --- | --- | --- |
-| Git 基线 | `main` 本地仓库，按复核清单精确暂存；检查索引路径、原字节与忽略规则，再保存真实提交及恢复 bundle | 目标地址、可见性与对应远程操作授权 |
+| Git 基线 | 开发根仓库的 `main` 关联准确 `origin`，正常合并远程初始历史后上传；精确暂存路径、原字节及忽略规则核验 | 若后续改变可见性或发布附件，核对相应范围及授权 |
 | 源码范围 | 实际 Git 忽略探针、文本扫描和暂存内容比对；排除个人状态、密钥、备份、签名材料、缓存与工具记录 | 新增内容及公开素材来源仍须按实际对象复核 |
-| CI | Ubuntu 基础测试及 Java/Python 集成；新增 Windows PowerShell/Maven Wrapper demo 路径 | GitHub-hosted runner、Temurin 21 和 Ubuntu 实际运行链接 |
+| CI | Ubuntu 基础测试及 Java/Python 集成；Windows PowerShell/Maven Wrapper demo 路径 | 实际运行以 [GitHub Actions](https://github.com/Redemption505/Lumen-Music/actions) 为准，不以配置存在声明成功 |
 | 发行材料 | 从当前 D 镜像、对应源码和校验匹配的本地缓存整理许可/NOTICE与来源证据 | 平台/歌词/素材范围及部分 native 组件完整对应材料，见[具体材料](PHASE4_RELEASE_MATERIALS.md) |
 | 朋友试用 | [试用说明](FRIEND_TRIAL.md)、[反馈模板](FRIEND_FEEDBACK.md)与唯一 D 构建可供使用 | 非开发电脑独立使用、原闪退者复测 |
 
-本地提交采用单次自动化身份 `Codex <codex@localhost>` 保存现有源码快照；没有代填用户姓名/邮箱，也不改全局 Git 身份。提交时间是实际创建时间，不伪造之前的开发历史。实际提交号、源码 ZIP 和 bundle 校验见本地[验证索引](../build/phase4-public-e/final-verification.json)；该索引及内部备份不纳入开发仓库。
+最初本地快照 `e3f917b` 采用单次自动化身份 `Codex <codex@localhost>`，没有代填用户姓名/邮箱或伪造之前历史。本轮提交沿用用户当前已配置的 Git 身份，并保留 GitHub 初始提交 `084d622`。历史 ZIP/bundle 的本地验证索引为 `build/phase4-public-e/final-verification.json`，上传核对记录为 `build/phase4-github-e/`；这些证据和内部备份不随源码上传。远程提交可从[仓库历史](https://github.com/Redemption505/Lumen-Music/commits/main/)查看。
 
 ## 2. 工程入口与验证
 
@@ -40,7 +40,7 @@ python scripts/ci-demo.py --offline
 ./scripts/check.ps1 -Component Demo -Python '<完整解释器路径>' -JavaHome '<完整JDK目录>' -Offline
 ```
 
-本地使用 Windows、Python 3.12.14、OpenJDK 23.0.2、PowerShell 7.6.5，实际成功调用、故意错误 JDK 引起的 Maven 失败后服务清理，以及 Windows 推荐 demo 入口均通过。保留沙箱回环权限拒绝等早期工具诊断；没有以权限错误充当端口已释放。Windows 本地结果不能冒充 Ubuntu 或远程 Temurin 21 成功，workflow 当前只作静态核对。
+本地准备使用 Windows、Python 3.12.14、OpenJDK 23.0.2、PowerShell 7.6.5，实际成功调用、故意错误 JDK 引起的 Maven 失败后服务清理，以及 Windows 推荐 demo 入口均通过。Windows 本地结果不能冒充 Ubuntu 或远程 Temurin 21 成功；推送后的执行与结论从上述 Actions 入口核验，源码、窗口、安装与音频范围仍分别验收。
 
 D 的 Java322、Python362/2跳过、Rust7/1忽略及安装/音频证据保留其原构建与日期。E 未改应用生产代码，按源码影响范围复用这些结果；本轮实际新增执行与复用结果分别登记。
 
@@ -48,4 +48,6 @@ D 的 Java322、Python362/2跳过、Rust7/1忽略及安装/音频证据保留其
 
 Git bundle 保留本地真实提交和 `main`，可在另一个目录用 `git clone '<bundle路径>' '<新目录>'` 恢复；仓库 ZIP 提供已提交文件，包含 workflow 和 `.gitignore`，不包含历史、工具、二进制安装镜像或私人材料。它是开发仓库快照，不能替代 D 二进制对应的 `SOURCE.zip`。
 
-后续在用户指定准确远程、可见性及上传范围后，先核对已有远程历史，再连接/推送并取得真实 CI 结果。独立试用和来源材料未决时，继续使用明确标识的内测候选；接受剩余风险公开候选或正式 Release 必须作具体决定。安卓仍按第四阶段的恢复条件单独安排。
+开发操作在包含 `desktop/`、`service/` 与 `stream-proxy/` 的工作区根目录执行；本地已有的 `Lumen-Music/` 子 clone 是独立仓库，不纳入父仓库源码清单。后续同步先检查所在根目录、分支和工作区，不盲目覆盖任一份修改。
+
+源码已获授权提交私有仓库；未授权改变可见性或发布二进制。独立试用和来源材料未决时，继续使用明确标识的内测候选；公开候选或正式 Release 需满足第四阶段 §8.3 的实际条件。安卓仍按第四阶段的恢复条件单独安排。

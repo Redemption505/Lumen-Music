@@ -1,5 +1,7 @@
 # 朋友试用反馈与外部验证记录
 
+本页本地证据与归档位于未随源码上传的 `build/`；不是 GitHub 下载入口。
+
 当前是空白模板，没有收集本轮独立电脑结果。旧验收报告中的工程测试不等于朋友已复测；原首次启动闪退没有崩溃证据、未确认原因，状态保持**待原反馈者复测**。试用包须先按[试用说明](FRIEND_TRIAL.md)确认新唯一候选身份。
 
 ## 每位试用者填写
@@ -63,7 +65,7 @@
 
 状态区分“待证据”“未复现”“已定位”“工程验证通过”“原反馈者复测通过”。不能把工程验证或其他人的未复现写成原反馈者通过。
 
-原问题证据为[报错预览日志](../build/phase4-delivery-c/installer-ui/baeb81cb5f3e41d29fba42ecdcb0fdf7/ui-preview.log)。当前资源编译后的[11 项 MSI 结构结果](../build/phase4-delivery-c/installer-compiled/c18cda5008af451786c33a67c68b4e58/msi-structure.json)、[原生复验结果](../build/phase4-delivery-c/installer-ui/d41a58812f8b4d16bf417aea372a9cc4/result.json)、[选择与取消后的可见路径](../build/phase4-delivery-c/installer-ui/d41a58812f8b4d16bf417aea372a9cc4/visible-paths.json)和[修后预览日志](../build/phase4-delivery-c/installer-ui/d41a58812f8b4d16bf417aea372a9cc4/ui-preview.log)对应同一隔离验证构建 `qa-c-e8cdcbe84a0d42c6bbb5b2a906649cff`，不是正式试用候选。取消向导返回 1602，日志无 2856、失败返回值 3 或 ExecuteAction，ProductState 为 -1；没有执行安装。
+原问题证据为报错预览日志（本地路径：`build/phase4-delivery-c/installer-ui/baeb81cb5f3e41d29fba42ecdcb0fdf7/ui-preview.log`）。当前资源编译后的11 项 MSI 结构结果（本地路径：`build/phase4-delivery-c/installer-compiled/c18cda5008af451786c33a67c68b4e58/msi-structure.json`）、原生复验结果（本地路径：`build/phase4-delivery-c/installer-ui/d41a58812f8b4d16bf417aea372a9cc4/result.json`）、选择与取消后的可见路径（本地路径：`build/phase4-delivery-c/installer-ui/d41a58812f8b4d16bf417aea372a9cc4/visible-paths.json`）和修后预览日志（本地路径：`build/phase4-delivery-c/installer-ui/d41a58812f8b4d16bf417aea372a9cc4/ui-preview.log`）对应同一隔离验证构建 `qa-c-e8cdcbe84a0d42c6bbb5b2a906649cff`，不是正式试用候选。取消向导返回 1602，日志无 2856、失败返回值 3 或 ExecuteAction，ProductState 为 -1；没有执行安装。
 
 这是一项 C 关键交互补验中新确认并完成源码修复/隔离工程复验的 P0；不能把它当作朋友首次启动闪退的根因。正式旧 `.4` 安装器和归档仍未更新；朋友记录仍由实际独立试用填写。
 

@@ -1,6 +1,6 @@
 # 公开源码候选范围
 
-核对日期：2026-10-09（第三方现行资料访问基线为2026-10-08）。当前已建立真实本地 Git，按用户要求完成本地准备、暂不推送；没有远程 CI 或公开附件。开发仓库范围由实际 Git 忽略与索引检查验证，来源及组件未决项见[第三方核对](THIRD_PARTY_REVIEW.md)和[E 材料准备](PHASE4_RELEASE_MATERIALS.md)，本文件不构成公开许可。
+核对日期：2026-10-09（第三方现行资料访问基线为2026-10-08）。用户已授权将复核后的源码提交至 [Redemption505/Lumen-Music](https://github.com/Redemption505/Lumen-Music)，保持仓库现有私有可见性。本次上传开发源码、脚本、规范和合成截图，不上传安装器、第三方二进制、个人资料或本地材料归档，不创建 Release。范围由实际 Git 忽略与索引检查验证，来源及二进制未决项见[第三方核对](THIRD_PARTY_REVIEW.md)和[E 材料准备](PHASE4_RELEASE_MATERIALS.md)。
 
 ## 1. 三种对象分别验收
 
@@ -20,7 +20,7 @@
 
 | 范围 | 候选内容 |
 | --- | --- |
-| 根文件 | `README.md`、`第四阶段.md`、`LICENSE.txt`、`.gitignore` |
+| 根文件 | `README.md`、`AGENTS.md`、`CONTRIBUTING.md`、`CHANGELOG.md`、`第四阶段.md`、`LICENSE.txt`、`.gitignore` |
 | Java | `desktop/src/` 源码、测试与已核对素材；`desktop/pom.xml`、`desktop/mvnw`、`desktop/mvnw.cmd`、`desktop/.mvn/` |
 | Python | `service/README.md`、`service/lumen_service/*.py`、`service/tests/` 源码与人工编写的合成 fixture；运行时生成资料不纳入 |
 | Rust | `stream-proxy/src/`、`stream-proxy/Cargo.toml`、`stream-proxy/Cargo.lock` |
@@ -50,7 +50,7 @@
 
 [E 本地准备](PHASE4_PUBLIC_PREPARATION.md)使用 [repository-scope.py](../scripts/repository-scope.py)枚举上述白名单，通过实际 `git check-ignore --no-index -z --stdin` 验证22个合成排除路径；探针只使用内存路径及隔离的 Git 元数据，没有向源码放入秘密。暂存后 `--check-index` 逐项比对实际 index 的路径、stage、文件类型和 blob SHA-256，不能把全目录 `git add` 当成范围复核。
 
-检查私钥头、常见服务密钥外形、疑似凭据字面量、本机路径及合成敏感标记。结果只记录相对文件名、类别、行号、数量与哈希，不保存命中正文或秘密值。证据在默认排除的 `build/phase4-public-e/scope/`：`candidate-inventory.json`、`scope-scan.json`、`candidate-paths.nul`，最终状态见本地[E 验证索引](../build/phase4-public-e/final-verification.json)。
+检查私钥头、常见服务密钥外形、疑似凭据字面量、本机路径及合成敏感标记。结果只记录相对文件名、类别、行号、数量与哈希，不保存命中正文或秘密值。证据在默认排除的 `build/phase4-public-e/scope/`：`candidate-inventory.json`、`scope-scan.json`、`candidate-paths.nul`，最终状态见本地E 验证索引（本地证据/归档：`build/phase4-public-e/final-verification.json`，不随源码上传）。
 
 九个历史脚本中的真实个人目录、旧镜像和启动器默认值已改为显式目标或有效的项目相对位置；历史说明用环境变量及解释器占位保留事实。剩余路径外形检出为 `RadioClientTest.java` 的人工 demo URL 编码样本，直接构造、不读取文件，源码哈希绑定此分类。两张截图继续与 D 的合成窗口字节一致。图片、ICO及嵌套第三方归档没有被文本扫描当作内容权利证明。
 
@@ -69,7 +69,7 @@ D 的冻结 SOURCE 为467成员、465个当时工作区输入，二进制身份�
 
 ## 5. 公开前的具体门槛
 
-1. 指定真实远程仓库、可见性及将公开的源码/附件范围，取得对应上传/发布授权；当前候选继续私下准备。
+1. 当前源码上传已获授权，目标为上述私有仓库。扩大到公开可见性、发布附件或 Release 时另核对准确范围及对应授权；源码上传不自动授权这些操作。
 2. 完成剩余路径复核，结合已确认的合成测试字面量检查最终暂存清单/附件，拒绝个人数据、备份、媒体缓存、密钥和签名材料。新文件须重新进入清单。
 3. 解决[第三方核对](THIRD_PARTY_REVIEW.md)中的实际音源/歌词接口与素材边界，并补齐匹配实际打包组件的材料。未知项目继续明确标为未决，必要的功能范围变更由用户审阅后决定。
 4. 按冻结版本重新生成完整包与更新包材料、对应 SOURCE 及真实校验和，验证说明、源码、构建身份和二进制关系；仅整理文档不能替代新包验收。

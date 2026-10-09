@@ -1,5 +1,7 @@
 # 第四阶段 D：Windows 内测候选
 
+本页本地证据与归档位于未随源码上传的 `build/`；不是 GitHub 下载入口。
+
 日期：2026-10-09。候选身份为 **v0.2.2 / `lumen-0.2.2-20261009.2`**。本页记录本地交付与验证范围；朋友独立电脑试用、原首次启动闪退复测和公开发布条件另行登记。
 
 ## 1. 本轮交付
@@ -10,8 +12,8 @@
 | --- | --- |
 | 应用 | v0.2.2，BuildId `lumen-0.2.2-20261009.2` |
 | 主 JAR SHA-256 | `ce77801d4e0586c301d70591fae31cf08c8806ee3d867bdc3e55a898777e364c` |
-| 完整包 | [Windows x64 ZIP](../build/releases/Lumen-Music-v0.2.2-Windows-x64.zip)及[校验和](../build/releases/Lumen-Music-v0.2.2-Windows-x64.zip.sha256)；首次安装和早期 v0.2.2 均使用其中 Setup.exe |
-| 增量包 | [v0.2.1 → v0.2.2 ZIP](../build/releases/Lumen-Music-v0.2.1-to-v0.2.2-Windows-x64-Update.zip)及[校验和](../build/releases/Lumen-Music-v0.2.1-to-v0.2.2-Windows-x64-Update.zip.sha256)；仅适用包内声明的 v0.2.1 基线 |
+| 完整包 | Windows x64 ZIP（本地路径：`build/releases/Lumen-Music-v0.2.2-Windows-x64.zip`）及校验和（本地路径：`build/releases/Lumen-Music-v0.2.2-Windows-x64.zip.sha256`）；首次安装和早期 v0.2.2 均使用其中 Setup.exe |
+| 增量包 | v0.2.1 → v0.2.2 ZIP（本地路径：`build/releases/Lumen-Music-v0.2.1-to-v0.2.2-Windows-x64-Update.zip`）及校验和（本地路径：`build/releases/Lumen-Music-v0.2.1-to-v0.2.2-Windows-x64-Update.zip.sha256`）；仅适用包内声明的 v0.2.1 基线 |
 | 对应源码 | 两包内的 `SOURCE.zip`，其 `BUILD-INFO.txt` 与目标 BuildId、主 JAR 哈希对应 |
 
 同为 v0.2.2 的旧安装通过完整安装器覆盖升级，沿用安装路径和个人资料；不能套用 v0.2.1 增量包。增量更新不会重建 MSI 安装登记。详细流程见 [Windows 使用指南](WINDOWS_GUIDE.md)。校验和针对实际归档字节生成；本文引用旁置文件，避免把 ZIP 自身哈希写进它自己的源码归档。
@@ -30,7 +32,7 @@
 | 实际安装与资料 | 最终 `.2` 覆盖升级成功，784 个安装文件与目标镜像一致，升级瞬间 327 个个人文件原字节不变；真实首页/最近播放/沉浸页/桌宠和正常退出已操作，原收藏、歌单、记录与暂停队列保留。后续 Windows-only PATH 启动及原生正常关闭通过，自有进程和端口全部释放 |
 | 完整/增量/SOURCE | 构建身份及主 JAR 哈希按上表冻结；实际结构、文件字节、说明/SOURCE对应及增量回滚核对结果记录于归档外的 D 验证摘要 |
 
-完整结果与私有证据索引保存在本地 [D 验证摘要](../build/phase4-release-d/final-verification.json)，不纳入 `SOURCE.zip`。B 已验的损坏偏好/歌词保护、AI 请求/写入边界、FLAC/AAC 与拖动回退场景，按源码影响范围复用 [B 验收](PHASE4_CORE_ACCEPTANCE.md)；本轮没有用开发环境测试冒充实际安装验收。
+完整结果与私有证据索引保存在本地 D 验证摘要（本地路径：`build/phase4-release-d/final-verification.json`），不纳入 `SOURCE.zip`。B 已验的损坏偏好/歌词保护、AI 请求/写入边界、FLAC/AAC 与拖动回退场景，按源码影响范围复用 [B 验收](PHASE4_CORE_ACCEPTANCE.md)；本轮没有用开发环境测试冒充实际安装验收。
 
 ## 3. 测试入口与恢复
 

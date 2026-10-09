@@ -177,7 +177,7 @@ Wrapper 固定分发 URL，目前未配置 `distributionSha256Sum`；Rust 固定
 | Windows 场景和安装专项 | 显式 classes/JAR、合成或允许使用的媒体、缩放/UI/播放、真实安装目标与数据保护 | 未运行的其他目标镜像/系统、外部朋友实际反馈 |
 | 发行候选 | 冻结源码/BuildId、必要完整回归、真实安装版、完整/增量/SOURCE字节与校验和 | 外部发布成功；发布还需真实远程、可见性及相应授权 |
 
-`python scripts/ci-demo.py --offline` 可运行与 Ubuntu 集成 job 相同的 Java/Python 协议入口；使用独立资料、动态端口、demo 身份核验及失败时自有服务清理。Windows job 复用 `check.ps1 -Component Demo`。本轮在 Windows / Python3.12.14 / JDK23.0.2 实际验收成功路径、Maven 失败后清理和 Windows demo；远程 Ubuntu/Windows runner 与 Temurin21 尚未运行。CI 配置仅作静态审查，详见 [E 本地准备](PHASE4_PUBLIC_PREPARATION.md)。
+`python scripts/ci-demo.py --offline` 可运行与 Ubuntu 集成 job 相同的 Java/Python 协议入口；使用独立资料、动态端口、demo 身份核验及失败时自有服务清理。Windows job 复用 `check.ps1 -Component Demo`。本地准备在 Windows / Python3.12.14 / JDK23.0.2 实际验收成功路径、Maven 失败后清理和 Windows demo；远程 Ubuntu/Windows runner 与 Temurin21 的结果以 [GitHub Actions](https://github.com/Redemption505/Lumen-Music/actions) 对应提交为准，详见 [E 源码交付](PHASE4_PUBLIC_PREPARATION.md)。
 
 历史专项脚本需要显式提供实际目标，不再猜测个人安装目录、旧镜像或冻结服务。`phase3-installed-smoke` 需要 `InstalledHome`；`phase3-release-smoke` 需要 `AppHome`、`Java`、`FrozenService`；`release-playback-matrix` 需要 `AppHome`、`Java`；queue/smart/radio/version/segment/update-feedback 的目标与解释器按各脚本参数指定。安装镜像剥离 `runtime/bin/java.exe` 时，开发验收使用显式完整 JDK 的 `java.exe`，安装用户仍使用内置 JVM。
 

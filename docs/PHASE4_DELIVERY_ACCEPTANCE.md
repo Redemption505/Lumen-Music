@@ -1,5 +1,7 @@
 # 第四阶段 C：独立使用与交付整理验收
 
+本页本地证据与归档位于未随源码上传的 `build/`；不是 GitHub 下载入口。
+
 日期：2026-10-09。结论：**C 的本地交付整理、推荐开发入口与安装目录选择的关键交互补验已完成。独立电脑试用、原闪退反馈者复测及公开许可未决项仍保留。** C 验收结束时安装与发行仍是 `lumen-0.2.2-20261007.4`；后续候选、真实安装及归档状态以 [D 候选验收](PHASE4_RELEASE_CANDIDATE.md) 为准。
 
 本轮承接[第四阶段](../第四阶段.md) C，完成 §3.7、§3.8 的准备和 §4 试用材料，不自动执行 D 的正式候选构建/安装同步或 E 的 Git/外部发布。没有新增依赖、读取真实个人曲库/密钥/日志、联系朋友或上传资料。
@@ -34,9 +36,9 @@
 
 本地证据：
 
-- [开发入口验证摘要](../build/phase4-delivery-c/developer/verification-summary.json)
-- [Windows PowerShell 5.1 实际 demo](../build/phase4-delivery-c/developer/powershell51/demo/c78674a3c6a342ac96d4c15ab5760d3e/demo.log)
-- [当前源码个人首页运行输出](../build/phase4-delivery-c/developer/personal-home-smoke/normal-e28c78dedd784432ac82bb1941f42ff4/desktop.stdout.log)
+- 开发入口验证摘要（本地路径：`build/phase4-delivery-c/developer/verification-summary.json`）
+- Windows PowerShell 5.1 实际 demo（本地路径：`build/phase4-delivery-c/developer/powershell51/demo/c78674a3c6a342ac96d4c15ab5760d3e/demo.log`）
+- 当前源码个人首页运行输出（本地路径：`build/phase4-delivery-c/developer/personal-home-smoke/normal-e28c78dedd784432ac82bb1941f42ff4/desktop.stdout.log`）
 
 ## 3. 安装目录选择：新发现与定向修复
 
@@ -52,9 +54,9 @@
 
 预览采用独立 ProductCode/UpgradeCode/PackageCode，移除安装执行入口与执行序列，未操作现有安装。第一份预览曾复用旧 PackageCode 而进入缓存维护页，随后纠正隔离身份；这不是产品目录错误的根因。当前通过的是**新编译资源的禁用安装预览**，不是新正式安装包的首装/升级/卸载验收。
 
-- [旧 `.4` 错误复现日志](../build/phase4-delivery-c/installer-ui/baeb81cb5f3e41d29fba42ecdcb0fdf7/ui-preview.log)
-- [新资源结构检查](../build/phase4-delivery-c/installer-compiled/c18cda5008af451786c33a67c68b4e58/msi-structure.json)
-- [最终原生复验](../build/phase4-delivery-c/installer-ui/d41a58812f8b4d16bf417aea372a9cc4/result.json)及[可见路径记录](../build/phase4-delivery-c/installer-ui/d41a58812f8b4d16bf417aea372a9cc4/visible-paths.json)
+- 旧 `.4` 错误复现日志（本地路径：`build/phase4-delivery-c/installer-ui/baeb81cb5f3e41d29fba42ecdcb0fdf7/ui-preview.log`）
+- 新资源结构检查（本地路径：`build/phase4-delivery-c/installer-compiled/c18cda5008af451786c33a67c68b4e58/msi-structure.json`）
+- 最终原生复验（本地路径：`build/phase4-delivery-c/installer-ui/d41a58812f8b4d16bf417aea372a9cc4/result.json`）及可见路径记录（本地路径：`build/phase4-delivery-c/installer-ui/d41a58812f8b4d16bf417aea372a9cc4/visible-paths.json`）
 
 该缺陷发生在安装目录页面，没有证据证明它导致朋友报告的第一次启动闪退；后者继续待原反馈者复测。
 

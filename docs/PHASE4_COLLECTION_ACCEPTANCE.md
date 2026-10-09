@@ -1,5 +1,7 @@
 # 第四阶段 §3.3：收藏陈列与听歌记忆验收
 
+本页本地证据与归档位于未随源码上传的 `build/`；不是 GitHub 下载入口。
+
 2026-10-07，本轮桌面范围已实现，并在 v0.2.2 最终发行 JAR 上完成两档缩放验收。使用方法见[收藏与记忆](COLLECTION_MEMORY.md)，3.1～3.3 综合结果及安装交付见[v0.2.2 验收](V022_ACCEPTANCE.md)。纪念卡图片导出按原规划排在安卓核心播放之后，本次未实现。
 
 ## 实现与结果
@@ -26,12 +28,12 @@ Java 最终整合全套 274/274 通过，包含封面完整比例和透明度、
 
 | 检查 | 证据 |
 | --- | --- |
-| 最终 JAR 125% | [窗口日志](../build/collection-memory-smoke/normal-00ef3cfd83124d61adace95f0e041fa7/desktop.stdout.log)、[类加载](../build/collection-memory-smoke/normal-00ef3cfd83124d61adace95f0e041fa7/class-load.log) |
-| 最终 JAR 150% | [窗口日志](../build/collection-memory-smoke/hidpi-1.5-e0900d8c099a47ad83f7d2881a4e8ff3/desktop.stdout.log)、[类加载](../build/collection-memory-smoke/hidpi-1.5-e0900d8c099a47ad83f7d2881a4e8ff3/class-load.log) |
-| 数据回归 | [Python 日志](../build/v022-data-tests.log)、[Java 封面测试](../desktop/target/surefire-reports/com.lumenmusic.PlaylistCoverDataTest.txt) |
-| 可恢复内容 | [隔离 ZIP](../build/collection-memory-smoke/normal-00ef3cfd83124d61adace95f0e041fa7/collection-memory-roundtrip.zip) |
+| 最终 JAR 125% | 窗口日志（本地路径：`build/collection-memory-smoke/normal-00ef3cfd83124d61adace95f0e041fa7/desktop.stdout.log`）、类加载（本地路径：`build/collection-memory-smoke/normal-00ef3cfd83124d61adace95f0e041fa7/class-load.log`） |
+| 最终 JAR 150% | 窗口日志（本地路径：`build/collection-memory-smoke/hidpi-1.5-e0900d8c099a47ad83f7d2881a4e8ff3/desktop.stdout.log`）、类加载（本地路径：`build/collection-memory-smoke/hidpi-1.5-e0900d8c099a47ad83f7d2881a4e8ff3/class-load.log`） |
+| 数据回归 | Python 日志（本地路径：`build/v022-data-tests.log`）、Java 封面测试（本地证据/归档：`desktop/target/surefire-reports/com.lumenmusic.PlaylistCoverDataTest.txt`，不随源码上传） |
+| 可恢复内容 | 隔离 ZIP（本地路径：`build/collection-memory-smoke/normal-00ef3cfd83124d61adace95f0e041fa7/collection-memory-roundtrip.zip`） |
 
-截图：[自动拼图](../build/collection-memory-smoke/normal-00ef3cfd83124d61adace95f0e041fa7/automatic-collage.png)、[歌单](../build/collection-memory-smoke/normal-00ef3cfd83124d61adace95f0e041fa7/playlist-lumen-1280.png)、[偏好版本](../build/collection-memory-smoke/normal-00ef3cfd83124d61adace95f0e041fa7/versions-lumen-1280.png)、[150% 浅色歌词](../build/collection-memory-smoke/hidpi-1.5-e0900d8c099a47ad83f7d2881a4e8ff3/lyrics-light-860.png)。标题、历史日期、备注、歌词、封面和 WAV 均为明确的合成测试资料。
+截图：自动拼图（本地路径：`build/collection-memory-smoke/normal-00ef3cfd83124d61adace95f0e041fa7/automatic-collage.png`）、歌单（本地路径：`build/collection-memory-smoke/normal-00ef3cfd83124d61adace95f0e041fa7/playlist-lumen-1280.png`）、偏好版本（本地路径：`build/collection-memory-smoke/normal-00ef3cfd83124d61adace95f0e041fa7/versions-lumen-1280.png`）、150% 浅色歌词（本地路径：`build/collection-memory-smoke/hidpi-1.5-e0900d8c099a47ad83f7d2881a4e8ff3/lyrics-light-860.png`）。标题、历史日期、备注、歌词、封面和 WAV 均为明确的合成测试资料。
 
 重跑：`./scripts/collection-memory-smoke.ps1 -AppHome '最终镜像或安装目录' -Profile All`。传入 AppHome 后，生产 JAR 先于测试入口，验证类来源及 SHA-256，不使用 `target/classes`。捆绑运行时没有命令行 java.exe，窗口驱动使用已有 JDK；实际安装器启动的捆绑 JVM 验收另见综合报告。
 

@@ -1,5 +1,7 @@
 # 第四阶段 A：增量审计与范围冻结
 
+本页本地证据与归档位于未随源码上传的 `build/`；不是 GitHub 下载入口。
+
 日期：2026-10-08。状态：**A 已完成；下文保留 A 冻结时的只读基线。B 随后已完成，当前修复与运行证据见[核心质量验收](PHASE4_CORE_ACCEPTANCE.md)；C 本地交付整理与关键交互补验见[交付验收](PHASE4_DELIVERY_ACCEPTANCE.md)，外部验证条件仍保留。** 产品范围为 Windows 10/11 x64 的个人及朋友日常收听，保留已有桌面特色，暂停安卓和大型新功能。下文源码行号、缺口与“待验”指 A 时点，不替代当前[架构](ARCHITECTURE.md)。
 
 审计结论：现有启动协调、播放版本保护、曲库原子保存、缓存取消与诊断脱敏可以继续复用。本轮工程范围冻结为 **5 项 B 任务**：外观偏好安全读写、AI 配置与本机请求边界、损坏歌词恢复、繁忙退出、拖动回退中的进度交接。后两项先验证假设；不以 `LumenFxApp` 文件长度为由全面重写。交付文案、可复现入口、Windows 验收及公开准备归入 C～E。
@@ -12,7 +14,7 @@
 
 | 基线 | 当前证据 |
 | --- | --- |
-| 版本/构建 | `0.2.2` / `lumen-0.2.2-20261007.4`；最新历史摘要见[最终验收](../build/v022-install-local-final-verification.json) |
+| 版本/构建 | `0.2.2` / `lumen-0.2.2-20261007.4`；最新历史摘要见最终验收（本地路径：`build/v022-install-local-final-verification.json`） |
 | 主 JAR | 历史最终 SHA-256：`ee87482af614fe99f7108b22d5c1fedcfd610e74ac48cef19d4c4c330439bf6e`，两包 SOURCE 的 BUILD-INFO 一致 |
 | 完整包 | 182368596 字节；SHA-256 `347bdd2d25b135b45a6fbefdfdb0856cfca58486df0e6520aec91c4b461037b9` |
 | 增量包 | 75955769 字节；SHA-256 `f76a86073f2814744bbfa154dc9cde9e86f5ff9d16c35c4944e066f00542b406` |
@@ -105,7 +107,7 @@
 | 备份预检/多文件回滚 | [test_backup](../service/tests/test_backup.py) 的 `test_restore_failure_rolls_back_every_replaced_target` 注入第二次替换失败；篡改/重复/越界 ZIP 拒绝 | 保留已有白名单；整目录安装备份与可移植 ZIP 不等同 |
 | 诊断白名单/隐私 | [DiagnosticLogTest](../desktop/src/test/java/com/lumenmusic/DiagnosticLogTest.java) 的 `exportContainsOnlyWhitelistMetadataAndSafeCodes` 检查合成隐私 canary 不存在；已有保存对话框/单成员 ZIP 检查 | B-03 新反馈沿用固定码；普通日志、备份不能据此声称脱敏 |
 | 快速切歌/远距离拖动/长听 | `.4` 历史播放与窗口材料、较早公网快速切歌证据；[安装与本地音乐验收](V022_INSTALL_LOCAL_ACCEPTANCE.md) | 新候选按第四阶段 §8.2 验 20 次切歌、10 次拖动、60 分钟；属 D 计划，未运行 |
-| 原生安装、升级、原资料与卸载 | [最终摘要](../build/v022-install-local-final-verification.json) 记录 `.4` 隔离安装/同版本升级/缓存 MSI 卸载、安装文件与个人数据保留 | C 真实鼠标目录选择、无开发环境独立试用/原反馈者复测；本轮未确认原闪退根因 |
+| 原生安装、升级、原资料与卸载 | 最终摘要（本地路径：`build/v022-install-local-final-verification.json`） 记录 `.4` 隔离安装/同版本升级/缓存 MSI 卸载、安装文件与个人数据保留 | C 真实鼠标目录选择、无开发环境独立试用/原反馈者复测；本轮未确认原闪退根因 |
 | 自动化 CI | [verify.yml](../.github/workflows/verify.yml) Linux Java/Python/Rust/demo HTTP 集成；POM 排除 `SmokeTest`/`FxDesktopSmokeTest`，CI 另跑前者 | 未取得远程运行结果；Windows UI/VLC/安装、打包/SOURCE 不在当前 CI 覆盖 |
 
 ## 5. 依赖、运行入口与工程基线
