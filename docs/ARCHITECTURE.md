@@ -1,6 +1,6 @@
 # 架构与职责
 
-更新：2026-10-10。描述当前 v0.2.2 桌面源码。当前候选为 `lumen-0.2.2-20261010.1`，镜像已构建，安装器与归档正在准备，实际升级及原生启动/退出尚待验收。此前安装与归档基线为 `lumen-0.2.2-20261009.2`；私有 GitHub 主仓库历史提交 `bcfbe71` 的 Ubuntu 基础检查、Windows 完整 Java 322 项及双平台 demo CI 已通过，不覆盖本轮改动。增量审计与冻结范围见[第四阶段 A](PHASE4_AUDIT_SCOPE.md)，开发环境修复与运行证据见[第四阶段 B](PHASE4_CORE_ACCEPTANCE.md)，当前阶段状态见[第四阶段](../第四阶段.md)。
+更新：2026-10-10。描述当前 v0.2.2 桌面源码。当前内部候选为 `lumen-0.2.2-20261010.1`，本机实际升级、原资料恢复及五次原生启动/切页/正常退出通过；归档身份与旁置校验和见[候选说明](PHASE4_RELEASE_CANDIDATE.md)。私有 GitHub 主仓库提交 `76c0d67` 的 Ubuntu 与 Windows CI 已通过，Windows Java 325 项零失败、零跳过。此前 `.2` 候选及 `bcfbe71` 的 CI 结果保留原构建与提交范围。增量审计与冻结范围见[第四阶段 A](PHASE4_AUDIT_SCOPE.md)，开发环境修复与运行证据见[第四阶段 B](PHASE4_CORE_ACCEPTANCE.md)，当前阶段状态见[第四阶段](../第四阶段.md)。
 
 ## 当前结构
 
@@ -99,4 +99,4 @@ JavaFX 线程管理视图和播放协调；网络、元数据读取、导入、�
 
 Windows 打包另需 `jpackage`、WiX 3.14.1，以及编译安装器自定义 DLL 的 MSVC x64 C++ 工具链和 Windows SDK。POM 编译目标 17、CI 的 JDK 21、实际发行 runtime 23.0.2 是不同维度。确切依赖、打包清单差异及入口前提见[审计矩阵](PHASE4_AUDIT_SCOPE.md)。
 
-历史提交 `bcfbe71` 的 GitHub Actions 已通过 Ubuntu 基础检查及双平台 demo；Windows 完整 Java 322 项零失败、零跳过。本轮源码的远程 CI 尚待验证。CI 结果不覆盖 Windows 窗口、VLC、安装/升级/卸载和归档一致性；这些仍按各自验收记录处理。推荐启动/检查及明确镜像的场景入口见[开发与复现](DEVELOPMENT.md)，B/C 的开发与隔离界面验收、安装/归档证据见[C 交付验收](PHASE4_DELIVERY_ACCEPTANCE.md)及[D 候选说明](PHASE4_RELEASE_CANDIDATE.md)。当前下一步为完成新候选安装与归档同步、原生启动/响应/正常退出验收，再按[启动方案](STARTUP_ACCEPTANCE.md)补齐系统首启及外部复测。
+提交 `76c0d67a0de088419b2bc43b5d1a9c115075858c` 的[实际 GitHub Actions](https://github.com/Redemption505/Lumen-Music/actions/runs/38026054219) Ubuntu 与 Windows 均成功；Windows Java 325 项零失败、零跳过，启动报告工具的 8 项测试通过。该结果对应上述源码提交，后续文档与归档分别核对。CI 不覆盖 Windows 窗口、VLC、安装/升级/卸载和归档一致性；这些按各自验收记录处理。本轮同版本 MSI 升级成功，784 个运行文件与候选镜像一致，升级瞬间 327 个个人文件原字节不变。原生 EXE 在仅含 Windows 的 PATH 下使用原资料，五次均恢复暂停队列、完成本地切页和正常关闭；每次确认的六个自有进程及端口全部释放。该结果不等于性能预算通过或系统冷启动验收。推荐入口见[开发与复现](DEVELOPMENT.md)，本轮交付见[D 候选说明](PHASE4_RELEASE_CANDIDATE.md)。下一步按[启动方案](STARTUP_ACCEPTANCE.md)补齐系统重启首启及独立朋友电脑、原闪退者复测。

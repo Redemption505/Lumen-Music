@@ -170,6 +170,8 @@ function Run-Helper([string]$Install, [string]$Label, [int]$FailAfter = 0, [swit
         # A PowerShell 7 parent must not leak its module path into Windows PowerShell.
         $env:PSModulePath = Join-Path $env:SystemRoot 'System32/WindowsPowerShell/v1.0/Modules'
         $process = Start-Process -FilePath $powershell -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+        # Windows PowerShell 5.1 needs the handle cached before redirected exit.
+        $null = $process.Handle
     } finally { $env:PSModulePath = $originalModules }
     try {
         if ($Restart) { $script:restartHelperPid = $process.Id }

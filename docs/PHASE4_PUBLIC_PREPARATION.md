@@ -1,18 +1,18 @@
 # 第四阶段 E：GitHub 源码与交付准备
 
-日期：2026-10-09。源码已交付且实际 CI 已通过。用户已明确授权上传至 [Redemption505/Lumen-Music](https://github.com/Redemption505/Lumen-Music)。GitHub 实际身份确认仓库为私有、当前用户具有 Push 权限；保持现有可见性并保留原始 README 提交历史。本次交付源码与工程文档，独立朋友电脑和原首次启动闪退复测、第三方二进制公开材料及 Release 继续按实际条件处理。
+日期：2026-10-10。核心更新源码已交付且对应实际 CI 已通过，本地安装版已同步并完成原生验收；完整/增量归档及对应源码已核对同一身份和实际字节。用户已明确授权上传至 [Redemption505/Lumen-Music](https://github.com/Redemption505/Lumen-Music)。仓库保持私有并保留原始 README 提交历史。独立朋友电脑和原首次启动闪退复测、第三方二进制公开材料及 Release 继续按实际条件处理。
 
 ## 1. 当前交付边界
 
-应用基线仍为 [D 内测候选](PHASE4_RELEASE_CANDIDATE.md)：v0.2.2 / `lumen-0.2.2-20261009.2`，主 JAR SHA-256 `ce77801d4e0586c301d70591fae31cf08c8806ee3d867bdc3e55a898777e364c`。E 的工程脚本、CI 和文档是后续开发仓库内容；D 二进制包内的 `SOURCE.zip` 保留当时冻结的对应源码，不自动变成 E 仓库快照。
+当前 [内测候选](PHASE4_RELEASE_CANDIDATE.md) 为 v0.2.2 / `lumen-0.2.2-20261010.1`，主 JAR SHA-256 `f69a54f72adb2ba31af064321ca1fccc238291853c01b738948635b01ea03caf`。本地安装、原资料恢复及五次原生启动/退出已通过；完整/增量包及两包内同字节 SOURCE 的实际字节与身份核对通过。旧 D `.2` 归档保留原字节和对应源码，新仓库内容不自动进入旧 SOURCE。
 
 | 对象 | 本地准备内容 | 仍需的外部结果 |
 | --- | --- | --- |
 | Git 基线 | 开发根仓库的 `main` 关联准确 `origin`，正常合并远程初始历史后上传；精确暂存路径、原字节及忽略规则核验 | 若后续改变可见性或发布附件，核对相应范围及授权 |
 | 源码范围 | 实际 Git 忽略探针、文本扫描和暂存内容比对；排除个人状态、密钥、备份、签名材料、缓存与工具记录 | 新增内容及公开素材来源仍须按实际对象复核 |
-| CI | Ubuntu 基础测试及 Java/Python 集成；Windows 完整 Java 单元检查及 PowerShell/Maven Wrapper demo | `bcfbe71` 的 [实际 Actions run 37909117734](https://github.com/Redemption505/Lumen-Music/actions/runs/37909117734) 已成功；新提交另取对应结果 |
-| 发行材料 | 从当前 D 镜像、对应源码和校验匹配的本地缓存整理许可/NOTICE与来源证据 | 平台/歌词/素材范围及部分 native 组件完整对应材料，见[具体材料](PHASE4_RELEASE_MATERIALS.md) |
-| 朋友试用 | [试用说明](FRIEND_TRIAL.md)、[反馈模板](FRIEND_FEEDBACK.md)与唯一 D 构建可供使用 | 非开发电脑独立使用、原闪退者复测 |
+| CI | 核心提交 `76c0d67a0de088419b2bc43b5d1a9c115075858c` 的 [Actions run 38026054219](https://github.com/Redemption505/Lumen-Music/actions/runs/38026054219) 两个 job 成功；Windows Java325零失败零跳过、启动报告工具8项通过 | 后续源码变动取得其对应结果；交付文档不冒充已由本次 CI 验证 |
+| 发行材料 | 旧 D 材料继续保留；新旧镜像的 Python/VLC/JRE/运行依赖/侧车字节相同，按实际组件复用 | 平台/歌词/素材范围及部分 native 组件完整对应材料，见[具体材料](PHASE4_RELEASE_MATERIALS.md) |
+| 朋友试用 | [试用说明](FRIEND_TRIAL.md)、[反馈模板](FRIEND_FEEDBACK.md)与唯一候选身份 | 非开发电脑独立使用、原闪退者复测 |
 
 最初本地快照 `e3f917b` 采用单次自动化身份 `Codex <codex@localhost>`，没有代填用户姓名/邮箱或伪造之前历史。本轮提交沿用用户当前已配置的 Git 身份，并保留 GitHub 初始提交 `084d622`。历史 ZIP/bundle 的本地验证索引为 `build/phase4-public-e/final-verification.json`，上传核对记录为 `build/phase4-github-e/`；这些证据和内部备份不随源码上传。远程提交可从[仓库历史](https://github.com/Redemption505/Lumen-Music/commits/main/)查看。
 
@@ -42,9 +42,11 @@ python scripts/ci-demo.py --offline
 
 本地准备使用 Windows、Python 3.12.14、OpenJDK 23.0.2、PowerShell 7.6.5，实际成功调用、故意错误 JDK 引起的 Maven 失败后服务清理，以及 Windows 推荐 demo 入口均通过。Windows 本地结果不能冒充 Ubuntu 或远程 Temurin 21 成功；推送后的执行与结论从上述 Actions 入口核验，源码、窗口、安装与音频范围仍分别验收。
 
-D 的 Java322、Python362/2跳过、Rust7/1忽略及安装/音频证据保留其原构建与日期。E 未改应用生产代码。首次 Ubuntu 执行发现 Win32 `THUMBBUTTON` 布局测试误用于 Unix JNA 的 4 字节 WCHAR；该 ABI 断言仍保留完整预期，在 Windows job 的全量 Java 检查运行，Ubuntu 继续运行该类的通用逻辑和其余测试，不将这个 Windows 布局判断写成 Linux 桌面支持。
+D 的 Java322、Python362/2跳过、Rust7/1忽略及安装/音频证据保留其原构建与日期。首次 E 源码交付未改应用生产代码，后续缓存修复另见[稳定性验收](PHASE4_STABILITY_ACCEPTANCE.md)。首次 Ubuntu 执行发现 Win32 `THUMBBUTTON` 布局测试误用于 Unix JNA 的 4 字节 WCHAR；该 ABI 断言仍保留完整预期，在 Windows job 的全量 Java 检查运行，Ubuntu 继续运行该类的通用逻辑和其余测试，不将这个 Windows 布局判断写成 Linux 桌面支持。
 
-已上传源码提交为 `bcfbe71f5035d315b9860edea166bba014086c58`，473 个文件与已审阅字节一致；[真实 CI](https://github.com/Redemption505/Lumen-Music/actions/runs/37909117734) 的 Ubuntu 基础检查及双平台 demo 成功，Windows Java 322 项零失败、零跳过。该成功仅对应这个提交，后续未提交文档或工具不自动获得同一次 CI 验证。
+首次 E 上传源码提交 `bcfbe71f5035d315b9860edea166bba014086c58` 的 473 个文件与当时审阅字节一致；[历史 CI](https://github.com/Redemption505/Lumen-Music/actions/runs/37909117734) 的 Ubuntu 基础检查及双平台 demo 成功，Windows Java 322 项零失败、零跳过。本轮核心提交及最新 CI 以上表为准，两次结果分别对应实际提交，后续文档不自动获得其中任何一次 CI 验证。
+
+最新 run `38026054219` 的 Windows Java 325 项零失败、零错误、零跳过；Ubuntu Java 325 项中 323 通过、2 项 Windows-only 检查跳过（`GlobalHotkeysTest`、`WindowsTaskbarControlsTest`），由 Windows job 覆盖。Python 364 项中 362 通过、2 项既有公网测试默认跳过；Rust 7 通过、1 项辅助测试忽略；启动报告工具 8 项通过。跳过/忽略不计为通过，CI 不替代本轮另验的实际安装和原生运行。
 
 ## 3. 使用本地快照与下一步
 
@@ -52,4 +54,4 @@ Git bundle 保留本地真实提交和 `main`，可在另一个目录用 `git cl
 
 开发操作在包含 `desktop/`、`service/` 与 `stream-proxy/` 的工作区根目录执行；本地已有的 `Lumen-Music/` 子 clone 是独立仓库，不纳入父仓库源码清单。后续同步先检查所在根目录、分支和工作区，不盲目覆盖任一份修改。
 
-源码已交付私有仓库且取得真实 CI 成功。当前按 [启动性能方案](STARTUP_ACCEPTANCE.md) 建立基线，并回收独立试用结果；改变可见性或发布二进制仍按相应授权与门槛执行。独立试用和来源材料未决时，继续使用明确标识的内测候选；公开候选或正式 Release 需满足第四阶段 §8.3 的实际条件。安卓仍按第四阶段的恢复条件单独安排。
+源码已交付私有仓库且取得对应真实 CI 成功，安装及原生重复启动功能验收通过。同一候选的归档核对已完成，接下来按 [启动性能方案](STARTUP_ACCEPTANCE.md) 补系统重启/新资料首启、定位启动波动、回收独立试用及原闪退者结果；不再把已完成的安装和重复启动列为待办。改变可见性或发布二进制仍按相应授权与门槛执行。独立试用和来源材料未决时，继续使用明确标识的内测候选；公开候选或正式 Release 需满足第四阶段 §8.3 的实际条件。安卓仍按第四阶段的恢复条件单独安排。

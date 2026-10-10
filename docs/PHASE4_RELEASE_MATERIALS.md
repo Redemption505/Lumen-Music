@@ -1,5 +1,7 @@
 # 第四阶段 E：本地第三方材料准备
 
+更新：2026-10-10。以下材料总摘要仍绑定旧 D `lumen-0.2.2-20261009.2`，其安装与归档已保留。当前候选 `lumen-0.2.2-20261010.1` 的 785 个镜像文件中仅主 JAR 变化；Python34、VLC368、JRE346、运行依赖JAR10、Rust侧车1及服务22个文件全部原字节一致，支持按这些组件范围复用既有材料归属。旧整镜像/SOURCE/ZIP 摘要不冒称验证了新归档；新交付身份与校验见[候选说明](PHASE4_RELEASE_CANDIDATE.md)。公开分发未决项继续保留。
+
 核对日期：2026-10-09。**已完成 D 内测候选的本地材料收集与精确版本清单；仍有原生组件、对应源码与内容来源未决项，未取得二进制公开分发完成结论。** 用户已另行授权源码上传至指定私有 GitHub 仓库；此页所述材料归档不在本次上传范围。材料收集没有新增或升级依赖，也没有联系朋友或服务方。
 
 ## 1. 对象与证据
@@ -42,7 +44,7 @@ Rust 锁文件的 143 个外部条目覆盖多种目标与依赖类别，不能�
 ```powershell
 python scripts/collect-release-materials.py `
   --app-home build/dist/20261009-110845-472/LumenMusic `
-  --full-zip build/releases/Lumen-Music-v0.2.2-Windows-x64.zip `
+  --full-zip build/phase4-native-sync/previous-release-20261009.2/Lumen-Music-v0.2.2-Windows-x64.zip `
   --output build/phase4-public-e/materials-repeat
 ```
 
