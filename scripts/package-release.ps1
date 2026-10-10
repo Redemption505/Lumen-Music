@@ -1,4 +1,4 @@
-param(
+﻿param(
     [Parameter(Mandatory)][string]$Installer,
     [Parameter(Mandatory)][string]$AppHome
 )
@@ -127,7 +127,7 @@ Copy-Item -LiteralPath $license -Destination (Join-Path $destination 'LICENSE.tx
 $sourceRoot = Join-Path $projectRoot ("build/release-sources/$version-" + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $sourceRoot | Out-Null
 foreach ($tree in @('desktop/src', 'desktop/.mvn', 'service/lumen_service', 'service/tests',
-        'stream-proxy/src', 'scripts', 'release', 'docs')) {
+        'stream-proxy/src', 'scripts', 'release', 'docs', '.github/workflows')) {
     foreach ($file in Get-ChildItem -LiteralPath (Join-Path $projectRoot $tree) -Recurse -File |
             Where-Object { Source-File ($_.FullName.Substring($projectRoot.Length + 1).Replace('\', '/')) }) {
         $relative = $file.FullName.Substring($projectRoot.Length + 1)
@@ -136,7 +136,8 @@ foreach ($tree in @('desktop/src', 'desktop/.mvn', 'service/lumen_service', 'ser
         Copy-Item -LiteralPath $file.FullName -Destination $to
     }
 }
-foreach ($file in @('README.md', '第四阶段.md', 'desktop/pom.xml', 'desktop/mvnw', 'desktop/mvnw.cmd',
+foreach ($file in @('README.md', 'AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md', '.gitignore',
+        '第四阶段.md', 'desktop/pom.xml', 'desktop/mvnw', 'desktop/mvnw.cmd',
         'stream-proxy/Cargo.toml', 'stream-proxy/Cargo.lock')) {
     $to = Join-Path $sourceRoot $file
     New-Item -ItemType Directory -Force -Path (Split-Path $to -Parent) | Out-Null

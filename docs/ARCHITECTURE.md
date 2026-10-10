@@ -1,6 +1,6 @@
 # 架构与职责
 
-更新：2026-10-08。描述当前 v0.2.2 桌面源码；已安装及发行基线仍为 `lumen-0.2.2-20261007.4`。增量审计与冻结范围见[第四阶段 A](PHASE4_AUDIT_SCOPE.md)，本轮开发环境修复及运行证据见[第四阶段 B](PHASE4_CORE_ACCEPTANCE.md)。
+更新：2026-10-10。描述当前 v0.2.2 桌面源码。当前候选为 `lumen-0.2.2-20261010.1`，镜像已构建，安装器与归档正在准备，实际升级及原生启动/退出尚待验收。此前安装与归档基线为 `lumen-0.2.2-20261009.2`；私有 GitHub 主仓库历史提交 `bcfbe71` 的 Ubuntu 基础检查、Windows 完整 Java 322 项及双平台 demo CI 已通过，不覆盖本轮改动。增量审计与冻结范围见[第四阶段 A](PHASE4_AUDIT_SCOPE.md)，开发环境修复与运行证据见[第四阶段 B](PHASE4_CORE_ACCEPTANCE.md)，当前阶段状态见[第四阶段](../第四阶段.md)。
 
 ## 当前结构
 
@@ -41,6 +41,8 @@ flowchart LR
 `ManagedPythonService`、`ManagedStreamProxy` 优先复用符合健康检查的服务。只有本次创建的 `Process` 才由应用关闭；复用实例不按端口或名称终止。启动被取消后迟到的资源会释放，已经接管的服务在独立关闭线程释放。窗口、音频、任务栏按钮、热键、临时缓存及桌宠由桌面应用统一管理。
 
 JavaFX 线程管理视图和播放协调；网络、元数据读取、导入、下载及歌词保存使用后台任务。结果经 `Platform.runLater` 应用，播放加载版本、歌词读取版本、搜索/推荐版本分别拒绝旧结果。两种音频封装还检查媒体身份和版本；结束事件不会重复推进同一加载版本。
+
+当前源码的持久音频缓存启动扫描只核对元数据、文件存在与长度，避免在显示窗口前读取全部音频。实际查找、预载查询与离线可用集合仍做完整 SHA-256 校验；容量和条目数表示缓存清单，不代表已经校验可播放。禁用缓存时保留完整文件，启用并使用时才检查内容。此修复已纳入当前候选镜像；开发验证与本轮安装验收分别记录，范围见 [稳定性验收](PHASE4_STABILITY_ACCEPTANCE.md)。
 
 退出先标记 `closing`、保存当前或待定位的播放快照、结束听歌采样并使旧回调失效，取消网络任务和关闭附属窗口，然后停止并释放音频。听歌报告、排队的本地列表/歌词写入与下载终止的限时等待交给非守护关闭线程，避免这些队列占用界面线程；超时会取消任务并记录固定 `SHUTDOWN_ERROR`。该线程完成缓存清理后结束，运行时协调器继续只回收自有进程。音频封装仍按 JavaFX 线程约束释放；受控响应测量不能保证任何设备故障下的原生释放耗时。
 
@@ -93,8 +95,8 @@ JavaFX 线程管理视图和播放协调；网络、元数据读取、导入、�
 
 ## 开发与 Windows 交付
 
-源码运行的前提是 JDK、Python；Rust 仅在构建侧车时需要。Maven wrapper、Cargo.lock 及基本测试入口已有。当前 Windows 发行包内置 Java runtime 23.0.2、Python 3.13.15、VLC 3.0.23、服务源码和 Rust 可执行文件；用户基础收听不需要另装开发工具。
+源码运行的前提是 JDK、Python；Rust 仅在构建侧车时需要。Maven wrapper、Cargo.lock 及基本测试入口已有。当前冻结的 Windows 发行包内置 Java runtime 23.0.2、Python 3.13.15、VLC 3.0.23、服务源码和 Rust 可执行文件；用户基础收听不需要另装开发工具。
 
-Windows 打包另需 `jpackage`、WiX 3.14.1，以及编译安装器自定义 DLL 的 MSVC x64 C++ 工具链和 Windows SDK。POM 编译目标 17、Linux CI 的 JDK 21、实际发行 runtime 23.0.2 是不同维度。确切依赖、打包清单差异及入口前提见[审计矩阵](PHASE4_AUDIT_SCOPE.md)。
+Windows 打包另需 `jpackage`、WiX 3.14.1，以及编译安装器自定义 DLL 的 MSVC x64 C++ 工具链和 Windows SDK。POM 编译目标 17、CI 的 JDK 21、实际发行 runtime 23.0.2 是不同维度。确切依赖、打包清单差异及入口前提见[审计矩阵](PHASE4_AUDIT_SCOPE.md)。
 
-现有 CI 运行 Linux 的 Java/Python/Rust 与 demo 服务契约，不覆盖 Windows 窗口、VLC、安装/升级/卸载和归档一致性。推荐启动/检查及明确镜像的场景入口见[开发与复现](DEVELOPMENT.md)。B/C 的开发与隔离界面验收、旧安装/归档分别记录，见[C 交付验收](PHASE4_DELIVERY_ACCEPTANCE.md)；当前源码目录尚未建立 Git 历史，修改前的私有源码快照保留。后续按[第四阶段](../第四阶段.md)的 D～E 推进。
+历史提交 `bcfbe71` 的 GitHub Actions 已通过 Ubuntu 基础检查及双平台 demo；Windows 完整 Java 322 项零失败、零跳过。本轮源码的远程 CI 尚待验证。CI 结果不覆盖 Windows 窗口、VLC、安装/升级/卸载和归档一致性；这些仍按各自验收记录处理。推荐启动/检查及明确镜像的场景入口见[开发与复现](DEVELOPMENT.md)，B/C 的开发与隔离界面验收、安装/归档证据见[C 交付验收](PHASE4_DELIVERY_ACCEPTANCE.md)及[D 候选说明](PHASE4_RELEASE_CANDIDATE.md)。当前下一步为完成新候选安装与归档同步、原生启动/响应/正常退出验收，再按[启动方案](STARTUP_ACCEPTANCE.md)补齐系统首启及外部复测。

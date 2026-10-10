@@ -184,3 +184,35 @@ Wrapper 固定分发 URL，目前未配置 `distributionSha256Sum`；Rust 固定
 源码范围可用 `python scripts/repository-scope.py` 复核，精确暂存后运行 `--check-index`；检查器不代替暂存或上传。第三方本地材料收集需要 Python3.11+，见 [材料准备](PHASE4_RELEASE_MATERIALS.md)。
 
 历史 B/C 结果保留当时的范围，最终候选与实际安装的结果另见 [D 候选验收](PHASE4_RELEASE_CANDIDATE.md)。工程结构和职责见 [架构](ARCHITECTURE.md)，阶段边界见 [第四阶段](../第四阶段.md)。
+
+## 7. 启动性能记录
+
+安装候选的启动测量使用 [启动性能验收方案](STARTUP_ACCEPTANCE.md)，区分系统重启后首启、既有资料重复启动和新资料首次启动。计时与资料恢复按实际目标记录；统计工具不启动应用或访问用户资料。
+
+```powershell
+python -m unittest discover -s scripts/tests -p test_startup_report.py -v
+python scripts/startup-report.py --input build/startup/runs.csv
+```
+
+CSV 从 [空模板](templates/startup-runs.csv) 复制后填写实际观测。空模板、无效成功记录或重复标记的系统首启会被拒绝；不同构建/机器/网络/方法分别汇总，失败尝试保留在报告中。工具检查使用合成数据，不构成应用冷启动性能结果。
+
+### 工程启动与界面响应探针
+
+[startup-probe.ps1](../scripts/startup-probe.ps1) 使用完整 JDK 启动真实 `LumenLauncher`，由应用管理 Python 与 Rust 子进程；创建独立曲库、暂停队列和本地 WAV。测试内部触发本地页面与正常关闭，不发送原生鼠标或键盘输入。需要前述依赖目录、VLC、内置或显式 Python，以及编译后的测试驱动：
+
+```powershell
+./desktop/mvnw.cmd -B -ntp -f desktop/pom.xml test-compile
+# 当前源码；运行时目录可为含 app/ 的镜像根目录
+./scripts/startup-probe.ps1 -RuntimeHome '<显式运行时目录>' `
+    -Java (Join-Path $env:JAVA_HOME 'bin/java.exe') `
+    -Python $env:LUMEN_PYTHON -Samples 5 -IntervalSeconds 30
+# 改用指定镜像的生产 JAR，其 Python 缺省使用 app/python/python.exe
+./scripts/startup-probe.ps1 -AppHome '<显式镜像根目录>' `
+    -Java (Join-Path $env:JAVA_HOME 'bin/java.exe') -Samples 5 -IntervalSeconds 30
+```
+
+每组重复使用自己创建的合成资料，正常退出后再开始下一次。报告和原始日志位于 `build/startup-probe/<本次编号>/`，检查本地列表与暂停队列保留、服务健康、界面线程响应、退出后全部捕获子进程消失及端口释放。失败保留原日志；超时仅清理本次创建的 Java 进程树。脚本恢复原环境，原值未设置时删除对应环境项。
+
+计时从测试 Java `main` 入口开始；窗口值是 JavaFX 回调首次观察到可见窗口的时点。本地列表恢复后再采样至少 15 次界面线程往返，不能当作全程帧率。`engineeringProcessWallMilliseconds` 包含程序运行至退出，不包含退出后的证据核对。此方法不覆盖原生 EXE 启动、系统重启首启或个人曲库；与人工或原生探针数据分开统计。
+
+缓存初始化专项使用测试类 `com.lumenmusic.CacheStartupBenchmark`，以当前生产 classes 或指定 JAR、上述运行时依赖与测试 classes 组成类路径，参数为独立 `build/` 目录与 3～20 次采样。它生成 256 MiB 非音频合成字节，交替测量空目录与禁用缓存但保留文件的初始化；打印实际类加载来源。生成的 `populated-cache` 可通过探针的 `-CacheFixture '<build 内目录>'` 加入同条件重复启动，不能作为播放样本。组件计时不等于播放器整体性能；实际本轮范围见 [稳定性小迭代验收](PHASE4_STABILITY_ACCEPTANCE.md)。

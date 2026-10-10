@@ -50,9 +50,11 @@ public final class PersistentAudioCache {
     public synchronized boolean enabled() { return enabled; }
     public synchronized long maxBytes() { return maxBytes; }
     public synchronized long generation() { return generation; }
+    /** Inventory size; restored entries are checksum-verified only when used or inspected. */
     public synchronized long usedBytes() {
         return entries.values().stream().mapToLong(Entry::size).sum();
     }
+    /** Inventory count, not the number of checksum-verified audio files. */
     public synchronized int entryCount() { return entries.size(); }
 
     public synchronized void configure(boolean enabled, long maxBytes) throws IOException {
@@ -228,7 +230,8 @@ public final class PersistentAudioCache {
                     long size = Long.parseLong(values.getProperty("size"));
                     String sha = values.getProperty("sha256");
                     Entry entry = new Entry(audio, metadata, size, sha);
-                    if (!"1".equals(values.getProperty("version")) || !valid(entry)) {
+                    // Startup may run on JavaFX: inspect inventory without reading entire audio files.
+                    if (!"1".equals(values.getProperty("version")) || !validStructure(entry)) {
                         Files.deleteIfExists(metadata);
                         Files.deleteIfExists(audio);
                     } else entries.put(key, entry);
@@ -252,10 +255,13 @@ public final class PersistentAudioCache {
     }
 
     private boolean valid(Entry entry) throws IOException {
+        return validStructure(entry) && digest(entry.audio()).equals(entry.digest());
+    }
+
+    private boolean validStructure(Entry entry) throws IOException {
         return entry.size() > 0 && entry.digest() != null
                 && entry.digest().matches("[0-9a-f]{64}")
-                && Files.isRegularFile(entry.audio()) && Files.size(entry.audio()) == entry.size()
-                && digest(entry.audio()).equals(entry.digest());
+                && Files.isRegularFile(entry.audio()) && Files.size(entry.audio()) == entry.size();
     }
 
     private void trim() throws IOException {

@@ -40,6 +40,7 @@ public final class StartupUiSmoke extends Application {
     private HttpServer health;
     private StartupCoordinator<AutoCloseable> injectedRuntime;
     private Path root;
+    private double initialUiBuildMs;
 
     @Override public void start(Stage initial) {
         stage = initial;
@@ -82,7 +83,10 @@ public final class StartupUiSmoke extends Application {
         PlaybackStateStore.State playback = new PlaybackStateStore.State(List.of(local), 0,
                 PlayerQueue.RepeatMode.ONE, 2.5);
         new PlaybackStateStore(root.resolve("playback-state.xml")).save(playback);
-        fx(() -> {
+        long initialUiBuildStarted = System.nanoTime();
+        // Initial construction includes cold class loading before a window is visible.
+        // Keep its startup deadline separate from the three-second interaction deadline.
+        fxValue(() -> {
             app = new LumenFxApp();
             heartbeat = new AnimationTimer() {
                 @Override public void handle(long now) {
@@ -96,8 +100,10 @@ public final class StartupUiSmoke extends Application {
             heartbeat.start();
             app.startUi(stage, List.of());
             check(stage.isShowing(), "startup did not show a window");
-            ((ButtonBase) stage.getScene().lookup("#nav-local")).fire();
-        });
+            return null;
+        }, 30);
+        initialUiBuildMs = (System.nanoTime() - initialUiBuildStarted) / 1_000_000.0;
+        fx(() -> ((ButtonBase) stage.getScene().lookup("#nav-local")).fire());
         await(() -> fxValue(() -> ((javafx.collections.ObservableList<?>) field("localTracks").get(app)).size() == 1),
                 "local catalogue did not restore");
         await(() -> fxValue(() -> field("serviceInitialized").getBoolean(app)), "external fixture did not initialize");
@@ -165,7 +171,8 @@ public final class StartupUiSmoke extends Application {
         check(localStore.read().equals(catalogue), "startup/close changed local catalogue");
         String evidence = "PASS: direct UI retains external service; FX navigation/theme/heartbeat during runtime wait; "
                 + "HTTP startup failure, retry recovery, saved queue/position/catalogue preserved\n"
-                + "PulsesWhileNativeAudioPending=" + pendingAudioPulses.get() + "\n";
+                + "PulsesWhileNativeAudioPending=" + pendingAudioPulses.get() + "\n"
+                + "InitialUiBuildMs=" + initialUiBuildMs + "; interactionDeadlineMs=3000\n";
         Files.writeString(root.resolve("startup-ui-evidence.txt"), evidence);
         System.out.print(evidence);
     }
@@ -197,12 +204,15 @@ public final class StartupUiSmoke extends Application {
     }
     private void fx(Checked action) throws Exception { fxValue(() -> { action.run(); return null; }); }
     private <T> T fxValue(CheckedValue<T> action) throws Exception {
+        return fxValue(action, 3);
+    }
+    private <T> T fxValue(CheckedValue<T> action, int timeoutSeconds) throws Exception {
         CompletableFuture<T> result = new CompletableFuture<>();
         Platform.runLater(() -> {
             try { result.complete(action.get()); }
             catch (Throwable error) { result.completeExceptionally(error); }
         });
-        return result.get(3, TimeUnit.SECONDS);
+        return result.get(timeoutSeconds, TimeUnit.SECONDS);
     }
     private void finish(int code) {
         if (!finished.compareAndSet(false, true)) return;

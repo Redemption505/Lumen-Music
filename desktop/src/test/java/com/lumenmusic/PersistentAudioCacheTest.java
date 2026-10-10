@@ -126,6 +126,77 @@ class PersistentAudioCacheTest {
         assertEquals(0, restarted.usedBytes());
     }
 
+    @Test void disabledRestartPreservesInventoryUntilEnabledLookupChecksContents() throws Exception {
+        var cache = new PersistentAudioCache(directory);
+        cache.configure(true, 100);
+        Track track = track("broken");
+        Path audio = Path.of(cache.store(track, new MusicClient.DownloadCancellation(), bytes("original")));
+        Path metadata = cacheMetadata(audio);
+        cache.configure(false, 100);
+        Files.writeString(audio, "tampered"); // Same size, so only reading the contents detects corruption.
+        FileTime modified = Files.getLastModifiedTime(audio);
+        byte[] savedMetadata = Files.readAllBytes(metadata);
+
+        var restarted = new PersistentAudioCache(directory);
+        assertFalse(restarted.enabled());
+        assertEquals(1, restarted.entryCount());
+        assertEquals(8, restarted.usedBytes());
+        assertTrue(restarted.lookup(track).isEmpty());
+        assertEquals(1, restarted.entryCount());
+        assertEquals(modified, Files.getLastModifiedTime(audio));
+        assertArrayEquals(savedMetadata, Files.readAllBytes(metadata));
+        assertEquals("tampered", Files.readString(audio));
+
+        restarted.configure(true, 100);
+        assertTrue(restarted.lookup(track).isEmpty());
+        assertEquals(0, restarted.entryCount());
+        assertEquals(0, restarted.usedBytes());
+        assertFalse(Files.exists(audio));
+        assertFalse(Files.exists(metadata));
+    }
+
+    @Test void invalidMetadataIsStillRejectedDuringStartupInventoryScan() throws Exception {
+        String[][] invalid = {{"version", "2"}, {"size", "invalid"}, {"size", "0"},
+                {"sha256", "invalid"}, {"sha256", ""}};
+        for (int index = 0; index < invalid.length; index++) {
+            Path root = directory.resolve("case-" + index);
+            var cache = new PersistentAudioCache(root);
+            cache.configure(true, 100);
+            Path audio = Path.of(cache.store(track("saved"), new MusicClient.DownloadCancellation(), bytes("audio")));
+            Path metadata = cacheMetadata(audio);
+            var values = new java.util.Properties();
+            try (var input = Files.newInputStream(metadata)) { values.load(input); }
+            values.setProperty(invalid[index][0], invalid[index][1]);
+            try (var output = Files.newOutputStream(metadata)) { values.store(output, "invalid fixture"); }
+
+            var restarted = new PersistentAudioCache(root);
+            assertEquals(0, restarted.entryCount(), "Invalid metadata case " + index);
+            assertEquals(0, restarted.usedBytes());
+            assertFalse(Files.exists(audio));
+            assertFalse(Files.exists(metadata));
+        }
+    }
+
+    @Test void missingAndDifferentSizeAudioAreStillRejectedDuringStartupInventoryScan() throws Exception {
+        var cache = new PersistentAudioCache(directory);
+        cache.configure(true, 100);
+        Path missing = Path.of(cache.store(track("missing"), new MusicClient.DownloadCancellation(), bytes("audio")));
+        Path changed = Path.of(cache.store(track("changed"), new MusicClient.DownloadCancellation(), bytes("audio")));
+        Files.delete(missing);
+        Files.writeString(changed, "shorter or longer audio");
+
+        var restarted = new PersistentAudioCache(directory);
+        assertEquals(0, restarted.entryCount());
+        assertEquals(0, restarted.usedBytes());
+        assertFalse(Files.exists(changed));
+        assertFalse(Files.exists(cacheMetadata(missing)));
+        assertFalse(Files.exists(cacheMetadata(changed)));
+    }
+
+    private static Path cacheMetadata(Path audio) {
+        return audio.resolveSibling(audio.getFileName().toString().replace(".m4a", ".properties"));
+    }
+
     @Test void unsafeTrackIdsCannotEscapeCacheDirectory() throws Exception {
         var cache = new PersistentAudioCache(directory);
         cache.configure(true, 100);

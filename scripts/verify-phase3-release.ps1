@@ -165,8 +165,9 @@ try {
             Assert ((Hash $workspacePath) -ceq $checksums[$name]) "Corresponding workspace source changed: $name"
             $evidence.workspaceFiles++
         }
-        $expectedSourcePaths = @('README.md', '第四阶段.md', 'desktop/pom.xml', 'desktop/mvnw', 'desktop/mvnw.cmd', 'stream-proxy/Cargo.toml', 'stream-proxy/Cargo.lock')
-        foreach ($tree in @('desktop/src', 'desktop/.mvn', 'service/lumen_service', 'service/tests', 'stream-proxy/src', 'scripts', 'release', 'docs')) {
+        $expectedSourcePaths = @('README.md', 'AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md', '.gitignore',
+            '第四阶段.md', 'desktop/pom.xml', 'desktop/mvnw', 'desktop/mvnw.cmd', 'stream-proxy/Cargo.toml', 'stream-proxy/Cargo.lock')
+        foreach ($tree in @('desktop/src', 'desktop/.mvn', 'service/lumen_service', 'service/tests', 'stream-proxy/src', 'scripts', 'release', 'docs', '.github/workflows')) {
             foreach ($file in Get-ChildItem -LiteralPath (Join-Path $projectRoot $tree) -File -Recurse |
                     Where-Object { $_.FullName -notmatch '[\\/]__pycache__[\\/]|\.pyc$' }) {
                 $expectedSourcePaths += $file.FullName.Substring($projectRoot.Length + 1).Replace('\', '/')
