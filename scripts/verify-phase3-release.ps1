@@ -165,7 +165,9 @@ try {
             Assert ((Hash $workspacePath) -ceq $checksums[$name]) "Corresponding workspace source changed: $name"
             $evidence.workspaceFiles++
         }
-        $expectedSourcePaths = @('README.md', 'AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md', '.gitignore',
+        $expectedSourcePaths = @('README.md', 'AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md', '.gitignore', '.editorconfig', '.github/ISSUE_TEMPLATE/bug_report.yml',
+            '.github/ISSUE_TEMPLATE/feature_request.yml', '.github/ISSUE_TEMPLATE/config.yml',
+            '.github/pull_request_template.md',
             '第四阶段.md', 'desktop/pom.xml', 'desktop/mvnw', 'desktop/mvnw.cmd', 'stream-proxy/Cargo.toml', 'stream-proxy/Cargo.lock')
         foreach ($tree in @('desktop/src', 'desktop/.mvn', 'service/lumen_service', 'service/tests', 'stream-proxy/src', 'scripts', 'release', 'docs', '.github/workflows')) {
             foreach ($file in Get-ChildItem -LiteralPath (Join-Path $projectRoot $tree) -File -Recurse |

@@ -2,6 +2,8 @@
 
 欢迎通过 [Issues](https://github.com/Redemption505/Lumen-Music/issues) 和 Pull Request 改进 Lumen。开始前请阅读 [README](README.md)、[仓库工作规范](AGENTS.md)，以及改动涉及的 [开发](docs/DEVELOPMENT.md)、[架构](docs/ARCHITECTURE.md) 和 [接口文档](docs/API.md)。
 
+更多功能说明和验收记录见 [文档导航](docs/README.md)。反馈问题或建议时，从 [Issue 表单](https://github.com/Redemption505/Lumen-Music/issues/new/choose) 选择缺陷或功能建议，填写版本与完整构建号、复现步骤及预期/实际结果；截图和诊断片段先移除私人信息，不上传原始日志、个人备份、Cookie 或密钥。
+
 当前桌面目标为 Windows 10/11 x64，v0.2.2 仍是内测候选。贡献时以当前源码为准，明确实际验证的平台和目标构建。
 
 ## 开始前
@@ -10,6 +12,7 @@
 2. 先定位调用链与现有测试，复用已有状态、模块和入口，控制改动范围。
 3. 较大的行为或格式变更先通过 Issue 说明问题、方案与影响。新增依赖、替换主要依赖或安装项目未声明的工具前，先取得维护者同意。
 4. 环境要求和准备步骤以 [开发与复现](docs/DEVELOPMENT.md) 为准。沿用 Maven Wrapper、POM 与 Cargo 锁文件；Python 服务当前仅使用标准库。
+5. 编辑时遵守 [EditorConfig](.editorconfig) 的缩进、编码和换行约定；不要为格式统一批量重写无关文件，PowerShell 脚本仍须兼容 Windows PowerShell 5.1。
 
 ## 模块职责与接口
 
@@ -61,6 +64,7 @@ Windows 场景脚本的 `-RuntimeHome` 验证当前源码，`-AppHome` 验证指
 - 一个 PR 解决一个清晰问题，只包含必要文件。提交前核对实际 diff 和暂存清单，排除生成物与私人资料。
 - 提交标题说明目的，可使用 `fix(desktop): 修复快速切歌后歌词错位`、`docs: 更新源码启动说明` 等形式；范围和正文保持清楚，无需制造细碎提交。
 - PR 描述包含问题与最终行为、方案及影响模块、验证命令与结果、剩余限制。行为、接口或数据格式变化提供必要的前后例子。
+- 创建 PR 时按 [PR 模板](.github/pull_request_template.md) 填写，关联适用的 Issue，并明确哪些检查已运行、哪些尚未验证。
 - 源码上传、二进制发布和安装版更新分别验收；不以修改文档或构建成功声称已经发布或更新实际应用。
 
 贡献内容应允许按项目 [GPLv3](LICENSE.txt) 分发。引入第三方代码或素材时保留其版权与许可，并说明来源及与现有发行方式的关系。

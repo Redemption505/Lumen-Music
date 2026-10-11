@@ -51,14 +51,17 @@ Put (Join-Path $project 'desktop/pom.xml') ("<project><version>$version</version
 foreach ($path in @('desktop/src/main/resources/lumen-build.properties', 'desktop/.mvn/fixture.txt', 'service/tests/fixture.txt',
         'stream-proxy/src/fixture.txt', "release/v$version/README.txt", 'release/v0.1.0/THIRD-PARTY-NOTICES.txt',
         'release/licenses/GPL-3.0.txt', 'docs/fixture.txt', 'README.md', 'AGENTS.md', 'CONTRIBUTING.md',
-        'CHANGELOG.md', '.gitignore', '.github/workflows/ci.yml', '第四阶段.md', 'desktop/mvnw', 'desktop/mvnw.cmd',
+        'CHANGELOG.md', '.gitignore', '.editorconfig', '.github/ISSUE_TEMPLATE/bug_report.yml',
+        '.github/ISSUE_TEMPLATE/feature_request.yml', '.github/ISSUE_TEMPLATE/config.yml',
+        '.github/pull_request_template.md', '.github/workflows/ci.yml', '第四阶段.md', 'desktop/mvnw', 'desktop/mvnw.cmd',
         'stream-proxy/Cargo.toml', 'stream-proxy/Cargo.lock')) { Put (Join-Path $project $path) 'QA_ONLY corresponding-source metadata fixture' }
 Put (Join-Path $project "release/v$version/README.txt") 'QA_ONLY current build {{BUILD_ID}}'
 foreach ($path in @('docs/assets/home-lumen.png', 'docs/assets/home-light.png')) { Put (Join-Path $project $path) 'QA_ONLY screenshot stand-in' }
 foreach ($path in @('service/lumen_service/ai-secret.json', 'service/tests/.ai-settings-recovery.json',
         'desktop/src/main/resources/.env', 'desktop/src/main/resources/private-canary.pem',
         'docs/userdata/library.xml', 'scripts/.cache/private-canary.json', '.github/workflows/.env',
-        '.github/private-canary.json')) { Put (Join-Path $project $path) 'QA_ONLY private canary must not enter SOURCE' }
+        '.github/private-canary.json', '.github/ISSUE_TEMPLATE/private-canary.yml',
+        '.github/other-workflows/private-canary.yml')) { Put (Join-Path $project $path) 'QA_ONLY private canary must not enter SOURCE' }
 foreach ($path in @('Python-3.13.15.tgz', 'vlcj-4.11.0-sources.jar', 'vlcj-natives-4.8.3-sources.jar')) {
     Put (Join-Path $project ('build/release-sources/third-party/' + $path)) 'QA_ONLY third-party source placeholder'
 }
@@ -135,7 +138,9 @@ foreach ($name in @("LumenMusic-$version-Setup.exe", 'README.txt', 'LICENSE.txt'
 $zip = [IO.Compression.ZipFile]::OpenRead((Join-Path $release 'SOURCE.zip'))
 try {
     foreach ($path in @('docs/assets/home-lumen.png', 'docs/assets/home-light.png')) { Assert ($null -ne $zip.GetEntry($path)) "Screenshot missing from SOURCE: $path" }
-    foreach ($path in @('AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md', '.gitignore', '.github/workflows/ci.yml')) {
+    foreach ($path in @('AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md', '.gitignore', '.editorconfig', '.github/ISSUE_TEMPLATE/bug_report.yml',
+        '.github/ISSUE_TEMPLATE/feature_request.yml', '.github/ISSUE_TEMPLATE/config.yml',
+        '.github/pull_request_template.md', '.github/workflows/ci.yml')) {
         $entry = $zip.GetEntry($path); Assert ($null -ne $entry) "Repository documentation or workflow missing from SOURCE: $path"
         $stream = $entry.Open(); $sha = [Security.Cryptography.SHA256]::Create()
         try { $actual = ([BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-', '').ToLowerInvariant() }
@@ -145,7 +150,8 @@ try {
     foreach ($path in @('service/lumen_service/ai-secret.json', 'service/tests/.ai-settings-recovery.json',
             'desktop/src/main/resources/.env', 'desktop/src/main/resources/private-canary.pem',
             'docs/userdata/library.xml', 'scripts/.cache/private-canary.json', '.github/workflows/.env',
-            '.github/private-canary.json')) { Assert ($null -eq $zip.GetEntry($path)) "Private fixture included in SOURCE: $path" }
+            '.github/private-canary.json', '.github/ISSUE_TEMPLATE/private-canary.yml',
+            '.github/other-workflows/private-canary.yml')) { Assert ($null -eq $zip.GetEntry($path)) "Private fixture included in SOURCE: $path" }
     $reader = New-Object IO.StreamReader($zip.GetEntry('BUILD-INFO.txt').Open())
     try { $info = $reader.ReadToEnd() } finally { $reader.Dispose() }
     Assert ($info -notmatch [regex]::Escape($projectRoot) -and $info -notmatch 'C:[\\/]|D:[\\/]|Eternity') 'BUILD-INFO leaks a private path'

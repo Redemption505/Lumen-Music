@@ -136,7 +136,9 @@ foreach ($tree in @('desktop/src', 'desktop/.mvn', 'service/lumen_service', 'ser
         Copy-Item -LiteralPath $file.FullName -Destination $to
     }
 }
-foreach ($file in @('README.md', 'AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md', '.gitignore',
+foreach ($file in @('README.md', 'AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md', '.gitignore', '.editorconfig', '.github/ISSUE_TEMPLATE/bug_report.yml',
+        '.github/ISSUE_TEMPLATE/feature_request.yml', '.github/ISSUE_TEMPLATE/config.yml',
+        '.github/pull_request_template.md',
         '第四阶段.md', 'desktop/pom.xml', 'desktop/mvnw', 'desktop/mvnw.cmd',
         'stream-proxy/Cargo.toml', 'stream-proxy/Cargo.lock')) {
     $to = Join-Path $sourceRoot $file

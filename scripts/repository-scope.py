@@ -17,7 +17,9 @@ import uuid
 TREES = ('desktop/src', 'desktop/.mvn', 'service/lumen_service', 'service/tests',
          'stream-proxy/src', 'scripts', 'release', 'docs', '.github/workflows')
 FILES = ('README.md', 'AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md',
-         '第四阶段.md', 'LICENSE.txt', '.gitignore', 'service/README.md',
+         '第四阶段.md', 'LICENSE.txt', '.gitignore', '.editorconfig', '.github/ISSUE_TEMPLATE/bug_report.yml',
+         '.github/ISSUE_TEMPLATE/feature_request.yml', '.github/ISSUE_TEMPLATE/config.yml',
+         '.github/pull_request_template.md', 'service/README.md',
          'desktop/pom.xml', 'desktop/mvnw', 'desktop/mvnw.cmd',
          'stream-proxy/Cargo.toml', 'stream-proxy/Cargo.lock')
 PRIVATE_DIRS = {'.git', 'build', '.planning', '.codex', '.agents', 'userdata',
@@ -129,7 +131,7 @@ def main():
     for path in selected:
         data = (root / path).read_bytes()
         inventory.append({'path': path, 'bytes': len(data), 'sha256': digest(data)})
-        if Path(path).suffix.lower() in TEXT or Path(path).name in ('mvnw', '.gitignore'):
+        if Path(path).suffix.lower() in TEXT or Path(path).name in ('mvnw', '.gitignore', '.editorconfig'):
             value = data.decode('utf-8-sig', errors='replace')
             for category, pattern in PATTERNS.items():
                 matches = list(pattern.finditer(value))
@@ -188,7 +190,7 @@ def main():
             if missing or extra or different:
                 errors.append('index differs from current reviewed candidate inventory')
     report = {'status': 'passed' if not errors else 'failed', 'candidateCount': len(selected),
-        'textFileCount': sum(Path(p).suffix.lower() in TEXT or Path(p).name in ('mvnw', '.gitignore') for p in selected),
+        'textFileCount': sum(Path(p).suffix.lower() in TEXT or Path(p).name in ('mvnw', '.gitignore', '.editorconfig') for p in selected),
         'excludedPaths': sorted(set(excluded)), 'findings': findings,
         'credentialLiteralClassification': 'Same six C/D synthetic test literals' if literals == REVIEWED_LITERALS and fixture_hashes_match else 'review required',
         'reviewedFixtureHashesMatch': fixture_hashes_match,

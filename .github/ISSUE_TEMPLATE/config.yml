@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 使用与故障排查
+    url: https://github.com/Redemption505/Lumen-Music/blob/main/docs/WINDOWS_GUIDE.md
+    about: 安装、导入、备份、升级与启动失败说明
+  - name: 开发与贡献
+    url: https://github.com/Redemption505/Lumen-Music/blob/main/CONTRIBUTING.md
+    about: 环境准备、模块边界、测试和提交约定

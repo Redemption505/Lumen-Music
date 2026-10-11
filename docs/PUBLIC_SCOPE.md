@@ -1,16 +1,18 @@
 # 公开源码候选范围
 
-核对日期：2026-10-09（第三方现行资料访问基线为2026-10-08）。用户已授权将复核后的源码提交至 [Redemption505/Lumen-Music](https://github.com/Redemption505/Lumen-Music)，保持仓库现有私有可见性。本次上传开发源码、脚本、规范和合成截图，不上传安装器、第三方二进制、个人资料或本地材料归档，不创建 Release。范围由实际 Git 忽略与索引检查验证，来源及二进制未决项见[第三方核对](THIRD_PARTY_REVIEW.md)和[E 材料准备](PHASE4_RELEASE_MATERIALS.md)。
+核对日期：2026-10-11（第三方现行资料访问基线为2026-10-08）。用户已授权将复核后的源码提交至 [Redemption505/Lumen-Music](https://github.com/Redemption505/Lumen-Music)，保持仓库现有私有可见性。本次上传开发源码、脚本、规范和合成截图，不上传安装器、第三方二进制、个人资料或本地材料归档，不创建 Release。范围由实际 Git 忽略与索引检查验证，来源及二进制未决项见[第三方核对](THIRD_PARTY_REVIEW.md)和[E 材料准备](PHASE4_RELEASE_MATERIALS.md)。
 
 ## 1. 三种对象分别验收
 
 | 对象 | 用途与范围 | 当前边界 |
 | --- | --- | --- |
-| 开发仓库候选 | 维护、构建、测试与必要文档；含 `.github/workflows/`、`.gitignore` | 按下表白名单准备，逐文件复核后才能纳入真正提交；不伪造历史 |
+| 开发仓库候选 | 维护、构建、测试与必要文档；含 `.github/workflows/`、`.gitignore`、`.editorconfig` 及下表精确列出的协作模板 | 按下表白名单准备，逐文件复核后才能纳入真正提交；不伪造历史 |
 | 发行包 `SOURCE.zip` | 与某个二进制对应的源码、构建信息及第三方源码材料 | 当前由 `scripts/package-release.ps1` 单独复制指定树；**不读取 `.gitignore`**。不能仅修改忽略规则就声称打包排除了凭据 |
 | 可公开发行附件/截图 | 最终安装器、更新包、对应源码、许可证、声明、校验和，以及允许展示的界面 | 必须核对冻结版本的实际字节与来源；旧包哈希不代表本轮修改，截图和媒体另验授权 |
 
-当前 `SOURCE.zip` 收录 `desktop/src`、`desktop/.mvn`、`service/lumen_service`、`service/tests`、`stream-proxy/src`、`scripts`、`release`、`docs`，另有根 README、阶段文档、POM、Maven wrapper、Cargo.toml/Cargo.lock。生成 `BUILD-INFO.txt`、`SOURCE-SHA256SUMS.txt`，附 Python、vlcj 与 vlcj-natives 三份第三方源码归档及 GPL 文本。它不含开发仓库的 `.github/workflows/`、`.gitignore`，也不含 Git 历史。缺少这两类开发文件本身不是许可证违反的判定；对应源码的完整性须结合实际组件与构建链路验收。
+已交付候选 `lumen-0.2.2-20261010.1` 的 `SOURCE.zip` 包含485个文件，其中483个与该次构建的工作区输入字节一致，已收录 `.github/workflows/`、`.gitignore`、根 `AGENTS.md`、`CONTRIBUTING.md` 和 `CHANGELOG.md`。其主要源码树为 `desktop/src`、`desktop/.mvn`、`service/lumen_service`、`service/tests`、`stream-proxy/src`、`scripts`、`release`、`docs`，另有根 README、阶段文档、POM、Maven wrapper、Cargo.toml/Cargo.lock、三份第三方源码归档及 GPL 文本，并生成 `BUILD-INFO.txt`、`SOURCE-SHA256SUMS.txt`；不含 Git 历史。构建身份和验收见[候选说明](PHASE4_RELEASE_CANDIDATE.md)。
+
+当前打包规则另将 `.editorconfig` 和下表四个协作模板精确纳入未来 `SOURCE.zip`。这些本轮新增文件不会自动进入已冻结的20261010.1归档；再次打包时必须与目标二进制、构建身份和实际字节一并核对，不能声称旧归档已包含它们。
 
 更新打包脚本从目标完整包复制 `SOURCE.zip`、许可证及第三方声明，不独立重新生成源码。完整包材料变化后，更新包也要按新目标重新组装并校验。不能将修改后的工作区与旧 SOURCE 说成同一份源码。
 
@@ -20,11 +22,12 @@
 
 | 范围 | 候选内容 |
 | --- | --- |
-| 根文件 | `README.md`、`AGENTS.md`、`CONTRIBUTING.md`、`CHANGELOG.md`、`第四阶段.md`、`LICENSE.txt`、`.gitignore` |
+| 根文件 | `README.md`、`AGENTS.md`、`CONTRIBUTING.md`、`CHANGELOG.md`、`第四阶段.md`、`LICENSE.txt`、`.gitignore`、`.editorconfig` |
 | Java | `desktop/src/` 源码、测试与已核对素材；`desktop/pom.xml`、`desktop/mvnw`、`desktop/mvnw.cmd`、`desktop/.mvn/` |
 | Python | `service/README.md`、`service/lumen_service/*.py`、`service/tests/` 源码与人工编写的合成 fixture；运行时生成资料不纳入 |
 | Rust | `stream-proxy/src/`、`stream-proxy/Cargo.toml`、`stream-proxy/Cargo.lock` |
 | 工程支持 | `scripts/` 必要脚本、`release/` 模板/安装器资源/许可证、`docs/` 当前说明及必要历史验收、`.github/workflows/` |
+| 协作模板 | 仅 `.github/ISSUE_TEMPLATE/bug_report.yml`、`.github/ISSUE_TEMPLATE/feature_request.yml`、`.github/ISSUE_TEMPLATE/config.yml`、`.github/pull_request_template.md`；不放开整个 `.github/` 或 `ISSUE_TEMPLATE/` |
 | 新增素材/示例 | 只纳入自产、明确许可或已获授权的素材；能读取、能播放、能下载均不是公开许可证据 |
 
 当前首页截图候选为 [Lumen主题](assets/home-lumen.png)和[浅色主题](assets/home-light.png)：主代理从当前 `PersonalHome` 实际窗口取得，使用隔离合成资料，无个人曲库或私人路径。这是实际窗口截图，不代表安装版或外部朋友已经验收；两张图片已纳入最终候选清单与哈希，二进制图片的视觉/隐私依据来自该次主代理窗口验收。
@@ -63,7 +66,7 @@
 | `test_discovery_http.py` / 1 | 合成曲库、人工provider和替换的AI检索/transport，目标为本机测试server |
 | `update_feedback_smoke_fixture.py` / 1 | 显式隔离fixture根目录，固定输入且AI关闭，不从真实个人目录取值 |
 
-D 的冻结 SOURCE 为467成员、465个当时工作区输入，二进制身份与扫描见[D 验收](PHASE4_RELEASE_CANDIDATE.md)。E 后续工程文件属于当前开发仓库；不会通过修改文档将已归档 D SOURCE 改写成新快照。C 的457文件初始候选与测试分类证据保留在 `build/phase4-delivery-c/public/`，当前纳入文件数以 E 的实际清单为准。
+旧 D `lumen-0.2.2-20261009.2` 的冻结 SOURCE 为467成员、465个当时工作区输入，仅作为历史归档。当前已交付20261010.1的485/483验收事实见[候选说明](PHASE4_RELEASE_CANDIDATE.md)。本轮仓库呈现文件属于后续开发源码；文档和白名单更新不会改写任何已归档 SOURCE 或二进制。C 的457文件初始候选与测试分类证据保留在 `build/phase4-delivery-c/public/`，当前候选文件数以重新运行范围扫描所得的实际清单为准。
 
 以上仅覆盖白名单内当前 UTF-8 文本、实际索引字节及已分类的合成/图片依据；未知编码、二进制嵌入秘密及素材权利仍需具体复核。未读取真实个人状态、密钥、原始日志或备份负载，不声明启发式检查能够证明没有任何秘密。
 
