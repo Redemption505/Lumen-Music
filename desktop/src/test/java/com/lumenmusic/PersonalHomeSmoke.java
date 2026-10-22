@@ -202,6 +202,7 @@ public final class PersonalHomeSmoke extends Application {
                 fx(() -> { stage.setWidth(size[0]); stage.setHeight(size[1]); click("nav-home"); }); settle();
                 fx(() -> {
                     checkHomeBounds(); preserved();
+                    FrontendStyleAssertions.home(stage.getScene());
                     ((ScrollPane) node("home-scroll")).setVvalue(0); layout();
                     screenshot(stage.getScene(), mode.name().toLowerCase() + "-home-top-" + size[0] + "x" + size[1] + ".png");
                     ((ScrollPane) node("home-scroll")).setVvalue(1); layout();
@@ -215,6 +216,7 @@ public final class PersonalHomeSmoke extends Application {
             fx(() -> { checkDialogBounds(); screenshot(dialogNode("home-customize").getScene(), mode.name().toLowerCase() + "-customize-small.png"); click("home-customize-cancel"); });
         }
         System.out.println("PASS all five themes at 1280x800/860x600 with bounded cards, scroll access, long pins and small customization dialog");
+        System.out.println("PASS actual home auxiliary/pin colors, hover, focus and disabled styles in five themes and both sizes");
 
         phase = "ZIP preferences round-trip over HTTP";
         HomeClient.Preferences roundTrip = home.load();

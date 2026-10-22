@@ -43,16 +43,18 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
 
     private final Actions actions;
     private final GridPane grid = new GridPane();
-    private final VBox continuing = card("continue", "继续听");
-    private final VBox pinned = card("pinned", "我的常驻");
-    private final VBox reunion = card("reunion", "今日重逢");
-    private final VBox discover = card("discover", "想发现一点");
+    private final Label sessionBadge = text("○ 待开启", "home-session-badge");
+    private final Button resume;
+    private final Button organizeButton;
+    private final VBox continuing;
+    private final VBox pinned;
+    private final VBox reunion;
+    private final VBox discover;
     private final Map<String, VBox> cards = new LinkedHashMap<>();
     private final Label sessionTitle = text("让下一首音乐从这里开始", "home-track-title");
     private final Label sessionDetail = text("还没有可继续的播放会话", "muted");
-    private final Button resume;
     private final VBox pinItems = new VBox(6);
-    private final VBox reunionContent = new VBox(9);
+    private final VBox reunionContent = new VBox(8);
     private final Label feedback = text("", "muted");
     private final Consumer<DialogPane> themeDialog;
     private HomeClient.Preferences preferences = HomeClient.defaults();
@@ -98,6 +100,13 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
         header.getStyleClass().add("home-personal-heading");
         setTop(header);
 
+        organizeButton = button("整理我的歌单", "home-open-organization", actions.openOrganization());
+        organizeButton.getStyleClass().add("home-card-action");
+        continuing = card("continue", "继续听", sessionBadge);
+        pinned = card("pinned", "我的常驻", organizeButton);
+        reunion = card("reunion", "今日重逢", text("听歌记忆", "home-card-caption"));
+        discover = card("discover", "想发现一点", text("灵感探索", "home-card-caption"));
+
         resume = button("继续播放", "home-continue-play", actions.resume());
         resume.getStyleClass().add("accent-button");
         resume.setDisable(true);
@@ -107,23 +116,30 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
         sessionTitle.setTooltip(sessionTooltip);
         sessionDetail.setId("home-session-detail");
         sessionDetail.setWrapText(true);
-        continuing.getChildren().addAll(sessionTitle, sessionDetail, resume);
+        VBox sessionTextBox = new VBox(4, sessionTitle, sessionDetail);
+        sessionTextBox.setMinWidth(0);
+        VBox.setVgrow(sessionTextBox, Priority.ALWAYS);
+        continuing.getChildren().addAll(sessionTextBox, resume);
         pinItems.setId("home-pins");
-        pinned.getChildren().addAll(pinItems, button("整理我的歌单", "home-open-organization", actions.openOrganization()));
+        VBox.setVgrow(pinItems, Priority.ALWAYS);
+        pinned.getChildren().add(pinItems);
+        VBox.setVgrow(reunionContent, Priority.ALWAYS);
         reunion.getChildren().add(reunionContent);
-        discover.getChildren().addAll(text("从私人电台开始，或写下这次想听什么", "muted"), discoveryControls);
+        Label discoverHint = text("从私人电台开始，或写下这次想听什么", "muted");
+        discoverHint.setWrapText(true);
+        VBox.setVgrow(discoveryControls, Priority.ALWAYS);
+        discover.getChildren().addAll(discoverHint, discoveryControls);
         cards.put("continue", continuing);
         cards.put("pinned", pinned);
         cards.put("reunion", reunion);
         cards.put("discover", discover);
-        grid.setHgap(14);
-        grid.setVgap(14);
+        grid.setHgap(16);
+        grid.setVgap(16);
         grid.setId("home-sections");
-        VBox body = new VBox(16, grid, recommendations);
+        VBox body = new VBox(18, grid, recommendations);
         if (recommendations instanceof javafx.scene.layout.Region region) {
-            region.setMinHeight(280);
-            region.setPrefHeight(380);
-            region.setMaxHeight(380);
+            region.setMinHeight(240);
+            region.setPrefHeight(360);
         }
         body.setMinWidth(0);
         body.getStyleClass().add("home-personal-body");
@@ -172,6 +188,16 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
         sessionDetail.setText(track == null ? "还没有可继续的播放会话" : detail);
         resume.setText(playing ? "正在播放" : "继续播放");
         resume.setDisable(track == null || !canResume || playing);
+        if (playing) {
+            sessionBadge.setText("● 正在播放");
+            sessionBadge.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("playing"), true);
+        } else if (track != null && canResume) {
+            sessionBadge.setText("⏸ 上次停在");
+            sessionBadge.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("playing"), false);
+        } else {
+            sessionBadge.setText("○ 待开启");
+            sessionBadge.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("playing"), false);
+        }
     }
 
     public void setDiary(DiaryClient.Diary diary) {
@@ -182,10 +208,15 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
             track.setId("home-reunion-title");
             Label reason = text(selection.reason(), "muted");
             reason.setId("home-reunion-reason");
+            reason.getStyleClass().add("home-reunion-reason-box");
             reason.setWrapText(true);
-            reunionContent.getChildren().addAll(track, text(performer.apply(selection.track()), "muted"), reason,
-                    button("回听这首歌", "home-reunion-play", () -> actions.playReunion().accept(selection.track())),
-                    button("查看最近播放", "home-open-diary", actions.openDiary()));
+            Button playBtn = button("回听这首歌", "home-reunion-play", () -> actions.playReunion().accept(selection.track()));
+            playBtn.getStyleClass().add("home-reunion-play-button");
+            Button diaryBtn = button("查看最近播放", "home-open-diary", actions.openDiary());
+            diaryBtn.getStyleClass().add("home-reunion-diary-button");
+            HBox actionRow = new HBox(8, playBtn, diaryBtn);
+            actionRow.setAlignment(Pos.CENTER_LEFT);
+            reunionContent.getChildren().addAll(track, text(performer.apply(selection.track()), "muted"), reason, actionRow);
         }, () -> {
             Label empty = text("听歌后，真实的重听与初遇会在这里留下记录", "muted");
             empty.setWrapText(true);
@@ -231,6 +262,9 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
             open.setAlignment(Pos.CENTER_LEFT);
             open.setTooltip(new Tooltip(option.title()));
             open.getStyleClass().add("home-pin-button");
+            if ("smart".equals(pin.kind())) {
+                open.getStyleClass().add("home-pin-smart");
+            }
             open.setDisable(!pinExists(pin));
             pinItems.getChildren().add(open);
         }
@@ -421,8 +455,19 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
         };
     }
 
-    private static VBox card(String id, String title) {
-        VBox card = new VBox(10, text(title, "section-title"));
+    private static VBox card(String id, String title, Node headerRight) {
+        Label titleLabel = text(title, "section-title");
+        Node headerNode;
+        if (headerRight != null) {
+            javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            HBox headerBox = new HBox(8, titleLabel, spacer, headerRight);
+            headerBox.setAlignment(Pos.CENTER_LEFT);
+            headerNode = headerBox;
+        } else {
+            headerNode = titleLabel;
+        }
+        VBox card = new VBox(10, headerNode);
         card.setId("home-section-" + id);
         card.setMinWidth(0);
         card.setMaxWidth(Double.MAX_VALUE);

@@ -792,6 +792,7 @@ public final class LumenFxApp extends Application {
         });
         FlowPane playlistHeaderActions = new FlowPane(8, 8,
                 createPlaylist, renamePlaylist, deletePlaylist, editPresentation);
+        playlistHeaderActions.setId("playlist-header-actions");
         Button smartPlaylists = actionButton("智能歌单与整理", "smart-playlists", () -> showSmartLibrary(null));
         decorateIcon(smartPlaylists, "list", "action-icon");
         playlistHeaderActions.getChildren().add(smartPlaylists);

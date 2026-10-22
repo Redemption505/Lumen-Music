@@ -427,7 +427,16 @@
 #main-sidebar:collapsed { -fx-padding: 8 6; }
 #main-sidebar:collapsed .nav-button { -fx-alignment: center; }
 #main-sidebar:collapsed .nav-button:active { -fx-border-width: 0; }
-.sidebar-collapse-button { -fx-background-color: -lumen-panel; -fx-min-height: 34; -fx-max-width: infinity; }
+.sidebar-collapse-button.button {
+    -fx-background-color: -lumen-panel;
+    -fx-min-height: 34;
+    -fx-max-width: infinity;
+    -fx-border-color: -lumen-divider transparent transparent transparent;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+}
+.sidebar-collapse-button.button:hover { -fx-background-color: -lumen-hover; }
+.sidebar-collapse-button.button:focused { -fx-border-color: -lumen-focus; }
 #sidebar-scroll > .scroll-bar { -fx-background-color: -lumen-panel; }
 #sidebar-resize-handle { -fx-background-color: transparent; }
 #sidebar-resize-handle:hover { -fx-background-color: -lumen-accent; }
@@ -464,18 +473,100 @@
 .recommendation-surface { -fx-padding: 0; }
 
 /* Personal home uses the same stable reading surfaces as the other core pages. */
-.home-personal-heading { -fx-padding: 20 22 14 22; }
-.home-personal-body { -fx-padding: 0 22 22 22; }
+.home-personal-heading { -fx-padding: 18 24 12 24; }
+.home-personal-body { -fx-padding: 0 24 24 24; }
 .home-personal-card {
-    -fx-padding: 18;
+    -fx-padding: 16 18;
     -fx-background-color: -lumen-panel;
-    -fx-background-radius: 12;
+    -fx-background-radius: 14;
     -fx-border-color: -lumen-divider;
-    -fx-border-radius: 12;
-    -fx-min-height: 178;
+    -fx-border-radius: 14;
+    -fx-min-height: 172;
+}
+#home-section-continue {
+    -fx-background-color: linear-gradient(to bottom right, -lumen-selected, -lumen-panel 68%);
+    -fx-border-color: -lumen-divider;
+}
+.home-session-badge {
+    -fx-font-size: 11px;
+    -fx-padding: 3 9;
+    -fx-background-radius: 10;
+    -fx-background-color: -lumen-field;
+    -fx-text-fill: -lumen-muted;
+}
+.home-session-badge:playing {
+    -fx-text-fill: -lumen-accent-text;
+    -fx-background-color: -lumen-selected;
+}
+.home-card-caption {
+    -fx-font-size: 11px;
+    -fx-text-fill: -lumen-muted;
+}
+.personal-home .home-card-action {
+    -fx-font-size: 12px;
+    -fx-padding: 3 9;
+    -fx-background-color: transparent;
+    -fx-border-color: -lumen-divider;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: -lumen-muted;
+}
+.personal-home .home-card-action:hover {
+    -fx-background-color: -lumen-hover;
+    -fx-text-fill: -lumen-text;
 }
 .home-track-title { -fx-font-size: 17px; -fx-font-weight: bold; }
-.home-pin-button { -fx-padding: 7 10; -fx-background-radius: 8; }
+.personal-home .home-pin-button {
+    -fx-padding: 8 12;
+    -fx-background-radius: 8;
+    -fx-background-color: -lumen-field;
+    -fx-text-fill: -lumen-text;
+}
+.personal-home .home-pin-button:hover {
+    -fx-background-color: -lumen-hover;
+}
+.home-pin-button.home-pin-smart {
+    -fx-border-color: transparent transparent transparent -lumen-accent-text;
+    -fx-border-width: 0 0 0 2;
+}
+.home-reunion-reason-box {
+    -fx-padding: 6 10;
+    -fx-background-color: -lumen-field;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent transparent transparent -lumen-accent-text;
+    -fx-border-width: 0 0 0 3;
+    -fx-border-radius: 2;
+}
+.home-reunion-play-button {
+    -fx-padding: 7 14;
+    -fx-background-radius: 8;
+    -fx-background-color: -lumen-button;
+    -fx-text-fill: -lumen-text;
+}
+.home-reunion-play-button:hover {
+    -fx-background-color: -lumen-hover;
+}
+.personal-home .home-reunion-diary-button {
+    -fx-padding: 7 12;
+    -fx-background-radius: 8;
+    -fx-background-color: transparent;
+    -fx-border-color: -lumen-divider;
+    -fx-border-radius: 8;
+    -fx-text-fill: -lumen-muted;
+}
+.personal-home .home-reunion-diary-button:hover {
+    -fx-background-color: -lumen-hover;
+    -fx-text-fill: -lumen-text;
+}
+/* Scoped base colors must retain a focus rule at the same scope. */
+.personal-home .home-card-action:focused,
+.personal-home .home-reunion-diary-button:focused,
+.personal-home .home-pin-button:focused { -fx-border-color: -lumen-focus; }
+#home-section-discover #recommendation-intent {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 4 0;
+}
 #home-customize .list-view { -fx-background-color: -lumen-field; -fx-control-inner-background: -lumen-field; }
 #home-customize .list-cell:filled:selected { -fx-background-color: -lumen-selected; }
 #home-customize .scroll-pane, #home-customize .scroll-pane > .viewport { -fx-background-color: transparent; }
@@ -626,11 +717,43 @@
     -fx-border-color: transparent;
 }
 #main-sidebar:collapsed { -fx-spacing: 4; }
-#main-sidebar:collapsed .nav-button { -fx-padding: 7 0; }
+#main-sidebar:collapsed .nav-button { -fx-padding: 7 0; -fx-background-radius: 8; }
 .root:short #main-sidebar .nav-button { -fx-min-height: 30; -fx-pref-height: 32; -fx-padding: 4 8; }
 .root:short #main-sidebar { -fx-spacing: 2; -fx-padding: 6 8; }
 .root:short .sidebar-caption { -fx-padding: 0 7 1 7; }
 .root:short .pet-sidebar { -fx-padding: 3 2; }
+/* Compact playback bar tuning (e.g. 860x600 window) */
+.root:compact .playback {
+    -fx-padding: 8 14;
+}
+.root:compact .player-track-details {
+    -fx-spacing: 2;
+}
+.root:compact .player-title {
+    -fx-font-size: 13px;
+}
+.root:compact .player-subtitle {
+    -fx-font-size: 11px;
+}
+.root:compact .player-actions .icon-button,
+.root:compact .player-actions .button {
+    -fx-min-width: 34;
+    -fx-min-height: 34;
+    -fx-pref-width: 34;
+    -fx-pref-height: 34;
+}
+.root:compact .player-transport .transport-button {
+    -fx-min-width: 38;
+    -fx-min-height: 38;
+    -fx-pref-width: 38;
+    -fx-pref-height: 38;
+}
+.root:compact #play-button {
+    -fx-min-width: 44;
+    -fx-min-height: 44;
+    -fx-pref-width: 44;
+    -fx-pref-height: 44;
+}
 .track-batch-bar { -fx-spacing: 10; }
 .track-batch-bar .label, .track-batch-bar .check-box { -fx-font-size: 12px; -fx-text-fill: -lumen-text; }
 .track-batch-bar .icon-button {
@@ -828,3 +951,96 @@
 .playlist-artwork-tile { -fx-background-color: -lumen-field; }
 #playlist-presentation-dialog .scroll-pane, #playlist-presentation-dialog .scroll-pane > .viewport { -fx-background-color: transparent; }
 #playlist-presentation-feedback { -fx-text-fill: -lumen-text; }
+
+/* Batch 3: Playlist details header presentation */
+#playlist-cover {
+    -fx-effect: dropshadow(gaussian, #1014172a, 16, 0.1, 0, 4);
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+#playlist-page-name {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -lumen-text;
+}
+#playlist-page-count {
+    -fx-font-size: 13px;
+    -fx-text-fill: -lumen-muted;
+}
+#playlist-description {
+    -fx-font-size: 12px;
+    -fx-line-spacing: 3;
+    -fx-text-fill: -lumen-muted;
+    -fx-padding: 2 0 0 0;
+}
+#playlist-header-actions .button {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 7 12;
+}
+
+/* Batch 3: Immersive playback balance and responsive tuning */
+.immersive-left {
+    -fx-alignment: center;
+}
+.immersive-actions {
+    -fx-padding: 4 0 0 0;
+}
+.immersive-calibration {
+    -fx-background-color: -lumen-field;
+    -fx-background-radius: 8;
+    -fx-border-color: -lumen-divider;
+    -fx-border-radius: 8;
+    -fx-padding: 6 10;
+}
+.root:compact .immersive-body {
+    -fx-spacing: 20;
+    -fx-padding: 0 4 4 4;
+}
+.root:compact .immersive-left {
+    -fx-padding: 0;
+}
+.root:compact .immersive-title {
+    -fx-font-size: 20px;
+}
+.root:compact .immersive-heading {
+    -fx-font-size: 12px;
+}
+.root:compact #immersive-lyrics .list-cell {
+    -fx-font-size: 18px;
+    -fx-padding: 8 6;
+}
+.root:compact #immersive-lyrics .list-cell.current-lyric {
+    -fx-font-size: 23px;
+    -fx-padding: 10 6;
+}
+
+/* Batch 4: Mini player & Pet companion micro-interaction */
+.mini-player {
+    -fx-effect: dropshadow(gaussian, #10141738, 20, 0.12, 0, 6);
+}
+#mini-artwork {
+    -fx-background-color: -lumen-field;
+    -fx-background-radius: 8;
+    -fx-border-color: -lumen-divider;
+    -fx-border-radius: 8;
+}
+#mini-return {
+    -fx-background-color: -lumen-button;
+    -fx-border-color: -lumen-divider;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-font-size: 11px;
+    -fx-padding: 3 8;
+    -fx-text-fill: -lumen-muted;
+}
+#mini-return:hover {
+    -fx-background-color: -lumen-hover;
+    -fx-text-fill: -lumen-text;
+}
+#mini-return:focused { -fx-border-color: -lumen-focus; }
+.pet-bubble {
+    -fx-border-color: -lumen-divider;
+    -fx-border-radius: 9;
+    -fx-effect: dropshadow(gaussian, #10141720, 10, 0.08, 0, 3);
+}

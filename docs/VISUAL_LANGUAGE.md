@@ -29,6 +29,8 @@ Lumen 采用暖墨底色、暖金强调与低饱和封面柔光。浅色主题�
 
 红心表示收藏，更多菜单承载次要操作。悬停使用统一背景，键盘焦点使用可见边框，聚焦时按钮尺寸保持稳定；不可用操作降低亮度并停止接收操作。沉浸页与底栏的收藏颜色及提示同步。
 
+首页的整理与最近播放辅助按钮使用透明背景、次要文字和细边框，常驻歌单使用输入区域底色；悬停提高文字与背景对比，聚焦保留主题焦点边框。歌单操作栏统一圆角与内边距，迷你窗口的返回按钮沿用相同焦点规则。
+
 首页推荐空态说明如何生成推荐，空歌单说明如何加入曲目，无歌词说明如何匹配且不影响继续播放。歌单操作结果就近显示，长反馈可以换行。
 
 设置首先展开“外观与动效”，桌宠与专注相关选项放入“桌宠与陪伴”；原有音频、快捷键、AI、数据与版本设置继续保留。
@@ -46,8 +48,9 @@ Lumen 采用暖墨底色、暖金强调与低饱和封面柔光。浅色主题�
 先使用项目已有 Maven 环境完成 `desktop/` 的 `test-compile`，再从项目根目录运行：
 
 ```powershell
-./scripts/visual-language-smoke.ps1 -Profile All
-./scripts/playback-scene-smoke.ps1 -Profile Normal
+./scripts/visual-language-smoke.ps1 -AppHome '<目标应用镜像>' -Java '<完整JDK的java.exe>' -Profile All
+# 当前源码验证，显式提供含依赖 JAR 和 vlc/ 的既有运行时：
+./scripts/playback-scene-smoke.ps1 -RuntimeHome '<既有运行时目录>' -Java '<完整JDK的java.exe>' -Python '<Python解释器>' -SmokeLauncher com.lumenmusic.VisualLanguageSmokeLauncher -ArtifactDirectory visual-language-smoke -Profile All
 ```
 
-视觉脚本使用隔离曲库、合成 WAV 和本机 HTTP 封面，不写入个人资料。它复用 `build/package-input/` 中已有 JavaFX/VLC 运行环境；缺少这些文件时明确报错，不自动安装工具。`Normal` 使用系统当前缩放，`HiDpi` 强制 150%，`All` 顺序运行两者。日志与截图分别保存到 `build/visual-language-smoke/` 和 `build/playback-scene-smoke/`。
+视觉脚本使用隔离曲库、合成 WAV 和本机 HTTP 封面，不写入个人资料。依赖与目标由上述参数明确指定；缺少文件时明确报错，不自动安装工具。`Normal` 使用系统当前缩放，`HiDpi` 强制 150%，`All` 顺序运行两者。视觉场景还检查实际歌单操作栏样式和五主题迷你窗口的内部 Shift+Tab 焦点、悬停/禁用样式，以及返回后播放器实例、队列和播放状态保持；首页辅助/常驻/侧栏的样式由 `PersonalHomeSmoke` 检查。状态伪类检查不改业务绑定，内部场景事件不等于原生鼠标键盘接管验收。运行参数及源码来源边界见[开发与复现](DEVELOPMENT.md#4-windows-场景与历史-fixture)。

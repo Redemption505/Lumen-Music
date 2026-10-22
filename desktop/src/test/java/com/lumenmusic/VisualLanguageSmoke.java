@@ -234,6 +234,55 @@ public final class VisualLanguageSmoke extends Application {
             check(Window.getWindows().stream().filter(Window::isShowing).count() == 1, "navigation created extra windows");
         });
         System.out.println("PASS reduced motion immediately freezes background and removes transition while navigation/audio remain usable");
+        miniStyleCheck();
+    }
+
+    private void miniStyleCheck() throws Exception {
+        phase = "mini return keyboard focus and shared playback";
+        AudioPlayer playing = fxValue(this::audio);
+        long version = fxValue(() -> field("loadVersion", Long.class));
+        PlayerQueue.Snapshot queue = fxValue(() -> field("queue", PlayerQueue.class).snapshot());
+        for (ThemeController.Mode mode : ThemeController.Mode.values()) {
+            fx(() -> { chooseTheme(mode); click("open-mini"); });
+            Stage mini = fxValue(() -> field("miniStage", Stage.class));
+            for (int width : new int[] {540, 460}) {
+                fx(() -> {
+                    mini.setWidth(width); mini.setHeight(244);
+                    mini.getScene().lookup("#mini-minimize").requestFocus();
+                }); pause(120);
+                WritableImage[] before = {null}; Bounds[] bounds = {null};
+                fx(() -> {
+                    mini.getScene().getRoot().applyCss(); mini.getScene().getRoot().layout();
+                    FrontendStyleAssertions.mini(mini.getScene());
+                    Node target = mini.getScene().lookup("#mini-return");
+                    before[0] = target.snapshot(null, null); bounds[0] = target.getBoundsInLocal();
+                    mini.getScene().lookup("#mini-minimize").fireEvent(new KeyEvent(
+                            KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB, true, false, false, false));
+                }); pause(100);
+                fx(() -> {
+                    Node target = mini.getScene().lookup("#mini-return");
+                    check(mini.getScene().getFocusOwner() == target, "Shift+Tab did not reach mini return");
+                    target.applyCss();
+                    check(target.getBoundsInLocal().equals(bounds[0]), "mini return focus changed size");
+                    WritableImage after = target.snapshot(null, null);
+                    int changed = 0;
+                    for (int y = 0; y < (int) after.getHeight(); y++) for (int x = 0; x < (int) after.getWidth(); x++) {
+                        if (x > 3 && x < after.getWidth() - 4 && y > 3 && y < after.getHeight() - 4) continue;
+                        if (after.getPixelReader().getArgb(x, y) != before[0].getPixelReader().getArgb(x, y)) changed++;
+                    }
+                    check(changed >= 20, "mini return focus has no rendered boundary");
+                    screenshot(mini.getScene(), mode.name().toLowerCase() + "-mini-focus-" + width + ".png");
+                });
+            }
+            fx(() -> {
+                ((ButtonBase) mini.getScene().lookup("#mini-return")).fire();
+                check(!mini.isShowing() && stage.isShowing() && field("miniStage", Stage.class) == null, "mini return did not restore main window");
+                check(audio() == playing && field("loadVersion", Long.class) == version, "mini style check reloaded audio");
+                check(field("queue", PlayerQueue.class).snapshot().equals(queue), "mini return changed queue");
+                check(audio().state() == JavaFxAudioPlayer.State.PLAYING, "mini return interrupted playback");
+            });
+        }
+        System.out.println("PASS actual playlist action styles and mini five-theme 540/460x244 hover/focus/disabled states; internal Shift+Tab renders stable focus and return preserves playing audio/queue");
     }
 
     private void checkScene(String scene) {
@@ -253,6 +302,7 @@ public final class VisualLanguageSmoke extends Application {
                 readable((Labeled) node("home-search-button"), 4.5);
             }
             case "playlist" -> {
+                FrontendStyleAssertions.playlist(stage.getScene());
                 fits(node("playlist-scroll")); fits(node("playlist-page-name"));
                 readable((Labeled) node("playlist-page-name"), 4.5);
                 readable((Labeled) node("playlist-page-count"), 3.0);

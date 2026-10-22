@@ -2,7 +2,7 @@
 
 按使用、开发与验证目的选择入口。项目概览和源码启动见 [仓库首页](../README.md)，版本变化见 [CHANGELOG](../CHANGELOG.md)。
 
-当前 Windows 内测候选为 **v0.2.2 / `lumen-0.2.2-20261010.1`**，构建身份与校验方式以 [候选说明](PHASE4_RELEASE_CANDIDATE.md) 为准。GitHub 尚无二进制 Release；文档中的 `build/` 路径是未随源码上传的本地材料，不是下载入口。独立朋友电脑和原首次启动闪退者复测仍待完成。
+当前 Windows 内测候选为 **v0.2.2 / `lumen-0.2.2-20261022.1`**，构建身份与校验方式以 [候选说明](PHASE4_RELEASE_CANDIDATE.md) 为准。GitHub 尚无二进制 Release；文档中的 `build/` 路径是未随源码上传的本地材料，不是下载入口。独立朋友电脑和原首次启动闪退者复测仍待完成。
 
 ## 使用者
 
@@ -39,6 +39,7 @@
 | 用途 | 文档与范围 |
 | --- | --- |
 | 当前候选身份、已验证与待验证项 | [Windows 内测候选](PHASE4_RELEASE_CANDIDATE.md)、[验证结果汇总](VALIDATION.md) |
+| 前端优化、样式修复与安装交付范围 | [前端交付验收](FRONTEND_RELEASE_ACCEPTANCE.md) |
 | 启动采样方法、已有观测与缺口 | [Windows 启动验收](STARTUP_ACCEPTANCE.md) |
 | 当前阶段目标与后续安排 | [第四阶段](../第四阶段.md)；已完成桌面范围、后置事项与待验证项分别说明 |
 | 第四阶段审计与专项验收 | [审计范围](PHASE4_AUDIT_SCOPE.md)、[核心修复](PHASE4_CORE_ACCEPTANCE.md)、[稳定性](PHASE4_STABILITY_ACCEPTANCE.md)、[视觉](PHASE4_VISUAL_ACCEPTANCE.md)、[首页](PHASE4_HOME_ACCEPTANCE.md)、[收藏记忆](PHASE4_COLLECTION_ACCEPTANCE.md)、[交付](PHASE4_DELIVERY_ACCEPTANCE.md) |

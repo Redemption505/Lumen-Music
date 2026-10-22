@@ -107,7 +107,7 @@ demo 集成需要另外启动 `PYTHONPATH=service python -m lumen_service --prov
 | `-RuntimeHome '<运行时目录>'` | 当前 `desktop/target/classes` | 该目录的依赖 JAR 与 `vlc/`；兼容直接 JAR 目录，或有 `app/` 子目录的镜像根目录。Python 从 `-Python` / `LUMEN_PYTHON` / `PATH` 解析 |
 | `-AppHome '<目标镜像或安装目录>'` | 目标 `app/LumenMusic.cfg` 指定的生产 JAR | 目标自身的依赖、VLC、service；默认目标 `app/python/python.exe`，可显式覆盖。记录生产 JAR 哈希并检查类加载来源 |
 
-不要同时传两个参数。`RuntimeHome` 即使借用历史镜像的依赖，也只是当前源码验收，不能证明该镜像已包含新修复；`AppHome` 才验证目标 JAR，但仍需当前源码编译的测试 driver。脚本检查驱动及应用类的新旧状态，发现源码比编译类新时拒绝运行；先重新 `test-compile`，不能沿用旧类造成表面通过。这类测试不能替代安装、升级和用户交互验收。
+不要同时传两个参数。`RuntimeHome` 即使借用历史镜像的依赖，也只是当前源码验收，不能证明该镜像已包含新修复；`AppHome` 才验证目标 JAR，但仍需当前源码编译的测试 driver。脚本检查所选 launcher 与同名场景驱动的编译时间并打印其哈希，不会逐一核对生产类、资源或测试辅助类的新旧状态。复验前先重新 `test-compile`，核对生产 CSS 与 `target/classes` 中资源一致，避免旧类造成表面通过。这类测试不能替代安装、升级和用户交互验收。
 
 ```powershell
 ./desktop/mvnw.cmd -B -ntp -f desktop/pom.xml test-compile
