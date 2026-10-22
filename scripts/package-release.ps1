@@ -139,7 +139,7 @@ foreach ($tree in @('desktop/src', 'desktop/.mvn', 'service/lumen_service', 'ser
 foreach ($file in @('README.md', 'AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md', '.gitignore', '.editorconfig', '.github/ISSUE_TEMPLATE/bug_report.yml',
         '.github/ISSUE_TEMPLATE/feature_request.yml', '.github/ISSUE_TEMPLATE/config.yml',
         '.github/pull_request_template.md',
-        '第四阶段.md', 'desktop/pom.xml', 'desktop/mvnw', 'desktop/mvnw.cmd',
+        '第四阶段.md', 'desktop/pom.xml', 'desktop/mvnw', 'desktop/mvnw.cmd', 'service/README.md',
         'stream-proxy/Cargo.toml', 'stream-proxy/Cargo.lock')) {
     $to = Join-Path $sourceRoot $file
     New-Item -ItemType Directory -Force -Path (Split-Path $to -Parent) | Out-Null

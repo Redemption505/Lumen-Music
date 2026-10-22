@@ -51,7 +51,7 @@ Put (Join-Path $project 'desktop/pom.xml') ("<project><version>$version</version
 foreach ($path in @('desktop/src/main/resources/lumen-build.properties', 'desktop/.mvn/fixture.txt', 'service/tests/fixture.txt',
         'stream-proxy/src/fixture.txt', "release/v$version/README.txt", 'release/v0.1.0/THIRD-PARTY-NOTICES.txt',
         'release/licenses/GPL-3.0.txt', 'docs/fixture.txt', 'README.md', 'AGENTS.md', 'CONTRIBUTING.md',
-        'CHANGELOG.md', '.gitignore', '.editorconfig', '.github/ISSUE_TEMPLATE/bug_report.yml',
+        'CHANGELOG.md', 'service/README.md', '.gitignore', '.editorconfig', '.github/ISSUE_TEMPLATE/bug_report.yml',
         '.github/ISSUE_TEMPLATE/feature_request.yml', '.github/ISSUE_TEMPLATE/config.yml',
         '.github/pull_request_template.md', '.github/workflows/ci.yml', '第四阶段.md', 'desktop/mvnw', 'desktop/mvnw.cmd',
         'stream-proxy/Cargo.toml', 'stream-proxy/Cargo.lock')) { Put (Join-Path $project $path) 'QA_ONLY corresponding-source metadata fixture' }
@@ -138,7 +138,7 @@ foreach ($name in @("LumenMusic-$version-Setup.exe", 'README.txt', 'LICENSE.txt'
 $zip = [IO.Compression.ZipFile]::OpenRead((Join-Path $release 'SOURCE.zip'))
 try {
     foreach ($path in @('docs/assets/home-lumen.png', 'docs/assets/home-light.png')) { Assert ($null -ne $zip.GetEntry($path)) "Screenshot missing from SOURCE: $path" }
-    foreach ($path in @('AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md', '.gitignore', '.editorconfig', '.github/ISSUE_TEMPLATE/bug_report.yml',
+    foreach ($path in @('AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'service/README.md', '.gitignore', '.editorconfig', '.github/ISSUE_TEMPLATE/bug_report.yml',
         '.github/ISSUE_TEMPLATE/feature_request.yml', '.github/ISSUE_TEMPLATE/config.yml',
         '.github/pull_request_template.md', '.github/workflows/ci.yml')) {
         $entry = $zip.GetEntry($path); Assert ($null -ne $entry) "Repository documentation or workflow missing from SOURCE: $path"
