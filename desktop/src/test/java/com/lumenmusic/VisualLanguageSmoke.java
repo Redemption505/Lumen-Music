@@ -149,6 +149,16 @@ public final class VisualLanguageSmoke extends Application {
         });
         System.out.println("PASS local WAV browse/immersive/return preserves audio, loadVersion, queue and both scroll positions; clock advances");
 
+        if (getParameters().getRaw().contains("--focus-only")) {
+            focusEnvironmentCheck();
+            for (ThemeController.Mode mode : List.of(ThemeController.Mode.DARK, ThemeController.Mode.LIGHT)) {
+                fx(() -> { chooseTheme(mode); openScene("home"); }); settle();
+                keyboardFocusCheck(mode);
+            }
+            miniStyleCheck();
+            return;
+        }
+
         phase = "four scenes five themes two sizes";
         for (ThemeController.Mode mode : ThemeController.Mode.values()) {
             fx(() -> chooseTheme(mode));
@@ -173,6 +183,7 @@ public final class VisualLanguageSmoke extends Application {
         }
         fx(() -> preserved(before, true));
         System.out.println("PASS home/playlist/immersive/settings, five themes, 1280x800 + 860x600, rendered contrast, long bilingual titles and popup boundaries");
+        focusEnvironmentCheck();
         phase = "keyboard focus remains visible";
         for (ThemeController.Mode mode : List.of(ThemeController.Mode.DARK, ThemeController.Mode.LIGHT)) {
             fx(() -> { chooseTheme(mode); openScene("home"); }); settle();
@@ -246,31 +257,20 @@ public final class VisualLanguageSmoke extends Application {
             fx(() -> { chooseTheme(mode); click("open-mini"); });
             Stage mini = fxValue(() -> field("miniStage", Stage.class));
             for (int width : new int[] {540, 460}) {
-                fx(() -> {
-                    mini.setWidth(width); mini.setHeight(244);
-                    mini.getScene().lookup("#mini-minimize").requestFocus();
-                }); pause(120);
-                WritableImage[] before = {null}; Bounds[] bounds = {null};
-                fx(() -> {
-                    mini.getScene().getRoot().applyCss(); mini.getScene().getRoot().layout();
+                fx(() -> { mini.setWidth(width); mini.setHeight(244); });
+                activateForFocusCheck(mini);
+                Node anchor = fxValue(() -> mini.getScene().lookup("#mini-minimize"));
+                Node target = fxValue(() -> mini.getScene().lookup("#mini-return"));
+                focusAnchor(anchor);
+                FocusPixelAssertions.Baseline baseline = fxValue(() -> {
                     FrontendStyleAssertions.mini(mini.getScene());
-                    Node target = mini.getScene().lookup("#mini-return");
-                    before[0] = target.snapshot(null, null); bounds[0] = target.getBoundsInLocal();
-                    mini.getScene().lookup("#mini-minimize").fireEvent(new KeyEvent(
-                            KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB, true, false, false, false));
-                }); pause(100);
+                    return FocusPixelAssertions.capture(anchor, target);
+                });
+                fx(() -> anchor.fireEvent(new KeyEvent(
+                        KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB, true, false, false, false)));
+                awaitFocused(target, "Shift+Tab did not reach mini return");
                 fx(() -> {
-                    Node target = mini.getScene().lookup("#mini-return");
-                    check(mini.getScene().getFocusOwner() == target, "Shift+Tab did not reach mini return");
-                    target.applyCss();
-                    check(target.getBoundsInLocal().equals(bounds[0]), "mini return focus changed size");
-                    WritableImage after = target.snapshot(null, null);
-                    int changed = 0;
-                    for (int y = 0; y < (int) after.getHeight(); y++) for (int x = 0; x < (int) after.getWidth(); x++) {
-                        if (x > 3 && x < after.getWidth() - 4 && y > 3 && y < after.getHeight() - 4) continue;
-                        if (after.getPixelReader().getArgb(x, y) != before[0].getPixelReader().getArgb(x, y)) changed++;
-                    }
-                    check(changed >= 20, "mini return focus has no rendered boundary");
+                    FocusPixelAssertions.verify(target, baseline);
                     screenshot(mini.getScene(), mode.name().toLowerCase() + "-mini-focus-" + width + ".png");
                 });
             }
@@ -417,7 +417,7 @@ public final class VisualLanguageSmoke extends Application {
             int pixel = rendered.getPixelReader().getArgb(x, y);
             for (int i = 0; i < COVER_MARKERS.length; i++) if (pixel == COVER_MARKERS[i]) counts[i]++;
         }
-        for (int i = 0; i < counts.length; i++) check(counts[i] > minimumPixels, description + " corner " + i + " cropped from rendered cover");
+        for (int i = 0; i < counts.length; i++) check(counts[i] > minimumPixels, description + " corner " + i + " cropped from rendered cover; counts=" + java.util.Arrays.toString(counts) + ", opacity=" + artwork.getOpacity());
     }
 
     private void checkFavoriteState(boolean saved) {
@@ -473,33 +473,86 @@ public final class VisualLanguageSmoke extends Application {
     }
 
     private void keyboardFocusCheck(ThemeController.Mode mode) throws Exception {
-        WritableImage[] unfocused = {null}; Bounds[] before = {null};
+        activateForFocusCheck(stage);
+        fx(this::revealHomeDiscovery);
+        Node anchor = fxValue(() -> node("home-query"));
+        Node target = fxValue(() -> node("home-search-button"));
+        focusAnchor(anchor);
+        FocusPixelAssertions.Baseline baseline = fxValue(() -> FocusPixelAssertions.capture(anchor, target));
+        fx(() -> anchor.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB, false, false, false, false)));
+        awaitFocused(target, "Tab traversal did not reach recommendation action");
         fx(() -> {
-            revealHomeDiscovery();
-            node("home-query").requestFocus(); layout();
-            before[0] = node("home-search-button").getBoundsInLocal();
-            unfocused[0] = node("home-search-button").snapshot(null, null);
-            node("home-query").fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB, false, false, false, false));
+            FocusPixelAssertions.verify(target, baseline);
+            readable((Labeled) target, 4.5);
+            fits(target);
+            screenshot(stage.getScene(), mode.name().toLowerCase() + "-keyboard-focus.png");
         });
-        pause(100);
-        fx(() -> {
-            layout(); Node focused = node("home-search-button");
-            check(stage.getScene().getFocusOwner() == focused, "Tab traversal did not reach recommendation action");
-            check(before[0].equals(focused.getBoundsInLocal()), "keyboard focus changed button bounds: "
-                    + before[0] + " -> " + focused.getBoundsInLocal());
-            WritableImage after = focused.snapshot(null, null); int perimeterChanges = 0;
-            int width = (int) after.getWidth(), height = (int) after.getHeight();
-            check(width == (int) unfocused[0].getWidth() && height == (int) unfocused[0].getHeight(), "focus changed rendered button dimensions");
-            for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
-                if (x > 3 && x < width - 4 && y > 3 && y < height - 4) continue;
-                if (after.getPixelReader().getArgb(x, y) != unfocused[0].getPixelReader().getArgb(x, y)) perimeterChanges++;
-            }
-            check(perimeterChanges >= 20, "keyboard focus has no visible boundary");
-            readable((Labeled) focused, 4.5);
-            fits(focused);
+    }
+
+    private void activateForFocusCheck(Window window) throws Exception {
+        // One request, then bounded observation. Never force topmost or mask lost focus.
+        fx(window::requestFocus);
+        await(3_000, () -> fxValue(() -> window.isShowing() && window.isFocused()), "FOCUS_WINDOW_NOT_ACTIVE");
+    }
+
+    private void focusAnchor(Node anchor) throws Exception {
+        fx(anchor::requestFocus);
+        awaitFocused(anchor, "focus anchor did not receive input focus");
+    }
+
+    private void awaitFocused(Node target, String message) throws Exception {
+        await(3_000, () -> fxValue(() -> target.getScene().getFocusOwner() == target && target.isFocused()),
+                message + "; " + fxValue(() -> FocusPixelAssertions.state(target)));
+    }
+
+    private void focusEnvironmentCheck() throws Exception {
+        phase = "controlled inactive focus and missing border regression";
+        fx(() -> { chooseTheme(ThemeController.Mode.DARK); openScene("home"); revealHomeDiscovery(); }); settle();
+        activateForFocusCheck(stage);
+        Node anchor = fxValue(() -> node("home-query"));
+        Node target = fxValue(() -> node("home-search-button"));
+        focusAnchor(anchor);
+        FocusPixelAssertions.Baseline baseline = fxValue(() -> FocusPixelAssertions.capture(anchor, target));
+        Stage blocker = fxValue(() -> {
+            Stage value = new Stage(); value.initOwner(stage);
+            value.setTitle("Lumen visual regression · controlled focus");
+            value.setScene(new Scene(new javafx.scene.layout.StackPane(new Label("Controlled focus regression")), 360, 100));
+            value.show(); value.requestFocus(); return value;
         });
-        pause(100);
-        fx(() -> screenshot(stage.getScene(), mode.name().toLowerCase() + "-keyboard-focus.png"));
+        try {
+            await(3_000, () -> fxValue(() -> blocker.isFocused() && !stage.isFocused()), "controlled window did not take focus");
+            fx(() -> anchor.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB, false, false, false, false)));
+            fx(() -> {
+                check(stage.getScene().getFocusOwner() == target && !target.isFocused(), "inactive Scene focus-owner condition not reproduced");
+                target.applyCss();
+                int oldPixels = FocusPixelAssertions.perimeterChanges(baseline.pixels(), target.snapshot(null, null));
+                check(oldPixels == 0, "inactive control unexpectedly rendered focus: " + oldPixels);
+                expectFocusFailure("FOCUS_WINDOW_INACTIVE", () -> FocusPixelAssertions.verify(target, baseline));
+                System.out.println("PASS controlled old predicate: Scene owner retained, node unfocused, perimeter pixels=0; inactive capture rejected");
+            });
+        } finally { fx(blocker::close); }
+        activateForFocusCheck(stage);
+        focusAnchor(anchor);
+        FocusPixelAssertions.Baseline negative = fxValue(() -> FocusPixelAssertions.capture(anchor, target));
+        String originalStyle = fxValue(target::getStyle);
+        try {
+            fx(() -> {
+                target.setStyle(originalStyle + "; -fx-border-color: transparent;");
+                anchor.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB, false, false, false, false));
+            });
+            awaitFocused(target, "missing-border fixture did not receive focus");
+            fx(() -> expectFocusFailure("FOCUS_BORDER_MISSING", () -> FocusPixelAssertions.verify(target, negative)));
+            System.out.println("PASS actual focused control with hidden border is still rejected by pixel threshold");
+        } finally { fx(() -> target.setStyle(originalStyle)); }
+    }
+
+    private void expectFocusFailure(String code, Checked action) throws Exception {
+        try { action.run(); }
+        catch (AssertionError error) {
+            check(error.getMessage().startsWith(code), "wrong focus failure: " + error.getMessage());
+            return;
+        }
+        throw new AssertionError("focus regression not detected: " + code);
     }
 
     private void noHorizontalScroll(Node item) {

@@ -57,6 +57,8 @@ final class FrontendStyleAssertions {
     static void mini(Scene scene) {
         ButtonBase button = button(scene, "mini-return");
         Map<String, Paint> palette = palette(scene);
+        require(!button.isFocused(), "mini baseline must not own input focus");
+        button.applyCss();
         Paint before = button.getBorder().getStrokes().get(0).getTopStroke();
         focusAndDisabled(button, palette);
         // Check hover and focus together too: an ID hover rule must not hide focus.
