@@ -27,6 +27,8 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 
@@ -51,6 +53,7 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
     private final VBox reunion;
     private final VBox discover;
     private final Map<String, VBox> cards = new LinkedHashMap<>();
+    private final StackPane vinylDisc = new StackPane();
     private final Label sessionTitle = text("让下一首音乐从这里开始", "home-track-title");
     private final Label sessionDetail = text("还没有可继续的播放会话", "muted");
     private final VBox pinItems = new VBox(6);
@@ -119,7 +122,51 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
         VBox sessionTextBox = new VBox(4, sessionTitle, sessionDetail);
         sessionTextBox.setMinWidth(0);
         VBox.setVgrow(sessionTextBox, Priority.ALWAYS);
-        continuing.getChildren().addAll(sessionTextBox, resume);
+
+        vinylDisc.getStyleClass().add("home-vinyl-disc");
+        vinylDisc.setMinSize(56, 56);
+        vinylDisc.setPrefSize(56, 56);
+        vinylDisc.setMaxSize(56, 56);
+        Region vinylLabel = new Region();
+        vinylLabel.getStyleClass().add("home-vinyl-label");
+        vinylLabel.setMinSize(22, 22);
+        vinylLabel.setPrefSize(22, 22);
+        vinylLabel.setMaxSize(22, 22);
+        Region vinylHole = new Region();
+        vinylHole.getStyleClass().add("home-vinyl-hole");
+        vinylHole.setMinSize(6, 6);
+        vinylHole.setPrefSize(6, 6);
+        vinylHole.setMaxSize(6, 6);
+        vinylDisc.getChildren().addAll(vinylLabel, vinylHole);
+        StackPane.setAlignment(vinylLabel, Pos.CENTER);
+        StackPane.setAlignment(vinylHole, Pos.CENTER);
+        vinylDisc.setTranslateX(4);
+
+        StackPane vinylSleeve = new StackPane();
+        vinylSleeve.getStyleClass().add("home-vinyl-sleeve");
+        vinylSleeve.setMinSize(56, 56);
+        vinylSleeve.setPrefSize(56, 56);
+        vinylSleeve.setMaxSize(56, 56);
+        Label sleeveIcon = new Label("♫");
+        sleeveIcon.getStyleClass().add("home-sleeve-icon");
+        vinylSleeve.getChildren().add(sleeveIcon);
+        StackPane.setAlignment(sleeveIcon, Pos.CENTER);
+
+        StackPane vinylStage = new StackPane(vinylDisc, vinylSleeve);
+        vinylStage.getStyleClass().add("home-vinyl-stage");
+        vinylStage.setMinSize(72, 56);
+        vinylStage.setPrefSize(72, 56);
+        vinylStage.setMaxSize(72, 56);
+        StackPane.setAlignment(vinylDisc, Pos.CENTER_LEFT);
+        StackPane.setAlignment(vinylSleeve, Pos.CENTER_LEFT);
+        vinylStage.setMouseTransparent(true);
+
+        HBox sessionTopRow = new HBox(12, vinylStage, sessionTextBox);
+        sessionTopRow.setAlignment(Pos.CENTER_LEFT);
+        sessionTopRow.setMinWidth(0);
+        HBox.setHgrow(sessionTextBox, Priority.ALWAYS);
+
+        continuing.getChildren().addAll(sessionTopRow, resume);
         pinItems.setId("home-pins");
         VBox.setVgrow(pinItems, Priority.ALWAYS);
         pinned.getChildren().add(pinItems);
@@ -191,12 +238,18 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
         if (playing) {
             sessionBadge.setText("● 正在播放");
             sessionBadge.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("playing"), true);
+            vinylDisc.setTranslateX(16);
+            vinylDisc.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("playing"), true);
         } else if (track != null && canResume) {
             sessionBadge.setText("⏸ 上次停在");
             sessionBadge.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("playing"), false);
+            vinylDisc.setTranslateX(10);
+            vinylDisc.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("playing"), false);
         } else {
             sessionBadge.setText("○ 待开启");
             sessionBadge.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("playing"), false);
+            vinylDisc.setTranslateX(4);
+            vinylDisc.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("playing"), false);
         }
     }
 

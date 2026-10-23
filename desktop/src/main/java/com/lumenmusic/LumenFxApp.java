@@ -107,6 +107,7 @@ public final class LumenFxApp extends Application {
     private AppearancePreferencesStore appearancePreferences;
     private final Label appearanceRecoveryNotice = new Label();
     private final CompletableFuture<Void> shutdownComplete = new CompletableFuture<>();
+    private final java.util.List<Button> themeSwatchButtons = new java.util.ArrayList<>();
     private final ObservableList<Track> queued = FXCollections.observableArrayList();
     private final java.util.Deque<QueueEdit> queueEdits = new java.util.ArrayDeque<>();
     private Button queueUndoButton;
@@ -375,14 +376,18 @@ public final class LumenFxApp extends Application {
             applyAppearance();
             saveAppearance();
         });
-        themeButton.setOnAction(event -> {
-            ThemeController.Mode[] values = ThemeController.Mode.values();
-            themeMode = values[(themeMode.ordinal() + 1) % values.length];
+        java.util.function.Consumer<ThemeController.Mode> selectTheme = targetMode -> {
+            themeMode = targetMode;
             if (themeMode == ThemeController.Mode.LUMEN) accentPicker.setValue(ThemeController.Accent.GOLD);
             accentPicker.setDisable(themeMode == ThemeController.Mode.LUMEN);
             themeButton.setText(themeLabel());
+            updateThemeSwatches();
             applyAppearance();
             saveAppearance();
+        };
+        themeButton.setOnAction(event -> {
+            ThemeController.Mode[] values = ThemeController.Mode.values();
+            selectTheme.accept(values[(themeMode.ordinal() + 1) % values.length]);
         });
         Button chooseBackground = new Button("背景图");
         chooseBackground.setId("choose-background");
@@ -1319,7 +1324,27 @@ public final class LumenFxApp extends Application {
         appearanceRecoveryNotice.getStyleClass().add("muted");
         appearanceRecoveryNotice.visibleProperty().bind(appearanceRecoveryNotice.textProperty().isNotEmpty());
         appearanceRecoveryNotice.managedProperty().bind(appearanceRecoveryNotice.visibleProperty());
-        VBox appearanceControls = new VBox(10, appearanceHint, appearanceRecoveryNotice, themeButton, accentPicker,
+        HBox themeSwatchBar = new HBox(8);
+        themeSwatchBar.getStyleClass().add("theme-swatch-bar");
+        themeSwatchBar.setId("theme-swatch-bar");
+        for (ThemeController.Mode mode : ThemeController.Mode.values()) {
+            String label = switch (mode) {
+                case LUMEN -> "\u2726 \u6696\u91d1";
+                case DARK -> "\u25cf \u58a8\u9ed1";
+                case LIGHT -> "\u25cb \u6696\u767d";
+                case BACKGROUND -> "\ud83d\uddbc \u58c1\u7eb8";
+                case DYNAMIC -> "\u273a \u6d41\u5149";
+            };
+            Button swatch = new Button(label);
+            swatch.setUserData(mode);
+            swatch.getStyleClass().add("theme-swatch-button");
+            swatch.setId("theme-swatch-" + mode.name().toLowerCase(java.util.Locale.ROOT));
+            swatch.setOnAction(event -> selectTheme.accept(mode));
+            themeSwatchButtons.add(swatch);
+            themeSwatchBar.getChildren().add(swatch);
+        }
+        updateThemeSwatches();
+        VBox appearanceControls = new VBox(10, appearanceHint, appearanceRecoveryNotice, themeSwatchBar, themeButton, accentPicker,
                 chooseBackground, reduceMotion);
         TitledPane visualSettings = settingsSection("外观与动效", "visual-settings", appearanceControls);
         visualSettings.setExpanded(true);
@@ -1329,8 +1354,10 @@ public final class LumenFxApp extends Application {
                 audioSection, hotkeysSection, aiSection, dataSection, createVersionSettings());
         toolbar.setId("main-toolbar");
         for (Control control : new Control[] {themeButton, accentPicker, chooseBackground,
-                aiSettings, cacheSettings, exportBackup, restoreBackup})
-            control.setMaxWidth(Double.MAX_VALUE);
+                aiSettings, cacheSettings, exportBackup, restoreBackup}) {
+            control.setMaxWidth(360);
+            control.setPrefWidth(320);
+        }
         ScrollPane toolbarScroll = new ScrollPane(toolbar);
         toolbarScroll.setFitToWidth(true);
         toolbarScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -1923,6 +1950,7 @@ public final class LumenFxApp extends Application {
         trackEntry.getStyleClass().add("player-track-entry");
         trackEntry.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(playbackDetails, Priority.ALWAYS);
+        Tooltip.install(trackEntry, readableTooltip("点击展开沉浸播放页"));
         trackEntry.setOnMouseClicked(event -> {
             if (queue.current() != null) tabs.getSelectionModel().select(immersiveTab);
         });
@@ -1937,6 +1965,7 @@ public final class LumenFxApp extends Application {
         progress.setMaxWidth(Double.MAX_VALUE);
         progress.setId("progress-slider");
         progress.setDisable(true);
+        installProgressTrackFill(progress);
         progress.setOnMouseReleased(event -> seekToFraction(progress.getValue()));
         progress.setOnKeyReleased(event -> seekToFraction(progress.getValue()));
         playButton.setId("play-button");
@@ -2505,6 +2534,7 @@ public final class LumenFxApp extends Application {
         Slider miniProgress = new Slider(0, 1, progress.getValue());
         miniProgress.setId("mini-progress-slider");
         miniProgress.valueProperty().bindBidirectional(progress.valueProperty());
+        installProgressTrackFill(miniProgress);
         miniProgress.disableProperty().bind(progress.disableProperty());
         miniProgress.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED,
                 event -> progress.setValueChanging(true));
@@ -2763,6 +2793,8 @@ public final class LumenFxApp extends Application {
                 row.prefWidthProperty().bind(list.widthProperty().subtract(20));
                 row.setMinWidth(0);
                 row.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("unavailable"), unavailable);
+                boolean isPlaying = loadedTrack != null && loadedTrack.id().equals(track.id());
+                row.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("playing"), isPlaying);
                 setGraphic(row);
                 ContextMenu menu = new ContextMenu();
                 populateTrackMenu(menu, list, track, getIndex());
@@ -5150,6 +5182,7 @@ public final class LumenFxApp extends Application {
         timing.setText("00:00 / 00:00");
         playButton.setDisable(true);
         refreshFavoriteButton();
+        refreshTrackViews();
     }
 
     private void removePlaylistTracks(LibraryClient.Playlist playlist, List<Track> tracks) {
@@ -5249,6 +5282,7 @@ public final class LumenFxApp extends Application {
         lastSegmentSeekNanos = 0;
         if (track.isSegment() && pendingResumeSeconds == null) pendingResumeSeconds = 0.0;
         refreshFavoriteButton();
+        refreshTrackViews();
         long version = ++loadVersion;
         lyricMediaVersion = -1;
         cancelPendingOnline();
@@ -6712,6 +6746,7 @@ public final class LumenFxApp extends Application {
     }
 
     private void applyAppearance() {
+        updateThemeSwatches();
         if (backgroundControls != null) {
             boolean visible = themeMode == ThemeController.Mode.BACKGROUND;
             backgroundControls.setVisible(visible);
@@ -7064,6 +7099,31 @@ public final class LumenFxApp extends Application {
         } catch (InterruptedException error) { Thread.currentThread().interrupt(); }
         tasks.shutdownNow();
         return false;
+    }
+
+    private void updateThemeSwatches() {
+        for (Button swatch : themeSwatchButtons) {
+            ThemeController.Mode mode = (ThemeController.Mode) swatch.getUserData();
+            boolean active = mode == themeMode;
+            swatch.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("active"), active);
+        }
+    }
+
+    private static void installProgressTrackFill(Slider slider) {
+        Runnable update = () -> updateProgressTrackFill(slider, slider.getValue());
+        slider.valueProperty().addListener((obs, oldVal, newVal) -> update.run());
+        slider.skinProperty().addListener((obs, oldVal, newVal) -> Platform.runLater(update));
+        slider.sceneProperty().addListener((obs, oldVal, newVal) -> Platform.runLater(update));
+    }
+
+    private static void updateProgressTrackFill(Slider slider, double fraction) {
+        javafx.scene.Node trackNode = slider.lookup(".track");
+        if (trackNode instanceof Region track) {
+            double percent = Math.max(0.0, Math.min(100.0, fraction * 100.0));
+            track.setStyle(String.format(java.util.Locale.ROOT,
+                "-fx-background-color: linear-gradient(to right, -lumen-accent 0%%, -lumen-accent %.2f%%, -lumen-divider %.2f%%, -lumen-divider 100%%);",
+                percent, percent));
+        }
     }
 
     public static void main(String[] args) { launch(args); }

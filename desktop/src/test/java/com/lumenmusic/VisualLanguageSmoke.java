@@ -34,6 +34,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TabPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
@@ -107,6 +108,7 @@ public final class VisualLanguageSmoke extends Application {
         });
         System.out.println("OUTPUT SCALE: " + fxValue(() -> stage.getOutputScaleX())
                 + " x " + fxValue(() -> stage.getOutputScaleY()));
+        activateForFocusCheck(stage);
         await(15_000, () -> fxValue(() -> picker().getItems().size() == 2), "fixture playlists not loaded");
         await(15_000, () -> fxValue(() -> field("versionCatalog", VersionCatalog.class).findByResourceId(first.id()).isPresent()), "fixture performer metadata not loaded");
         phase = "real local playback and browse restoration";
@@ -159,6 +161,7 @@ public final class VisualLanguageSmoke extends Application {
             return;
         }
 
+        frontendRenderingCheck();
         phase = "four scenes five themes two sizes";
         for (ThemeController.Mode mode : ThemeController.Mode.values()) {
             fx(() -> chooseTheme(mode));
@@ -264,6 +267,7 @@ public final class VisualLanguageSmoke extends Application {
                 focusAnchor(anchor);
                 FocusPixelAssertions.Baseline baseline = fxValue(() -> {
                     FrontendStyleAssertions.mini(mini.getScene());
+                    FrontendRenderAssertions.sliderTrack((Slider) mini.getScene().lookup("#mini-progress-slider"));
                     return FocusPixelAssertions.capture(anchor, target);
                 });
                 fx(() -> anchor.fireEvent(new KeyEvent(
@@ -287,6 +291,8 @@ public final class VisualLanguageSmoke extends Application {
 
     private void checkScene(String scene) {
         layout();
+        FrontendRenderAssertions.sliderTrack((Slider) node("progress-slider"));
+        FrontendRenderAssertions.sliderTrack((Slider) node("volume-slider"));
         fits(node("playback-bar")); fits(node("play-button")); fits(node("progress-slider"));
         fits(node("now-playing")); fits(node("timing"));
         if (scene.equals("home") || scene.equals("playlist"))
@@ -334,10 +340,24 @@ public final class VisualLanguageSmoke extends Application {
     }
 
     private void popupCheck(ThemeController.Mode mode, int width) throws Exception {
-        fx(() -> click("immersive-more")); pause(150);
+        // A retained Scene focus owner does not prove the native owner window is active.
+        // Request activation once, click once, then observe this button's popup; never retry the action.
+        activateForFocusCheck(stage);
+        Node trigger = fxValue(() -> node("immersive-more"));
+        focusAnchor(trigger);
         fx(() -> {
-            ContextMenu menu = Window.getWindows().stream().filter(ContextMenu.class::isInstance)
-                    .map(ContextMenu.class::cast).filter(Window::isShowing).findFirst().orElseThrow();
+            FocusPixelAssertions.requireFocused(trigger);
+            System.out.println("POPUP before: " + FocusPixelAssertions.state(trigger));
+            click("immersive-more");
+        });
+        await(3_000, () -> fxValue(() -> shownMoreMenu() != null),
+                "MORE_POPUP_NOT_SHOWN " + fxValue(() -> FocusPixelAssertions.state(trigger)));
+        fx(() -> {
+            ContextMenu menu = shownMoreMenu();
+            check(menu != null, "MORE_POPUP_DISAPPEARED before bounds check");
+            System.out.println("POPUP shown: ownerFocused=" + stage.isFocused()
+                    + ", popupFocused=" + menu.isFocused() + ", bounds="
+                    + menu.getX() + "," + menu.getY() + "," + menu.getWidth() + "," + menu.getHeight());
             Scene popup = menu.getScene(); popup.getRoot().applyCss(); popup.getRoot().layout();
             check(menu.getWidth() > 100 && menu.getHeight() > 40, "More popup has no usable bounds");
             check(menu.getX() >= stage.getX() - 1 && menu.getX() + menu.getWidth() <= stage.getX() + stage.getWidth() + 1,
@@ -349,11 +369,71 @@ public final class VisualLanguageSmoke extends Application {
         });
         pause(100);
         fx(() -> {
-            ContextMenu menu = Window.getWindows().stream().filter(ContextMenu.class::isInstance)
-                    .map(ContextMenu.class::cast).filter(Window::isShowing).findFirst().orElseThrow();
+            ContextMenu menu = shownMoreMenu();
+            check(menu != null, "MORE_POPUP_DISAPPEARED before screenshot");
             if (width == 1280) screenshot(menu.getScene(), mode.name().toLowerCase() + "-more-popup.png");
             menu.hide();
         });
+    }
+
+    private ContextMenu shownMoreMenu() {
+        return Window.getWindows().stream().filter(ContextMenu.class::isInstance)
+                .map(ContextMenu.class::cast).filter(Window::isShowing)
+                .filter(menu -> menu.getOwnerNode() == node("immersive-more"))
+                .findFirst().orElse(null);
+    }
+
+    private void frontendRenderingCheck() throws Exception {
+        phase = "progress track bounds and rendered lyric context";
+        fx(() -> click("play-button"));
+        await(3_000, () -> fxValue(() -> audio().state() == JavaFxAudioPlayer.State.PAUSED),
+                "render fixture did not pause after native audio callback");
+        for (ThemeController.Mode mode : ThemeController.Mode.values()) {
+            fx(() -> {
+                click("sidebar-settings");
+                click("theme-swatch-" + mode.name().toLowerCase(java.util.Locale.ROOT));
+                check(field("themeMode", ThemeController.Mode.class) == mode, "theme shortcut did not apply");
+                check(stage.getScene().getRoot().lookupAll(".theme-swatch-button").stream()
+                        .filter(n -> n.getPseudoClassStates().contains(javafx.css.PseudoClass.getPseudoClass("active"))).count() == 1,
+                        "theme shortcut selected state is ambiguous");
+            }); settle();
+            for (int width : new int[] {1280, 860}) {
+                fx(() -> {
+                    stage.setWidth(width); stage.setHeight(width == 860 ? 600 : 800);
+                    openScene("home"); layout();
+                    Slider progress = (Slider) node("progress-slider");
+                    for (double fraction : new double[] {0, .25, .5, 1}) {
+                        progress.setValue(fraction); layout();
+                        FrontendRenderAssertions.sliderTrack(progress);
+                        Paint fill = ((javafx.scene.layout.Region) progress.lookup(".track")).getBackground().getFills().get(0).getFill();
+                        check(fill instanceof javafx.scene.paint.LinearGradient gradient
+                                && gradient.getStops().stream().anyMatch(stop -> Math.abs(stop.getOffset() - fraction) < .001),
+                                "progress fill does not follow value " + fraction);
+                    }
+                    FrontendRenderAssertions.sliderTrack((Slider) node("volume-slider"));
+                    invoke("setLyrics", new Class<?>[] {List.class, String.class},
+                            Lyrics.parse("[00:00.00]当前演唱行 Current singing\n[00:30.00]上下文歌词 Context lyrics\n[01:00.00]下一句 Next line\n"),
+                            "合成验收歌词");
+                    click("open-immersive");
+                }); settle();
+                fx(() -> {
+                    var cells = list("immersive-lyrics").lookupAll(".list-cell").stream()
+                            .filter(ListCell.class::isInstance).map(n -> (ListCell<?>) n)
+                            .filter(cell -> "上下文歌词 Context lyrics".equals(cell.getItem())).toList();
+                    check(cells.size() == 1, "context lyric fixture not visible");
+                    double contrast = FrontendRenderAssertions.lyricContrast(cells.get(0), 4.5);
+                    System.out.println("PASS lyric context " + mode + " width=" + width + " contrast=" + contrast);
+                    screenshot(stage.getScene(), mode.name().toLowerCase() + "-lyrics-" + width + ".png");
+                    click("immersive-collapse");
+                });
+            }
+        }
+        fx(() -> {
+            stage.setWidth(1280); stage.setHeight(800);
+            click("play-button");
+        });
+        awaitPlaying(first.id());
+        System.out.println("PASS actual main/volume tracks remain bounded at four fractions; five-theme lyric context readable at both sizes");
     }
 
     /** Compare actual glyph color against the composited window behind that same label. */
@@ -417,7 +497,8 @@ public final class VisualLanguageSmoke extends Application {
             int pixel = rendered.getPixelReader().getArgb(x, y);
             for (int i = 0; i < COVER_MARKERS.length; i++) if (pixel == COVER_MARKERS[i]) counts[i]++;
         }
-        for (int i = 0; i < counts.length; i++) check(counts[i] > minimumPixels, description + " corner " + i + " cropped from rendered cover; counts=" + java.util.Arrays.toString(counts) + ", opacity=" + artwork.getOpacity());
+        for (int i = 0; i < counts.length; i++) check(counts[i] > minimumPixels, description + " corner " + i + " cropped from rendered cover; counts=" + java.util.Arrays.toString(counts) + ", opacity=" + artwork.getOpacity()
+                + ", artworkTransition=" + (stage.getScene().lookup("#artwork-transition-image") != null));
     }
 
     private void checkFavoriteState(boolean saved) {
@@ -721,7 +802,29 @@ public final class VisualLanguageSmoke extends Application {
         catch (ReflectiveOperationException error) { throw new AssertionError("cannot invoke " + name, error); }
     }
     private static MouseEvent doubleClick() { return new MouseEvent(MouseEvent.MOUSE_CLICKED, 8, 8, 8, 8, MouseButton.PRIMARY, 2, false, false, false, false, true, false, false, true, false, false, null); }
-    private void settle() throws Exception { pause(420); fx(this::layout); }
+    private void settle() throws Exception {
+        fx(this::layout);
+        // ArtworkTransition temporarily hides the destination image while its overlay is visible.
+        // A fixed sleep can end before the FX pulse starts/finishes that transition on a busy host.
+        try {
+            await(3_000, () -> fxValue(() -> {
+                Node content = ((TabPane) node("main-tabs")).getSelectionModel().getSelectedItem().getContent();
+                return stage.getScene().lookup("#artwork-transition-image") == null
+                        && content.getOpacity() == 1 && content.getTranslateX() == 0 && content.getTranslateY() == 0;
+            }), "SCENE_TRANSITION_NOT_FINISHED");
+        } catch (AssertionError failure) {
+            throw new AssertionError(failure.getMessage() + fxValue(() -> {
+                Node content = ((TabPane) node("main-tabs")).getSelectionModel().getSelectedItem().getContent();
+                Node image = stage.getScene().lookup("#immersive-artwork-image");
+                return "; showing=" + stage.isShowing() + ", focused=" + stage.isFocused()
+                        + ", iconified=" + stage.isIconified() + ", contentOpacity=" + content.getOpacity()
+                        + ", translate=" + content.getTranslateX() + "," + content.getTranslateY()
+                        + ", overlay=" + (stage.getScene().lookup("#artwork-transition-image") != null)
+                        + ", imageOpacity=" + (image == null ? "absent" : image.getOpacity());
+            }), failure);
+        }
+        fx(this::layout);
+    }
     private void awaitPlaying(String id) throws Exception {
         await(15_000, () -> fxValue(() -> audio().state() == JavaFxAudioPlayer.State.PLAYING && id.equals(field("loadedTrack", Track.class).id()) && audio().position().toSeconds() > .2), "local audio did not play " + id);
     }

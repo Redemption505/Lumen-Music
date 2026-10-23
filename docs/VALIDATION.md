@@ -1,10 +1,10 @@
 # 当前验证结果
 
-## 当前状态核对（2026-10-22）
+## 当前状态核对（2026-10-23）
 
-当前候选为 **v0.2.2 / `lumen-0.2.2-20261022.1`**，首页与主题改进、三处样式修复已同步实际安装版及本地交付材料。新生产 JAR 的首页两档缩放、同版本 MSI 升级、原资料保留，以及隔离镜像/实际安装的页面、迷你返回和正常退出通过。后续已修复自动焦点测试前置条件和 CSS 基准采样，同一生产 JAR 的定向及完整视觉两档缩放均退出 0，失焦与隐藏边框负向拒绝通过；旧失败及本轮封面快照偶发失败仍保留，见[焦点专项](FOCUS_VISUAL_ACCEPTANCE.md)。详见[前端交付验收](FRONTEND_RELEASE_ACCEPTANCE.md)与[候选身份](PHASE4_RELEASE_CANDIDATE.md)。
+当前候选 **v0.2.2 / `lumen-0.2.2-20261023.1`**。第二阶段前端改进、滑轨越界及普通歌词对比度修复已进入新候选。源码与实际安装JAR的125%/150%完整视觉均通过；真实同版本升级、原资料页面响应、迷你返回及正常退出通过。Java325项、离屏240/40/4项通过；完整窗口及安装数据边界见[第二阶段前端](FRONTEND_PHASE2_ACCEPTANCE.md)、[前端交付](FRONTEND_RELEASE_ACCEPTANCE.md)和[候选身份](PHASE4_RELEASE_CANDIDATE.md)。
 
-源码定向 11 项与两驱动双缩放结果按未变源码复用；远程当前提交结果从[工程检查](https://github.com/Redemption505/Lumen-Music/actions/workflows/verify.yml)核对。10 月 10 日的五次原资料启动和 10 月 18 日三份新资料统一计时仍属于旧 BuildId，下文保留原日期与范围。没有新增朋友反馈；系统重启首启、统一 warm 测量、产品预算及公开条件仍待验。
+原失败与旧启动样本保留对应日期/构建。源码提交的CI按[工程检查](https://github.com/Redemption505/Lumen-Music/actions/workflows/verify.yml)当前提交单独核对，不替代原生安装。独立朋友、系统重启首启和性能预算仍待验。
 
 ## 工具链恢复与三份隔离新资料首启（2026-10-18，Windows）
 

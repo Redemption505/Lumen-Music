@@ -218,3 +218,18 @@ CSV 从 [空模板](templates/startup-runs.csv) 复制后填写实际观测。�
 缓存初始化专项使用测试类 `com.lumenmusic.CacheStartupBenchmark`，以当前生产 classes 或指定 JAR、上述运行时依赖与测试 classes 组成类路径，参数为独立 `build/` 目录与 3～20 次采样。它生成 256 MiB 非音频合成字节，交替测量空目录与禁用缓存但保留文件的初始化；打印实际类加载来源。生成的 `populated-cache` 可通过探针的 `-CacheFixture '<build 内目录>'` 加入同条件重复启动，不能作为播放样本。组件计时不等于播放器整体性能；实际本轮范围见 [稳定性小迭代验收](PHASE4_STABILITY_ACCEPTANCE.md)。
 
 自动视觉焦点问题可通过 `VisualFocusSmokeLauncher` 定向复验；该入口复用完整场景的隔离资料、真实控件和合成音频，目录名需包含 `visual-language-smoke`。先重新 `test-compile`；测试会请求自身窗口焦点，应安排独占桌面，不能在其他任务抢焦点时把像素不变认定为产品 CSS 缺陷。命令、负向用例及完整矩阵边界见[焦点专项验收](FOCUS_VISUAL_ACCEPTANCE.md)。
+
+### 离屏滑轨与歌词渲染回归
+
+`FrontendRenderingSmokeLauncher` 使用当前 CSS、JavaFX 控件和合成文字，不显示 Stage、不请求窗口焦点、不发送输入。它检查主/迷你/音量内部轨道边界和真实歌词像素，并验证超大圆角、低透明度两类负向注入会被拒绝。Windows 下先编译，再显式选择已有运行时镜像的依赖：
+
+```powershell
+./desktop/mvnw.cmd -B -ntp -f desktop/pom.xml test-compile
+$runtime = '<含 app/ 的运行时镜像根目录>'
+$deps = @(Get-ChildItem (Join-Path $runtime 'app') -Filter '*.jar' |
+    Where-Object Name -NotLike 'lumen-desktop-*' | ForEach-Object FullName)
+$cp = (@('desktop/target/classes', 'desktop/target/test-classes') + $deps) -join ';'
+& (Join-Path $env:JAVA_HOME 'bin/java.exe') -cp $cp com.lumenmusic.FrontendRenderingSmokeLauncher
+```
+
+离屏检查不能代替实际窗口缩放、原生输入或安装验收。完整视觉驱动还会在实际应用中检查主题入口、渐变填充、歌词上下文、菜单和迷你返回；先安排独占桌面，方法及当前范围见[第二阶段前端验收](FRONTEND_PHASE2_ACCEPTANCE.md)。

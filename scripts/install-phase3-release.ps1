@@ -32,7 +32,9 @@ if ($backupVersion -cne $FromVersion) { throw 'Verified installation backup is n
 if (@(Get-CimInstance Win32_Process | Where-Object {
         $_.ExecutablePath -and $_.ExecutablePath.StartsWith($InstalledHome + '\', [StringComparison]::OrdinalIgnoreCase)
     }).Count) { throw 'Close Lumen Music before upgrading the installation' }
-$inventory = @(Get-Content -LiteralPath (Join-Path $BackupRoot 'inventory.json') -Raw | ConvertFrom-Json)
+$inventory = @(foreach ($entry in (Get-Content -LiteralPath (Join-Path $BackupRoot 'inventory.json') -Raw | ConvertFrom-Json)) {
+    $entry
+})
 $data = @($inventory | Where-Object { $_.scope -in @('local', 'roaming') })
 if (-not $data.Count) { throw 'The verified personal-data backup is missing' }
 function Check-Data {

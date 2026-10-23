@@ -222,7 +222,27 @@
 .home-search-row .text-field { -fx-padding: 13 16; -fx-background-radius: 6; }
 .home-search-row .button { -fx-padding: 13 18; }
 .recommendation-intent { -fx-background-radius: 8; -fx-border-radius: 8; }
-#home-search-button { -fx-min-width: 116; -fx-pref-width: 116; -fx-max-width: 116; }
+#home-search-button {
+    -fx-background-color: -lumen-field;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-text-fill: -lumen-accent-text;
+    -fx-font-weight: bold;
+}
+#home-search-button:hover {
+    -fx-background-color: -lumen-hover;
+    -fx-text-fill: -lumen-text;
+}
+#home-search-button:focused {
+    -fx-border-color: -lumen-focus;
+    -fx-background-insets: 0;
+}
+#home-search-button:disabled {
+    -fx-opacity: .55;
+}
 #settings-scroll, #settings-scroll > .viewport { -fx-background-color: transparent; }
 #sidebar-scroll { -fx-background-color: transparent; -fx-padding: 0; -fx-background-insets: 0; }
 #sidebar-scroll > .viewport { -fx-background-color: transparent; }
@@ -282,12 +302,45 @@
     -fx-padding: 0;
 }
 #play-button .player-play-glyph, .immersive-round-play .player-play-glyph { -fx-font-size: 17px; }
-.slider > .track { -fx-pref-height: 4; }
-.slider > .thumb { -fx-background-color: -lumen-accent; -fx-pref-width: 11; -fx-pref-height: 11; }
-#volume-slider > .track { -fx-pref-height: 3; }
+.slider > .track { -fx-pref-height: 4; -fx-background-radius: 2; }
+.slider > .thumb { -fx-background-color: -lumen-accent; -fx-pref-width: 11; -fx-pref-height: 11; -fx-background-radius: 999; }
+#progress-slider > .track, #mini-progress-slider > .track {
+    -fx-pref-height: 4;
+    -fx-background-radius: 2;
+}
+#progress-slider > .thumb, #mini-progress-slider > .thumb {
+    -fx-background-color: -lumen-accent;
+    -fx-pref-width: 12;
+    -fx-pref-height: 12;
+    -fx-background-radius: 999;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 4, 0.1, 0, 1);
+}
+#progress-slider:hover > .thumb, #mini-progress-slider:hover > .thumb {
+    -fx-background-color: -lumen-accent-hover;
+    -fx-pref-width: 14;
+    -fx-pref-height: 14;
+}
+#volume-slider > .track { -fx-pref-height: 3; -fx-background-radius: 1.5; }
 .scroll-bar { -fx-background-color: transparent; }
+.scroll-bar:vertical { -fx-pref-width: 8; }
+.scroll-bar:horizontal { -fx-pref-height: 8; }
+.scroll-bar .increment-button, .scroll-bar .decrement-button {
+    -fx-padding: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-min-width: 0;
+    -fx-min-height: 0;
+    -fx-max-width: 0;
+    -fx-max-height: 0;
+    -fx-background-color: transparent;
+}
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {
+    -fx-shape: null;
+    -fx-padding: 0;
+}
+.scroll-bar:hover .thumb, .scroll-bar .thumb:hover { -fx-opacity: 0.95; -fx-background-color: -lumen-muted; }
 .scroll-bar .track { -fx-background-color: transparent; }
-.scroll-bar .thumb { -fx-background-radius: 8; }
+.scroll-bar .thumb { -fx-background-radius: 999; -fx-opacity: 0.55; }
 .playlist-selection-menu {
     -fx-background-color: -lumen-button;
     -fx-border-color: -lumen-divider;
@@ -476,12 +529,14 @@
 .home-personal-heading { -fx-padding: 18 24 12 24; }
 .home-personal-body { -fx-padding: 0 24 24 24; }
 .home-personal-card {
+
     -fx-padding: 16 18;
     -fx-background-color: -lumen-panel;
     -fx-background-radius: 14;
     -fx-border-color: -lumen-divider;
     -fx-border-radius: 14;
     -fx-min-height: 172;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 14, 0.08, 0, 2);
 }
 #home-section-continue {
     -fx-background-color: linear-gradient(to bottom right, -lumen-selected, -lumen-panel 68%);
@@ -715,6 +770,8 @@
     -fx-graphic-text-gap: 8;
     -fx-border-width: 0 0 0 3;
     -fx-border-color: transparent;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
 }
 #main-sidebar:collapsed { -fx-spacing: 4; }
 #main-sidebar:collapsed .nav-button { -fx-padding: 7 0; -fx-background-radius: 8; }
@@ -853,14 +910,58 @@
 .home-search-row .text-field { -fx-background-color: -lumen-field; }
 .recommendation-intent { -fx-background-color: -lumen-panel; -fx-border-color: -lumen-divider; }
 .recommendation-surface { -fx-background-color: transparent; -fx-border-color: transparent; }
-.sidebar-brand-mark, .track-index, .track-badge { -fx-background-color: -lumen-field; }
-.track-index, .track-badge { -fx-text-fill: -lumen-muted; }
-.track-badge { -fx-border-color: -lumen-divider; }
+.sidebar-brand-mark { -fx-background-color: -lumen-field; }
+.track-index {
+    -fx-background-color: transparent;
+    -fx-text-fill: -lumen-muted;
+    -fx-font-size: 11px;
+    -fx-min-width: 32;
+    -fx-alignment: center;
+}
+.track-badge {
+    -fx-background-color: -lumen-field;
+    -fx-border-color: -lumen-divider;
+    -fx-border-width: 0.5;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-padding: 2 7;
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -lumen-muted;
+}
 .nav-button:hover { -fx-background-color: -lumen-hover; }
 .nav-button:active { -fx-border-color: transparent transparent transparent -lumen-accent-text; -fx-text-fill: -lumen-text; }
-.track-row { -fx-background-color: -lumen-list; -fx-border-color: -lumen-divider; -fx-effect: null; }
-.track-list .list-cell:filled:hover .track-row { -fx-background-color: -lumen-hover; }
-.track-list .list-cell:filled:selected .track-row { -fx-background-color: -lumen-selected; -fx-border-color: -lumen-accent-text; }
+.track-row {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-effect: null;
+}
+.track-list .list-cell {
+    -fx-background-color: transparent;
+}
+.track-list .list-cell:filled:hover .track-row {
+    -fx-background-color: -lumen-hover;
+    -fx-border-color: transparent;
+}
+.track-list .list-cell:filled:selected .track-row {
+    -fx-background-color: -lumen-selected;
+    -fx-border-color: -lumen-accent-text;
+}
+.track-row:playing {
+    -fx-background-color: linear-gradient(to right, -lumen-selected 0%, transparent 88%);
+    -fx-border-color: transparent transparent transparent -lumen-accent-text;
+    -fx-border-width: 1;
+}
+.track-row:playing .track-title {
+    -fx-text-fill: -lumen-accent-text;
+    -fx-font-weight: bold;
+}
+.track-row:playing .track-index {
+    -fx-text-fill: -lumen-accent-text;
+    -fx-font-weight: bold;
+}
 .cover-pane, .track-artwork, .immersive-cover, .focus-cover { -fx-background-color: -lumen-field; }
 .immersive-cover, .focus-cover { -fx-border-color: -lumen-divider; }
 .track-artwork, .track-artwork-placeholder { -fx-text-fill: -lumen-muted; }
@@ -954,9 +1055,11 @@
 
 /* Batch 3: Playlist details header presentation */
 #playlist-cover {
-    -fx-effect: dropshadow(gaussian, #1014172a, 16, 0.1, 0, 4);
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.28), 18, 0.12, 0, 4);
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: -lumen-divider;
+    -fx-border-width: 1;
 }
 #playlist-page-name {
     -fx-font-size: 24px;
@@ -1043,4 +1146,189 @@
     -fx-border-color: -lumen-divider;
     -fx-border-radius: 9;
     -fx-effect: dropshadow(gaussian, #10141720, 10, 0.08, 0, 3);
+}
+
+/* Batch 1: Vinyl Sleeve Micro-Frame in Continue Listening */
+.home-vinyl-stage { -fx-alignment: center-left; }
+.home-vinyl-sleeve {
+    -fx-background-color: linear-gradient(to bottom right, -lumen-field, -lumen-panel);
+    -fx-border-color: -lumen-divider;
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.16), 8, 0.1, 0, 2);
+}
+.home-sleeve-icon { -fx-text-fill: -lumen-muted; -fx-font-size: 18px; }
+.home-vinyl-disc {
+    -fx-background-color: radial-gradient(radius 72%, #2b282e 0%, #17181c 62%, #0b0c0e 100%);
+    -fx-background-radius: 50%;
+    -fx-border-color: #ffffff18;
+    -fx-border-width: 1;
+    -fx-border-radius: 50%;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 8, 0.1, 2, 2);
+}
+.light-theme .home-vinyl-disc { -fx-border-color: #ffffff40; }
+.home-vinyl-label {
+    -fx-background-color: radial-gradient(radius 75%, -lumen-accent 0%, #b8860b 80%, #7d5a00 100%);
+    -fx-background-radius: 50%;
+    -fx-border-color: #ffffff44;
+    -fx-border-width: 1;
+    -fx-border-radius: 50%;
+}
+.home-vinyl-hole {
+    -fx-background-color: -lumen-panel;
+    -fx-background-radius: 50%;
+    -fx-border-color: #ffffff33;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 50%;
+}
+
+/* Batch 1: Discovery Capsule Action Buttons */
+.home-pill-button, #home-radio, #refresh-recommendations {
+    -fx-min-width: -1;
+    -fx-pref-width: -1;
+    -fx-max-width: -1;
+    -fx-min-height: 32;
+    -fx-pref-height: 32;
+    -fx-max-height: 32;
+    -fx-padding: 5 13;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-background-color: -lumen-field;
+    -fx-border-color: -lumen-divider;
+    -fx-border-width: 1;
+    -fx-text-fill: -lumen-text;
+    -fx-font-size: 12px;
+}
+.home-pill-button:hover, #home-radio:hover, #refresh-recommendations:hover {
+    -fx-background-color: -lumen-hover;
+    -fx-border-color: -lumen-accent-text;
+    -fx-text-fill: -lumen-text;
+}
+.home-pill-button:focused, #home-radio:focused, #refresh-recommendations:focused {
+    -fx-border-color: -lumen-focus;
+}
+.home-pill-button .ui-icon, #home-radio .ui-icon, #refresh-recommendations .ui-icon {
+    -fx-fill: -lumen-muted;
+}
+.home-pill-button:hover .ui-icon, #home-radio:hover .ui-icon, #refresh-recommendations:hover .ui-icon {
+    -fx-fill: -lumen-accent-text;
+}
+
+/* Batch 2: Player bottom bar track entry and typography */
+#player-track-entry {
+    -fx-cursor: hand;
+    -fx-background-radius: 10;
+    -fx-padding: 4 6;
+}
+#player-track-entry:hover {
+    -fx-background-color: -lumen-hover;
+}
+.cover-pane {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: -lumen-divider;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.22), 8, 0.08, 0, 2);
+}
+.player-title {
+    -fx-font-size: 13.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -lumen-text;
+}
+.player-subtitle {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -lumen-muted;
+}
+.player-library-status {
+    -fx-font-size: 11px;
+    -fx-text-fill: -lumen-muted;
+    -fx-opacity: 0.85;
+}
+
+/* Batch 3: Theme Swatch Capsule Buttons */
+.theme-swatch-bar {
+    -fx-spacing: 8;
+    -fx-alignment: center-left;
+    -fx-padding: 4 0;
+}
+.theme-swatch-button {
+    -fx-min-height: 32;
+    -fx-pref-height: 32;
+    -fx-max-height: 32;
+    -fx-padding: 4 12;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-background-color: -lumen-field;
+    -fx-border-color: -lumen-divider;
+    -fx-border-width: 1;
+    -fx-text-fill: -lumen-text;
+    -fx-font-size: 11.5px;
+    -fx-cursor: hand;
+}
+.theme-swatch-button:hover {
+    -fx-background-color: -lumen-hover;
+    -fx-border-color: -lumen-accent-text;
+    -fx-text-fill: -lumen-text;
+}
+.theme-swatch-button:active, .theme-swatch-button.active {
+    -fx-background-color: -lumen-selected;
+    -fx-border-color: -lumen-accent-text;
+    -fx-border-width: 1.5;
+    -fx-text-fill: -lumen-accent-text;
+    -fx-font-weight: bold;
+}
+.theme-swatch-button:focused {
+    -fx-border-color: -lumen-focus;
+    -fx-background-insets: 0;
+}
+
+/* Batch 3: Immersive Stage Spotlight and Lyrics Hierarchy */
+.immersive-shell {
+    -fx-background-color: -lumen-bg;
+}
+.lumen-theme .immersive-shell {
+    -fx-background-color: radial-gradient(center 50% 35%, radius 70%, #2f2a24 0%, -lumen-bg 100%);
+}
+.dark-theme .immersive-shell {
+    -fx-background-color: radial-gradient(center 50% 35%, radius 70%, #202428 0%, -lumen-bg 100%);
+}
+.immersive-cover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 32, 0.16, 0, 10);
+    -fx-border-color: -lumen-divider;
+    -fx-border-width: 1;
+    -fx-border-radius: 14;
+    -fx-background-radius: 14;
+}
+#immersive-lyrics .list-cell {
+    -fx-background-color: transparent;
+    -fx-font-size: 15px;
+    -fx-text-fill: -lumen-muted;
+    -fx-opacity: 1.0;
+    -fx-alignment: center;
+}
+#immersive-lyrics .list-cell.current-lyric {
+    -fx-font-size: 20px;
+    -fx-text-fill: -lumen-accent-text;
+    -fx-font-weight: bold;
+    -fx-opacity: 1.0;
+}
+.immersive-empty-lyrics {
+    -fx-text-fill: -lumen-muted;
+    -fx-font-size: 13px;
+    -fx-line-spacing: 4;
+    -fx-opacity: 0.85;
+}
+
+/* Batch 3: Mini player and pet bubble refinement */
+.mini-player {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 24, 0.14, 0, 8);
+}
+#mini-artwork {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 6, 0.08, 0, 2);
+}
+.pet-bubble {
+    -fx-border-color: -lumen-divider;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 12, 0.1, 0, 3);
 }
