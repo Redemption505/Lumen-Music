@@ -160,7 +160,9 @@ public final class FocusPane extends BorderPane implements AutoCloseable {
         focusEnd.setId("focus-end");
         focusStart.setId("focus-start");
         focusTime.setId("focus-focus-time");
+        focusTime.getStyleClass().add("zen-pod-time");
         sleepTime.setId("focus-sleep-time");
+        sleepTime.getStyleClass().add("zen-pod-time");
         sleepStart.setId("focus-sleep-toggle");
         focusEnd.setOnAction(event -> {
             focusSession.cancel();
@@ -171,13 +173,34 @@ public final class FocusPane extends BorderPane implements AutoCloseable {
             else sleepSession.start();
             updateTimers();
         });
-        FlowPane focusControls = new FlowPane(8, 6, new Label("专注"), focusMinutes,
-                new Label("分钟"), focusTime, focusStart, focusEnd);
-        FlowPane sleepControls = new FlowPane(8, 6, new Label("睡眠定时"), sleepMinutes,
-                new Label("分钟"), sleepTime, sleepStart);
-        focusControls.setAlignment(Pos.CENTER);
-        sleepControls.setAlignment(Pos.CENTER);
-        VBox timers = new VBox(8, focusControls, sleepControls);
+
+        Label focusHeading = new Label("☕ 深度专注");
+        focusHeading.getStyleClass().add("zen-pod-heading");
+        HBox focusOptions = new HBox(6, new Label("时长"), focusMinutes, new Label("分"));
+        focusOptions.setAlignment(Pos.CENTER);
+        HBox focusActions = new HBox(8, focusStart, focusEnd);
+        focusActions.setAlignment(Pos.CENTER);
+        VBox focusPod = new VBox(8, focusHeading, focusTime, focusOptions, focusActions);
+        focusPod.setId("focus-pod");
+        focusPod.getStyleClass().add("zen-pod");
+        focusPod.setAlignment(Pos.CENTER);
+        focusPod.setPrefWidth(240);
+
+        Label sleepHeading = new Label("🌙 睡眠定时");
+        sleepHeading.getStyleClass().add("zen-pod-heading");
+        HBox sleepOptions = new HBox(6, new Label("定时"), sleepMinutes, new Label("分"));
+        sleepOptions.setAlignment(Pos.CENTER);
+        HBox sleepActions = new HBox(8, sleepStart);
+        sleepActions.setAlignment(Pos.CENTER);
+        VBox sleepPod = new VBox(8, sleepHeading, sleepTime, sleepOptions, sleepActions);
+        sleepPod.setId("sleep-pod");
+        sleepPod.getStyleClass().add("zen-pod");
+        sleepPod.setAlignment(Pos.CENTER);
+        sleepPod.setPrefWidth(240);
+
+        FlowPane timers = new FlowPane(16, 12, focusPod, sleepPod);
+        timers.setId("zen-timer-pods");
+        timers.getStyleClass().add("zen-timer-pods");
         timers.setAlignment(Pos.CENTER);
         timers.setMaxWidth(700);
 

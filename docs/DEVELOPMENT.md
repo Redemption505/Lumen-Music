@@ -219,9 +219,9 @@ CSV 从 [空模板](templates/startup-runs.csv) 复制后填写实际观测。�
 
 自动视觉焦点问题可通过 `VisualFocusSmokeLauncher` 定向复验；该入口复用完整场景的隔离资料、真实控件和合成音频，目录名需包含 `visual-language-smoke`。先重新 `test-compile`；测试会请求自身窗口焦点，应安排独占桌面，不能在其他任务抢焦点时把像素不变认定为产品 CSS 缺陷。命令、负向用例及完整矩阵边界见[焦点专项验收](FOCUS_VISUAL_ACCEPTANCE.md)。
 
-### 离屏滑轨与歌词渲染回归
+### 离屏滑轨、歌词字号与主题渲染回归
 
-`FrontendRenderingSmokeLauncher` 使用当前 CSS、JavaFX 控件和合成文字，不显示 Stage、不请求窗口焦点、不发送输入。它检查主/迷你/音量内部轨道边界和真实歌词像素，并验证超大圆角、低透明度两类负向注入会被拒绝。Windows 下先编译，再显式选择已有运行时镜像的依赖：
+`FrontendRenderingSmokeLauncher` 使用当前 CSS、JavaFX 控件和合成文字，不显示 Stage、不请求窗口焦点、不发送输入。它检查主/迷你/音量内部轨道边界、真实歌词像素、五主题双尺寸下三档歌词的当前行与上下文行字号、实际 FocusPane 的两只 26px 座钟，以及搜索徽章和悬停边框的计算颜色。超大圆角和低透明度两类负向注入仍须被拒绝。Windows 下先编译，再显式选择已有运行时镜像的依赖：
 
 ```powershell
 ./desktop/mvnw.cmd -B -ntp -f desktop/pom.xml test-compile
@@ -229,7 +229,10 @@ $runtime = '<含 app/ 的运行时镜像根目录>'
 $deps = @(Get-ChildItem (Join-Path $runtime 'app') -Filter '*.jar' |
     Where-Object Name -NotLike 'lumen-desktop-*' | ForEach-Object FullName)
 $cp = (@('desktop/target/classes', 'desktop/target/test-classes') + $deps) -join ';'
-& (Join-Path $env:JAVA_HOME 'bin/java.exe') -cp $cp com.lumenmusic.FrontendRenderingSmokeLauncher
+foreach ($scale in @('1.25', '1.5')) {
+    & (Join-Path $env:JAVA_HOME 'bin/java.exe') "-Dglass.win.uiScale=$scale" -cp $cp com.lumenmusic.FrontendRenderingSmokeLauncher
+    if ($LASTEXITCODE -ne 0) { throw "Offscreen rendering failed: $scale" }
+}
 ```
 
-离屏检查不能代替实际窗口缩放、原生输入或安装验收。完整视觉驱动还会在实际应用中检查主题入口、渐变填充、歌词上下文、菜单和迷你返回；先安排独占桌面，方法及当前范围见[第二阶段前端验收](FRONTEND_PHASE2_ACCEPTANCE.md)。
+离屏检查不能代替实际窗口缩放、原生输入或安装验收。完整视觉驱动还在实际应用中检查低音量静音恢复、音量滚轮和提示、字号按钮/滚轮/菜单联动，以及当前曲目封面浮层在暂停、恢复和行复用后的图标与提示；原有主题、滑轨、菜单、焦点及迷你返回守护保留。先安排独占桌面，方法见前述 `playback-scene-smoke.ps1` 入口，当前结果见[第三阶段前端验收](FRONTEND_PHASE3_ACCEPTANCE.md)。

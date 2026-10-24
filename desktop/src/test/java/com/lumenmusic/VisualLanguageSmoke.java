@@ -162,6 +162,7 @@ public final class VisualLanguageSmoke extends Application {
         }
 
         frontendRenderingCheck();
+        frontendInteractionCheck();
         phase = "four scenes five themes two sizes";
         for (ThemeController.Mode mode : ThemeController.Mode.values()) {
             fx(() -> chooseTheme(mode));
@@ -416,16 +417,33 @@ public final class VisualLanguageSmoke extends Application {
                             "合成验收歌词");
                     click("open-immersive");
                 }); settle();
+                for (String tier : List.of("SMALL", "MEDIUM", "LARGE")) {
+                fx(() -> {
+                    for (int step = 0; step < 3 && !field("currentLyricSize", Enum.class).name().equals(tier); step++)
+                        click("immersive-lyric-size-toggle");
+                });
+                settle();
                 fx(() -> {
                     var cells = list("immersive-lyrics").lookupAll(".list-cell").stream()
                             .filter(ListCell.class::isInstance).map(n -> (ListCell<?>) n)
                             .filter(cell -> "上下文歌词 Context lyrics".equals(cell.getItem())).toList();
                     check(cells.size() == 1, "context lyric fixture not visible");
+                    double contextSize = switch (tier) { case "SMALL" -> 13.5; case "LARGE" -> 18.5; default -> 15; };
+                    check(Math.abs(cells.get(0).getFont().getSize() - contextSize) < .01,
+                            "lyric tier overridden: " + mode + " " + width + " " + tier);
+                    ListCell<?> current = list("immersive-lyrics").lookupAll(".list-cell").stream()
+                            .filter(ListCell.class::isInstance).map(n -> (ListCell<?>) n)
+                            .filter(cell -> "当前演唱行 Current singing".equals(cell.getItem())).findFirst().orElseThrow();
+                    double currentSize = switch (tier) { case "SMALL" -> 17.5; case "LARGE" -> 25; default -> 20; };
+                    check(current.getStyleClass().contains("current-lyric")
+                                    && Math.abs(current.getFont().getSize() - currentSize) < .01,
+                            "current lyric tier overridden: " + mode + " " + width + " " + tier);
                     double contrast = FrontendRenderAssertions.lyricContrast(cells.get(0), 4.5);
-                    System.out.println("PASS lyric context " + mode + " width=" + width + " contrast=" + contrast);
-                    screenshot(stage.getScene(), mode.name().toLowerCase() + "-lyrics-" + width + ".png");
-                    click("immersive-collapse");
+                    System.out.println("PASS lyric context " + mode + " width=" + width + " tier=" + tier + " contrast=" + contrast);
+                    if (tier.equals("MEDIUM")) screenshot(stage.getScene(), mode.name().toLowerCase() + "-lyrics-" + width + ".png");
                 });
+                }
+                fx(() -> click("immersive-collapse"));
             }
         }
         fx(() -> {
@@ -434,6 +452,103 @@ public final class VisualLanguageSmoke extends Application {
         });
         awaitPlaying(first.id());
         System.out.println("PASS actual main/volume tracks remain bounded at four fractions; five-theme lyric context readable at both sizes");
+    }
+
+    private void frontendInteractionCheck() throws Exception {
+        phase = "volume memory, lyric menu synchronization and current-row overlay";
+        double before = fxValue(() -> audio().position().toSeconds());
+        fx(() -> {
+            openScene("home");
+            Slider volume = (Slider) node("volume-slider");
+            double saved = volume.getValue();
+            for (double value : new double[] {.0005, .001, .02, .05, .5, 1}) {
+                volume.setValue(value);
+                node("volume-toggle").fireEvent(singleClick());
+                check(volume.getValue() == 0, "volume icon did not mute " + value);
+                node("volume-toggle").fireEvent(singleClick());
+                check(Math.abs(volume.getValue() - value) < .000001, "volume restore jumped from " + value);
+                check(((Label) node("volume-toggle")).getTooltip().getText().contains(Math.round(value * 100) + "%"),
+                        "volume percentage tooltip is stale");
+            }
+            volume.setValue(.02); volume.setValue(0);
+            node("volume-toggle").fireEvent(singleClick());
+            check(volume.getValue() == .02, "slider zero lost remembered low volume");
+            volume.setValue(.5); volume.fireEvent(wheel(40));
+            check(Math.abs(volume.getValue() - .55) < .000001, "slider wheel step changed");
+            node("volume-toggle").fireEvent(wheel(-40));
+            check(Math.abs(volume.getValue() - .5) < .000001, "icon wheel step changed");
+            volume.setValue(1); volume.fireEvent(wheel(40)); check(volume.getValue() == 1, "volume upper clamp");
+            volume.setValue(0); volume.fireEvent(wheel(-40)); check(volume.getValue() == 0, "volume lower clamp");
+            volume.setValue(saved);
+            click("open-immersive");
+            for (int step = 0; step < 3 && !field("currentLyricSize", Enum.class).name().equals("MEDIUM"); step++)
+                click("immersive-lyric-size-toggle");
+            click("immersive-lyric-size-toggle");
+        }); settle();
+        fx(() -> click("immersive-more"));
+        await(3_000, () -> fxValue(() -> shownMoreMenu() != null), "lyric menu did not appear");
+        fx(() -> {
+            ContextMenu popup = shownMoreMenu();
+            var sizes = (javafx.scene.control.Menu) popup.getItems().stream()
+                    .filter(item -> "immersive-lyric-size-menu".equals(item.getId())).findFirst().orElseThrow();
+            checkSelectedLyricSize("LARGE");
+            node("immersive-lyric-size-toggle").fireEvent(wheel(-40)); checkSelectedLyricSize("MEDIUM");
+            sizes.getItems().get(0).fire(); checkSelectedLyricSize("SMALL");
+            check(((ButtonBase) node("immersive-lyric-size-toggle")).getText().equals("A"), "menu did not update size chip");
+            click("immersive-lyric-size-toggle"); checkSelectedLyricSize("MEDIUM");
+            popup.hide(); openScene("playlist");
+        }); settle();
+        fx(() -> checkCurrentRowOverlay(true));
+        fx(() -> click("play-button"));
+        await(3_000, () -> fxValue(() -> audio().state() == JavaFxAudioPlayer.State.PAUSED), "overlay fixture did not pause");
+        fx(() -> {
+            checkCurrentRowOverlay(false);
+            currentTrackRow().lookup(".track-artwork").fireEvent(singleClick());
+        });
+        awaitPlaying(first.id());
+        fx(() -> {
+            checkCurrentRowOverlay(true);
+            list("playlist-tracks").scrollTo(20); layout();
+        });
+        pause(150);
+        fx(() -> { list("playlist-tracks").scrollTo(0); layout(); }); pause(150);
+        await(3_000, () -> fxValue(() -> audio().position().toSeconds() >= before + .2), "cover playback clock did not advance");
+        fx(() -> { checkCurrentRowOverlay(true); preserved(before, true); });
+        System.out.println("PASS volume mute restores positive values including 0.05%/2%/5%; wheel/tooltip/clamps, lyric chip/wheel/menu synchronization and live/recycled row icon+tooltip; cover click preserves current audio/queue");
+    }
+
+    private void checkSelectedLyricSize(String name) {
+        var group = field("lyricSizeGroup", javafx.scene.control.ToggleGroup.class);
+        check(group.getSelectedToggle() != null && group.getSelectedToggle().getUserData().toString().equals(name)
+                        && field("currentLyricSize", Enum.class).name().equals(name), "lyric menu selection is stale: " + name);
+        check(group.getToggles().stream().filter(javafx.scene.control.Toggle::isSelected).count() == 1, "lyric menu selected count");
+    }
+
+    private ListCell<?> currentTrackRow() {
+        return list("playlist-tracks").lookupAll(".list-cell").stream().filter(ListCell.class::isInstance)
+                .map(n -> (ListCell<?>) n).filter(cell -> cell.getItem() instanceof Track track && first.id().equals(track.id()))
+                .findFirst().orElseThrow();
+    }
+
+    private void checkCurrentRowOverlay(boolean playing) {
+        Node artwork = currentTrackRow().lookup(".track-artwork");
+        String path = ((javafx.scene.shape.SVGPath) artwork.lookup(".track-cover-play-icon")).getContent();
+        check(path.equals(invoke("iconPath", new Class<?>[] {String.class}, playing ? "pause" : "play")), "current-row overlay icon is stale");
+        var tooltip = artwork.getProperties().values().stream().filter(javafx.scene.control.Tooltip.class::isInstance)
+                .map(javafx.scene.control.Tooltip.class::cast).findFirst().orElseThrow();
+        check(tooltip.getText().equals(playing ? "正在播放 · 点击暂停" : "已暂停 · 点击继续播放"), "current-row overlay tooltip is stale");
+    }
+
+    private static MouseEvent singleClick() {
+        return new MouseEvent(MouseEvent.MOUSE_CLICKED, 8, 8, 8, 8, MouseButton.PRIMARY, 1,
+                false, false, false, false, true, false, false, true, false, false, null);
+    }
+
+    private static javafx.scene.input.ScrollEvent wheel(double delta) {
+        return new javafx.scene.input.ScrollEvent(javafx.scene.input.ScrollEvent.SCROLL, 8, 8, 8, 8,
+                false, false, false, false, false, false, 0, delta, 0, delta,
+                javafx.scene.input.ScrollEvent.HorizontalTextScrollUnits.NONE, 0,
+                javafx.scene.input.ScrollEvent.VerticalTextScrollUnits.NONE, 0, 0, null);
     }
 
     /** Compare actual glyph color against the composited window behind that same label. */

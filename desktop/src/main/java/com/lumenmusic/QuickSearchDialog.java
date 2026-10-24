@@ -55,12 +55,30 @@ public final class QuickSearchDialog {
         results.setPrefHeight(390);
         results.setMinHeight(240);
         results.setCellFactory(ignored -> new ResultCell());
-        results.setPlaceholder(new Label("无匹配结果"));
+        VBox emptyBox = new VBox(6);
+        emptyBox.setAlignment(Pos.CENTER);
+        Label emptyTitle = new Label("无匹配结果");
+        emptyTitle.getStyleClass().add("empty-state-title");
+        Label emptyHint = new Label("尝试输入歌名、歌手、歌单名称或快捷命令");
+        emptyHint.getStyleClass().add("muted");
+        emptyBox.getChildren().addAll(emptyTitle, emptyHint);
+        results.setPlaceholder(emptyBox);
         results.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) activateSelection();
         });
 
-        VBox content = new VBox(10, query, results);
+        HBox hints = new HBox(14);
+        hints.getStyleClass().add("quick-search-hints");
+        hints.setAlignment(Pos.CENTER_RIGHT);
+        Label navHint = new Label("↑↓ 导航");
+        Label enterHint = new Label("↵ 执行");
+        Label escHint = new Label("ESC 关闭");
+        navHint.getStyleClass().add("quick-search-hint-key");
+        enterHint.getStyleClass().add("quick-search-hint-key");
+        escHint.getStyleClass().add("quick-search-hint-key");
+        hints.getChildren().addAll(navHint, enterHint, escHint);
+
+        VBox content = new VBox(10, query, results, hints);
         content.setPadding(new Insets(6, 0, 0, 0));
         content.setPrefWidth(520);
         content.setMinWidth(0);
@@ -147,8 +165,9 @@ public final class QuickSearchDialog {
                 return;
             }
             Label kind = new Label(item.type().label());
-            kind.getStyleClass().add("eyebrow");
-            kind.setMinWidth(38);
+            kind.getStyleClass().addAll("eyebrow", "quick-search-badge", "badge-" + item.type().name().toLowerCase(java.util.Locale.ROOT));
+            kind.setMinWidth(44);
+            kind.setAlignment(Pos.CENTER);
             Label title = new Label(item.title());
             title.setStyle("-fx-font-weight: bold;");
             title.setMinWidth(0);
@@ -162,7 +181,9 @@ public final class QuickSearchDialog {
             VBox names = new VBox(2, title, subtitle);
             names.setMinWidth(0);
             HBox.setHgrow(names, Priority.ALWAYS);
-            HBox row = new HBox(12, kind, names);
+            Label actionHint = new Label("↵");
+            actionHint.getStyleClass().add("quick-search-cell-action");
+            HBox row = new HBox(12, kind, names, actionHint);
             row.setAlignment(Pos.CENTER_LEFT);
             row.prefWidthProperty().bind(results.widthProperty().subtract(44));
             setGraphic(row);

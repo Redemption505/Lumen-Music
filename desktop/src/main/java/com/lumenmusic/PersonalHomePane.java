@@ -1,4 +1,8 @@
 package com.lumenmusic;
+import java.net.URI;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -72,6 +76,9 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
     private boolean twoColumns;
     private Function<Track, String> trackTitle = Track::title;
     private Function<Track, String> performer = Track::artist;
+    private final ImageView sleeveArtwork = new ImageView();
+    private final Label sleeveIcon = new Label("♫");
+    private Function<URI, ObservableValue<Image>> coverSupplier;
     private Track lastSessionTrack;
     private String lastSessionDetail;
     private boolean lastCanResume;
@@ -147,10 +154,19 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
         vinylSleeve.setMinSize(56, 56);
         vinylSleeve.setPrefSize(56, 56);
         vinylSleeve.setMaxSize(56, 56);
-        Label sleeveIcon = new Label("♫");
         sleeveIcon.getStyleClass().add("home-sleeve-icon");
-        vinylSleeve.getChildren().add(sleeveIcon);
+        sleeveArtwork.setFitWidth(56);
+        sleeveArtwork.setFitHeight(56);
+        sleeveArtwork.setPreserveRatio(true);
+        sleeveArtwork.setSmooth(true);
+        javafx.scene.shape.Rectangle sleeveClip = new javafx.scene.shape.Rectangle(56, 56);
+        sleeveClip.setArcWidth(10);
+        sleeveClip.setArcHeight(10);
+        sleeveArtwork.setClip(sleeveClip);
+        sleeveArtwork.setVisible(false);
+        vinylSleeve.getChildren().addAll(sleeveIcon, sleeveArtwork);
         StackPane.setAlignment(sleeveIcon, Pos.CENTER);
+        StackPane.setAlignment(sleeveArtwork, Pos.CENTER);
 
         StackPane vinylStage = new StackPane(vinylDisc, vinylSleeve);
         vinylStage.getStyleClass().add("home-vinyl-stage");
@@ -214,8 +230,14 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
     public HomeClient.Preferences preferences() { return preferences; }
 
     public void setIdentityFunctions(Function<Track, String> title, Function<Track, String> performer) {
+        setIdentityFunctions(title, performer, null);
+    }
+
+    public void setIdentityFunctions(Function<Track, String> title, Function<Track, String> performer,
+                                    Function<URI, ObservableValue<Image>> coverSupplier) {
         this.trackTitle = Objects.requireNonNull(title);
         this.performer = Objects.requireNonNull(performer);
+        this.coverSupplier = coverSupplier;
         setSession(lastSessionTrack, lastSessionDetail, lastCanResume, lastPlaying);
         setDiary(lastDiary);
     }
@@ -231,6 +253,18 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
         lastSessionDetail = detail;
         lastCanResume = canResume;
         lastPlaying = playing;
+        sleeveArtwork.imageProperty().unbind();
+        sleeveArtwork.visibleProperty().unbind();
+        sleeveIcon.visibleProperty().unbind();
+        if (track != null && track.coverUri() != null && coverSupplier != null) {
+            sleeveArtwork.imageProperty().bind(coverSupplier.apply(track.coverUri()));
+            sleeveArtwork.visibleProperty().bind(sleeveArtwork.imageProperty().isNotNull());
+            sleeveIcon.visibleProperty().bind(sleeveArtwork.imageProperty().isNull());
+        } else {
+            sleeveArtwork.setImage(null);
+            sleeveArtwork.setVisible(false);
+            sleeveIcon.setVisible(true);
+        }
         sessionTitle.setText(track == null ? "让下一首音乐从这里开始" : trackTitle.apply(track));
         sessionDetail.setText(track == null ? "还没有可继续的播放会话" : detail);
         resume.setText(playing ? "正在播放" : "继续播放");
@@ -259,6 +293,7 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
         HomeReunion.select(diary).ifPresentOrElse(selection -> {
             Label track = text(trackTitle.apply(selection.track()), "home-track-title");
             track.setId("home-reunion-title");
+            Label performerLabel = text(performer.apply(selection.track()), "muted");
             Label reason = text(selection.reason(), "muted");
             reason.setId("home-reunion-reason");
             reason.getStyleClass().add("home-reunion-reason-box");
@@ -269,7 +304,37 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
             diaryBtn.getStyleClass().add("home-reunion-diary-button");
             HBox actionRow = new HBox(8, playBtn, diaryBtn);
             actionRow.setAlignment(Pos.CENTER_LEFT);
-            reunionContent.getChildren().addAll(track, text(performer.apply(selection.track()), "muted"), reason, actionRow);
+
+            Node presentation;
+            if (coverSupplier != null && selection.track().coverUri() != null) {
+                ImageView reunionCover = new ImageView();
+                reunionCover.imageProperty().bind(coverSupplier.apply(selection.track().coverUri()));
+                reunionCover.setFitWidth(46);
+                reunionCover.setFitHeight(46);
+                reunionCover.setPreserveRatio(true);
+                reunionCover.setSmooth(true);
+                javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(46, 46);
+                clip.setArcWidth(8);
+                clip.setArcHeight(8);
+                reunionCover.setClip(clip);
+                Label emptyThumb = new Label("♫");
+                emptyThumb.getStyleClass().add("home-sleeve-icon");
+                emptyThumb.visibleProperty().bind(reunionCover.imageProperty().isNull());
+                StackPane coverBox = new StackPane(emptyThumb, reunionCover);
+                coverBox.setMinSize(46, 46);
+                coverBox.setPrefSize(46, 46);
+                coverBox.setMaxSize(46, 46);
+                coverBox.getStyleClass().add("home-reunion-cover-box");
+                VBox textBlock = new VBox(2, track, performerLabel);
+                textBlock.setMinWidth(0);
+                HBox.setHgrow(textBlock, Priority.ALWAYS);
+                HBox topRow = new HBox(10, coverBox, textBlock);
+                topRow.setAlignment(Pos.CENTER_LEFT);
+                presentation = topRow;
+            } else {
+                presentation = new VBox(2, track, performerLabel);
+            }
+            reunionContent.getChildren().addAll(presentation, reason, actionRow);
         }, () -> {
             Label empty = text("听歌后，真实的重听与初遇会在这里留下记录", "muted");
             empty.setWrapText(true);

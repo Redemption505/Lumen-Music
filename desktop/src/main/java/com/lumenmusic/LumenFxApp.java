@@ -270,8 +270,31 @@ public final class LumenFxApp extends Application {
     private Double pendingLocalSeek;
     private Timeline clock;
     private Timeline volumeClock;
+    private double unmutedVolume = 1.0;
+    private final javafx.beans.property.ObjectProperty<JavaFxAudioPlayer.State> playbackUiState =
+            new javafx.beans.property.SimpleObjectProperty<>(JavaFxAudioPlayer.State.IDLE);
+    private final ToggleGroup lyricSizeGroup = new ToggleGroup();
     private ComboBox<LibraryClient.Playlist> playlistPicker;
     private ListView<LibraryClient.Playlist> playlistOrderList;
+    private enum LyricSize {
+        SMALL("标准", "A", 50, "lyric-size-small"),
+        MEDIUM("舒适", "A+", 58, "lyric-size-medium"),
+        LARGE("巨幕", "A++", 68, "lyric-size-large");
+
+        final String label;
+        final String shortLabel;
+        final int cellHeight;
+        final String styleClass;
+
+        LyricSize(String label, String shortLabel, int cellHeight, String styleClass) {
+            this.label = label;
+            this.shortLabel = shortLabel;
+            this.cellHeight = cellHeight;
+            this.styleClass = styleClass;
+        }
+    }
+    private LyricSize currentLyricSize = LyricSize.MEDIUM;
+    private Button lyricSizeButton;
     private List<Lyrics.Line> activeLyrics = List.of();
     private int activeLyricIndex = -2;
     private long lyricsReadVersion;
@@ -519,8 +542,20 @@ public final class LumenFxApp extends Application {
         homeQuery.setMinWidth(0);
         Label moodTitle = new Label("此刻想听");
         moodTitle.getStyleClass().add("recommendation-heading");
+        FlowPane moodChips = new FlowPane(6, 6);
+        moodChips.getStyleClass().add("home-mood-chips");
+        for (String mood : List.of("☕ 静心纯音", "🌙 夜色温柔", "⚡ 轻快律动", "🍃 放松治愈")) {
+            Button chip = new Button(mood);
+            chip.getStyleClass().add("home-mood-chip");
+            chip.setFocusTraversable(false);
+            chip.setOnAction(event -> {
+                homeQuery.setText(mood.substring(2).strip());
+                exploreMood.fire();
+            });
+            moodChips.getChildren().add(chip);
+        }
         FlowPane discoveryActions = new FlowPane(8, 8, homeRadio, refreshRecommendations);
-        VBox moodCard = new VBox(9, moodTitle, moodRow, discoveryActions);
+        VBox moodCard = new VBox(8, moodTitle, moodRow, moodChips, discoveryActions);
         moodCard.setId("recommendation-intent");
         moodCard.getStyleClass().add("recommendation-intent");
         Label recommendationHeading = new Label("推荐列表");
@@ -541,7 +576,7 @@ public final class LumenFxApp extends Application {
                         () -> openFavoriteScene.run(), () -> openDiaryScene.run(),
                         () -> showSmartLibrary(null), this::saveHomePreferences),
                 this::themePopup, this::themeSegmentDialog);
-        personalHome.setIdentityFunctions(this::songTitle, this::performerCaption);
+        personalHome.setIdentityFunctions(this::songTitle, this::performerCaption, this::coverImage);
         PersonalHomePane homePane = personalHome;
         Tab homeTab = new Tab("我的音乐", homePane);
         homeTab.setClosable(false);
@@ -898,9 +933,11 @@ public final class LumenFxApp extends Application {
                 animateEntrance(immersiveLine, 0, 0));
         installLyricMarquee(immersiveLine);
         immersiveLyrics.setId("immersive-lyrics");
-        immersiveLyrics.setFixedCellSize(58);
+        immersiveLyrics.getStyleClass().add(currentLyricSize.styleClass);
+        immersiveLyrics.setFixedCellSize(currentLyricSize.cellHeight);
         immersiveLyrics.heightProperty().addListener((ignored, before, after) -> {
-            int padding = Math.max(1, (int) Math.ceil(after.doubleValue() / 116));
+            double cellSize = immersiveLyrics.getFixedCellSize() > 0 ? immersiveLyrics.getFixedCellSize() : 58;
+            int padding = Math.max(1, (int) Math.ceil(after.doubleValue() / (cellSize * 2)));
             if (padding != immersiveLyricPadding) rebuildImmersiveLyrics();
             else if (activeLyricIndex >= 0) animateLyricScroll(activeLyricIndex);
         });
@@ -1040,6 +1077,18 @@ public final class LumenFxApp extends Application {
             immersiveMenu.getItems().add(item);
         }
         immersiveMenu.getItems().add(new SeparatorMenuItem());
+        Menu lyricSizeMenu = new Menu("歌词字号");
+        lyricSizeMenu.setId("immersive-lyric-size-menu");
+        lyricSizeMenu.setGraphic(icon("lyrics", "menu-icon"));
+        for (LyricSize size : LyricSize.values()) {
+            RadioMenuItem item = new RadioMenuItem(size.label);
+            item.setToggleGroup(lyricSizeGroup);
+            item.setUserData(size);
+            item.setSelected(size == currentLyricSize);
+            item.setOnAction(e -> applyLyricSize(size));
+            lyricSizeMenu.getItems().add(item);
+        }
+        immersiveMenu.getItems().add(lyricSizeMenu);
         immersiveMenu.getItems().add(trackMenuItem("歌词校准", "lyrics", "immersive-calibrate", () -> {
             lyricCalibration.setVisible(!lyricCalibration.isVisible());
             lyricCalibration.setManaged(lyricCalibration.isVisible());
@@ -1057,11 +1106,37 @@ public final class LumenFxApp extends Application {
         immersiveLeft.setPrefWidth(410);
         Label lyricHeading = new Label("正在播放");
         lyricHeading.getStyleClass().add("immersive-heading");
+        Region lyricHeaderSpacer = new Region();
+        HBox.setHgrow(lyricHeaderSpacer, Priority.ALWAYS);
+        Button lyricSizeToggle = actionButton(currentLyricSize.shortLabel, "immersive-lyric-size-toggle", () -> {
+            LyricSize next = switch (currentLyricSize) {
+                case SMALL -> LyricSize.MEDIUM;
+                case MEDIUM -> LyricSize.LARGE;
+                case LARGE -> LyricSize.SMALL;
+            };
+            applyLyricSize(next);
+        });
+        lyricSizeToggle.setFocusTraversable(false);
+        lyricSizeToggle.getStyleClass().add("immersive-size-chip");
+        lyricSizeToggle.setTooltip(readableTooltip("歌词字号：" + currentLyricSize.label + "（点击切换，支持滚轮）"));
+        lyricSizeToggle.setOnScroll(event -> {
+            if (event.getDeltaY() > 0) {
+                if (currentLyricSize == LyricSize.SMALL) applyLyricSize(LyricSize.MEDIUM);
+                else if (currentLyricSize == LyricSize.MEDIUM) applyLyricSize(LyricSize.LARGE);
+            } else if (event.getDeltaY() < 0) {
+                if (currentLyricSize == LyricSize.LARGE) applyLyricSize(LyricSize.MEDIUM);
+                else if (currentLyricSize == LyricSize.MEDIUM) applyLyricSize(LyricSize.SMALL);
+            }
+            event.consume();
+        });
+        lyricSizeButton = lyricSizeToggle;
+        HBox lyricHeader = new HBox(8, lyricHeading, lyricHeaderSpacer, lyricSizeToggle);
+        lyricHeader.setAlignment(Pos.CENTER_LEFT);
         Label immersiveLyricsStatus = new Label();
         immersiveLyricsStatus.textProperty().bind(lyricsStatus.textProperty());
         immersiveLyricsStatus.getStyleClass().add("immersive-lyrics-status");
         immersiveLyricsStatus.setWrapText(true);
-        VBox immersiveWords = new VBox(8, lyricHeading, immersiveTrackTitle,
+        VBox immersiveWords = new VBox(8, lyricHeader, immersiveTrackTitle,
                 immersiveTrackArtist, immersiveTrackSource, immersiveLine, immersiveLyrics, immersiveLyricsStatus);
         immersiveWords.getStyleClass().add("immersive-right");
         immersiveWords.setMinWidth(0);
@@ -1935,8 +2010,44 @@ public final class LumenFxApp extends Application {
                     javafx.css.PseudoClass.getPseudoClass("active"), showing);
         });
         Label volumeIcon = new Label();
+        volumeIcon.setId("volume-toggle");
         volumeIcon.setGraphic(icon("volume", "action-icon"));
         volumeIcon.getStyleClass().add("volume-icon");
+        volumeIcon.setCursor(javafx.scene.Cursor.HAND);
+        volumeIcon.setFocusTraversable(false);
+        Runnable updateVolumeDisplay = () -> {
+            boolean muted = playbackVolume <= 0;
+            volumeIcon.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("muted"), muted);
+            volumeIcon.setGraphic(icon(muted ? "volume-mute" : "volume", "action-icon"));
+            String percent = Math.round(playbackVolume * 100) + "%";
+            String iconTip = muted ? "已静音（点击恢复）" : "音量：" + percent + "（点击静音，滚轮调节）";
+            volumeIcon.setTooltip(readableTooltip(iconTip));
+            volume.setTooltip(readableTooltip("音量：" + percent + "（支持滚轮微调）"));
+        };
+        updateVolumeDisplay.run();
+        volume.valueProperty().addListener((ignored, oldValue, value) -> {
+            if (value.doubleValue() > 0) unmutedVolume = value.doubleValue();
+            updateVolumeDisplay.run();
+        });
+        volumeIcon.setOnMouseClicked(event -> {
+            if (event.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
+                if (volume.getValue() > 0) {
+                    unmutedVolume = volume.getValue();
+                    volume.setValue(0);
+                } else {
+                    volume.setValue(unmutedVolume);
+                }
+            }
+        });
+        javafx.event.EventHandler<javafx.scene.input.ScrollEvent> onVolumeScroll = event -> {
+            double delta = event.getDeltaY() > 0 ? 0.05 : event.getDeltaY() < 0 ? -0.05 : 0;
+            if (delta != 0) {
+                volume.setValue(Math.max(0.0, Math.min(1.0, volume.getValue() + delta)));
+            }
+            event.consume();
+        };
+        volume.setOnScroll(onVolumeScroll);
+        volumeIcon.setOnScroll(onVolumeScroll);
         Button openPractice = actionButton("精听与练习", "open-practice", this::showPracticeDialog);
         decorateIcon(openPractice, "repeat-one", "action-icon");
         practiceButtons.add(openPractice);
@@ -2196,6 +2307,7 @@ public final class LumenFxApp extends Application {
             immersiveActions.setPrefWrapLength(artworkSize + 22);
             immersiveBody.setSpacing(compact ? 20 : 36);
             immersiveLeft.setSpacing(spacious ? 18 : 12);
+            immersiveWords.setSpacing(spacious ? 8 : 4);
         };
         scene.widthProperty().addListener((ignored, before, width) -> updateLayout.run());
         scene.heightProperty().addListener((ignored, before, height) -> updateLayout.run());
@@ -2374,6 +2486,7 @@ public final class LumenFxApp extends Application {
             case "repeat-off" -> "M3 4L20 21L21.5 19.5L4.5 2.5Z M8 5H18V2L22 6L18 10V7H7C5 7 4 8 4 10H2Z M17 19H6V22L2 18L6 14V17H17C19 17 20 16 20 14H22Z";
             case "shuffle" -> "M3 5H7L12 10L17 5H15V3H22V10H20V8H18L13.5 12.5L18 17H20V15H22V22H15V20H17L12 15L7 20H3V18H6L10.5 13.5L6 7H3Z";
             case "volume" -> "M3 9H7L12 4V20L7 15H3Z M15 8L17 6C20 9 20 15 17 18L15 16C17 14 17 10 15 8Z";
+            case "volume-mute" -> "M3 9H7L12 4V20L7 15H3Z M16.5 12L19.5 9L21 10.5L18 13.5L21 16.5L19.5 18L16.5 15L13.5 18L12 16.5L15 13.5L12 10.5L13.5 9Z";
             case "pause" -> "M6 4H10V20H6Z M14 4H18V20H14Z";
             case "stop" -> "M6 6H18V18H6Z";
             default -> "M8 5V19L19 12Z";
@@ -2648,6 +2761,7 @@ public final class LumenFxApp extends Application {
                     setContextMenu(null);
                     return;
                 }
+                boolean isPlaying = loadedTrack != null && loadedTrack.id().equals(track.id());
                 Label artworkPlaceholder = artworkPlaceholder();
                 artworkPlaceholder.getStyleClass().add("track-artwork-placeholder");
                 StackPane artwork = new StackPane(artworkPlaceholder);
@@ -2656,6 +2770,10 @@ public final class LumenFxApp extends Application {
                 artwork.setMinSize(artworkSize, artworkSize);
                 artwork.setPrefSize(artworkSize, artworkSize);
                 artwork.setMaxSize(artworkSize, artworkSize);
+                javafx.scene.shape.Rectangle crop = new javafx.scene.shape.Rectangle(artworkSize, artworkSize);
+                crop.setArcWidth(9);
+                crop.setArcHeight(9);
+                artwork.setClip(crop);
                 if (track.coverUri() != null) {
                     ImageView image = new ImageView();
                     image.imageProperty().bind(coverImage(track.coverUri()));
@@ -2663,13 +2781,41 @@ public final class LumenFxApp extends Application {
                     image.setFitHeight(artworkSize);
                     image.setPreserveRatio(true);
                     image.setSmooth(true);
-                    javafx.scene.shape.Rectangle crop = new javafx.scene.shape.Rectangle(artworkSize, artworkSize);
-                    crop.setArcWidth(9);
-                    crop.setArcHeight(9);
-                    artwork.setClip(crop);
                     artworkPlaceholder.visibleProperty().bind(image.imageProperty().isNull());
                     artwork.getChildren().add(image);
                 }
+                StackPane playOverlay = new StackPane();
+                playOverlay.getStyleClass().add("track-cover-play-overlay");
+                SVGPath playOverlayIcon = icon("play", "track-cover-play-icon");
+                playOverlayIcon.contentProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
+                        () -> iconPath(isPlaying && (playbackUiState.get() == JavaFxAudioPlayer.State.PLAYING
+                                || playbackUiState.get() == JavaFxAudioPlayer.State.STALLED) ? "pause" : "play"),
+                        playbackUiState));
+                playOverlay.getChildren().add(playOverlayIcon);
+                playOverlay.setOpacity(0.0);
+                artwork.getChildren().add(playOverlay);
+                artwork.setCursor(javafx.scene.Cursor.HAND);
+                artwork.setOnMouseEntered(e -> playOverlay.setOpacity(1.0));
+                artwork.setOnMouseExited(e -> playOverlay.setOpacity(0.0));
+                Tooltip artworkTooltip = readableTooltip("");
+                artworkTooltip.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
+                        () -> !isPlaying ? "点击播放此曲目"
+                                : playbackUiState.get() == JavaFxAudioPlayer.State.PLAYING
+                                        || playbackUiState.get() == JavaFxAudioPlayer.State.STALLED
+                                        ? "正在播放 · 点击暂停" : "已暂停 · 点击继续播放",
+                        playbackUiState));
+                Tooltip.install(artwork, artworkTooltip);
+                artwork.setOnMouseClicked(event -> {
+                    if (event.getButton() == MouseButton.PRIMARY) {
+                        event.consume();
+                        list.getSelectionModel().clearAndSelect(getIndex());
+                        if (isPlaying) {
+                            playButton.fire();
+                        } else {
+                            playTrackFromList(list, track, getIndex());
+                        }
+                    }
+                });
                 Label title = new Label(songTitle(track));
                 title.getStyleClass().add("track-title");
                 title.setMinWidth(0);
@@ -2683,7 +2829,13 @@ public final class LumenFxApp extends Application {
                 artist.setMinWidth(0);
                 artist.setMaxWidth(Double.MAX_VALUE);
                 artist.setTextOverrun(OverrunStyle.ELLIPSIS);
-                VBox details = new VBox(3, title, artist);
+                SVGPath playingWave = icon("music", "track-playing-indicator");
+                playingWave.setVisible(isPlaying);
+                playingWave.setManaged(isPlaying);
+                HBox titleRow = new HBox(5, playingWave, title);
+                titleRow.setAlignment(Pos.CENTER_LEFT);
+                HBox.setHgrow(title, Priority.ALWAYS);
+                VBox details = new VBox(3, titleRow, artist);
                 details.setAlignment(Pos.CENTER_LEFT);
                 details.setMinWidth(0);
                 HBox.setHgrow(details, Priority.ALWAYS);
@@ -2708,10 +2860,10 @@ public final class LumenFxApp extends Application {
                 views.setManaged(views.isVisible());
                 boolean unavailable = trackPreferences != null && trackPreferences.isUnavailable(track.id());
                 boolean isExcluded = trackPreferences != null && trackPreferences.isExcluded(track.id());
-                VBox metadata = new VBox(4, views, length, badge);
+                HBox metadata = new HBox(8, views, badge, length);
+                metadata.getStyleClass().add("track-metadata");
                 metadata.setAlignment(Pos.CENTER_RIGHT);
-                metadata.setMinWidth(96);
-                metadata.setPrefWidth(96);
+                metadata.setMinWidth(Region.USE_PREF_SIZE);
                 boolean saved = favorites.stream().anyMatch(item -> item.id().equals(track.id()));
                 Button heart = new Button(saved ? "取消收藏" : "收藏");
                 heart.getStyleClass().addAll("track-action", "track-favorite");
@@ -2752,26 +2904,28 @@ public final class LumenFxApp extends Application {
                     boolean narrow = row.getWidth() < 520;
                     metadata.setVisible(!narrow);
                     metadata.setManaged(!narrow);
+                    if (!narrow) {
+                        boolean showViews = row.getWidth() >= 620 && track.viewCount() > 0;
+                        views.setVisible(showViews);
+                        views.setManaged(showViews);
+                    }
                     index.setVisible(!narrow);
                     index.setManaged(!narrow);
                     int size = narrow ? 34 : artworkSize;
                     artwork.setMinSize(size, size);
                     artwork.setPrefSize(size, size);
                     artwork.setMaxSize(size, size);
-                    if (artwork.getClip() instanceof javafx.scene.shape.Rectangle crop) {
-                        crop.setWidth(size);
-                        crop.setHeight(size);
+                    if (artwork.getClip() instanceof javafx.scene.shape.Rectangle cropRect) {
+                        cropRect.setWidth(size);
+                        cropRect.setHeight(size);
                     }
                     for (javafx.scene.Node child : artwork.getChildren()) {
                         if (child instanceof ImageView image) {
                             image.setFitWidth(size);
                             image.setFitHeight(size);
-                            if (image.getClip() instanceof javafx.scene.shape.Rectangle crop) {
-                                crop.setWidth(size);
-                                crop.setHeight(size);
-                            }
                         }
                     }
+
                     String suffix = narrow && track.durationSeconds() > 0
                             ? " · " + formatTrackDuration(track.durationSeconds()) : "";
                     String origin = list.getItems() == queued && getIndex() < queue.sources().size()
@@ -2793,7 +2947,6 @@ public final class LumenFxApp extends Application {
                 row.prefWidthProperty().bind(list.widthProperty().subtract(20));
                 row.setMinWidth(0);
                 row.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("unavailable"), unavailable);
-                boolean isPlaying = loadedTrack != null && loadedTrack.id().equals(track.id());
                 row.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("playing"), isPlaying);
                 setGraphic(row);
                 ContextMenu menu = new ContextMenu();
@@ -2957,6 +3110,14 @@ public final class LumenFxApp extends Application {
         });
     }
 
+    private void playTrackFromList(ListView<Track> list, Track track, int index) {
+        if (index < 0 || index >= list.getItems().size()) return;
+        if (list.getItems() == radioTracks) playRadioItem(track);
+        else if (list.getItems() == searchResults) selectSearchResult(index);
+        else if (list.getItems() == queued) { queue.selectIndex(index); loadCurrent(true); }
+        else select(list.getItems(), index);
+    }
+
     private void populateTrackMenu(ContextMenu menu, ListView<Track> list, Track track, int rowIndex) {
         menu.getItems().clear();
         int selectedCount = selectedTracks(list, rowIndex).size();
@@ -2964,10 +3125,7 @@ public final class LumenFxApp extends Application {
         menu.getItems().add(trackMenuItem("播放", "play", "track-menu-play", () -> {
             int index = rowIndex;
             if (index < 0) return;
-            if (list.getItems() == radioTracks) playRadioItem(track);
-            else if (list.getItems() == searchResults) selectSearchResult(index);
-            else if (list.getItems() == queued) { queue.selectIndex(index); loadCurrent(true); }
-            else select(list.getItems(), index);
+            playTrackFromList(list, track, index);
         }));
         menu.getItems().add(trackMenuItem("下一首播放" + batchLabel, "list", "track-menu-next", () ->
                 arrangeTracks(selectedTracks(list, rowIndex), true, list.getItems() == queued)));
@@ -5512,6 +5670,7 @@ public final class LumenFxApp extends Application {
 
     private void onPlaybackState(JavaFxAudioPlayer.State state) {
         if (closing) return;
+        playbackUiState.set(state);
         if (state == JavaFxAudioPlayer.State.PLAYING && !segmentSeeking
                 && (fadeInPending || previousPlaybackState == JavaFxAudioPlayer.State.PAUSED)) {
             fadeInPending = false;
@@ -6664,8 +6823,26 @@ public final class LumenFxApp extends Application {
         batchLibrary(selected, track -> libraryClient.unfavorite(track.id()), "已批量取消收藏");
     }
 
+    private void applyLyricSize(LyricSize size) {
+        this.currentLyricSize = size;
+        lyricSizeGroup.getToggles().stream().filter(toggle -> toggle.getUserData() == size)
+                .findFirst().ifPresent(lyricSizeGroup::selectToggle);
+        for (LyricSize s : LyricSize.values()) {
+            immersiveLyrics.getStyleClass().remove(s.styleClass);
+        }
+        immersiveLyrics.getStyleClass().add(size.styleClass);
+        immersiveLyrics.setFixedCellSize(size.cellHeight);
+        if (lyricSizeButton != null) {
+            lyricSizeButton.setText(size.shortLabel);
+            lyricSizeButton.setTooltip(readableTooltip("歌词字号：" + size.label + "（点击切换）"));
+        }
+        rebuildImmersiveLyrics();
+        if (activeLyricIndex >= 0) animateLyricScroll(activeLyricIndex);
+    }
+
     private void rebuildImmersiveLyrics() {
-        immersiveLyricPadding = Math.max(1, (int) Math.ceil(immersiveLyrics.getHeight() / 116));
+        double cellSize = immersiveLyrics.getFixedCellSize() > 0 ? immersiveLyrics.getFixedCellSize() : 58;
+        immersiveLyricPadding = Math.max(1, (int) Math.ceil(immersiveLyrics.getHeight() / (cellSize * 2)));
         if (activeLyrics.isEmpty()) {
             immersiveLyrics.getItems().setAll(plainLyrics.isBlank() ? List.of() : plainLyrics.lines().toList());
             return;

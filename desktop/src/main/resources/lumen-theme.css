@@ -515,7 +515,7 @@
 .queue-pane { -fx-padding: 16 10 8 10; }
 .track-title { -fx-font-size: 16px; -fx-font-weight: bold; }
 .track-row { -fx-background-radius: 7; -fx-border-radius: 7; }
-.track-duration { -fx-font-size: 12px; -fx-min-width: 54; -fx-alignment: center-right; }
+.track-duration { -fx-font-family: "Consolas", "Segoe UI Mono", "Courier New", monospace; -fx-font-size: 11.5px; -fx-min-width: 48; -fx-alignment: center-right; }
 .track-views { -fx-font-size: 11px; -fx-text-fill: -lumen-muted; -fx-alignment: center-right; }
 .track-unavailable { -fx-text-fill: -lumen-error; -fx-font-size: 11px; }
 .track-excluded { -fx-text-fill: -lumen-muted; -fx-font-size: 11px; }
@@ -668,7 +668,6 @@
 #focus-lyric { -fx-font-size: 16px; -fx-text-fill: -lumen-text; }
 #focus-focus-time, #focus-sleep-time {
     -fx-font-family: "Consolas", "Segoe UI", sans-serif;
-    -fx-font-size: 14px;
     -fx-text-fill: -lumen-text;
     -fx-min-width: 54;
     -fx-alignment: center;
@@ -1110,11 +1109,9 @@
     -fx-font-size: 12px;
 }
 .root:compact #immersive-lyrics .list-cell {
-    -fx-font-size: 18px;
     -fx-padding: 8 6;
 }
 .root:compact #immersive-lyrics .list-cell.current-lyric {
-    -fx-font-size: 23px;
     -fx-padding: 10 6;
 }
 
@@ -1305,6 +1302,7 @@
     -fx-text-fill: -lumen-muted;
     -fx-opacity: 1.0;
     -fx-alignment: center;
+    -fx-line-spacing: 4;
 }
 #immersive-lyrics .list-cell.current-lyric {
     -fx-font-size: 20px;
@@ -1331,4 +1329,220 @@
     -fx-border-radius: 10;
     -fx-background-radius: 10;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 12, 0.1, 0, 3);
+}
+
+/* Phase 3 Batch 1: Highlight playing track in selected list cell */
+.track-list .list-cell:filled:selected .track-row:playing {
+    -fx-background-color: linear-gradient(to right, rgba(99, 102, 241, 0.32) 0%, rgba(99, 102, 241, 0.12) 88%);
+    -fx-border-color: transparent transparent transparent -lumen-accent;
+    -fx-border-width: 0 0 0 3px;
+}
+.list-view:focused .list-cell:filled:selected .track-row:playing {
+    -fx-background-color: linear-gradient(to right, rgba(99, 102, 241, 0.40) 0%, rgba(99, 102, 241, 0.16) 88%);
+}
+
+/* Phase 3 Batch 1: Inspiration mood chips */
+.home-mood-chips {
+    -fx-padding: 2 0 4 0;
+}
+.home-mood-chip {
+    -fx-background-color: -lumen-field;
+    -fx-border-color: -lumen-divider;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 999;
+    -fx-background-radius: 999;
+    -fx-padding: 4 10;
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -lumen-muted;
+    -fx-cursor: hand;
+}
+.home-mood-chip:hover {
+    -fx-background-color: -lumen-hover;
+    -fx-text-fill: -lumen-text;
+    -fx-border-color: -lumen-accent-text;
+}
+.home-mood-chip:armed {
+    -fx-background-color: -lumen-selected;
+}
+
+/* Phase 3 Batch 1: Reunion memory cover frame */
+.home-reunion-cover-box {
+    -fx-background-color: -lumen-field;
+    -fx-background-radius: 8;
+    -fx-border-color: -lumen-divider;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.16), 6, 0.08, 0, 2);
+}
+
+/* Phase 3 Batch 2: Track list horizontal layout & playback micro-interactions */
+.track-metadata {
+    -fx-alignment: center-right;
+    -fx-spacing: 8;
+}
+.track-cover-play-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.46);
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-background-radius: 9;
+}
+.track-cover-play-icon {
+    -fx-fill: #ffffff;
+    -fx-scale-x: 0.8;
+    -fx-scale-y: 0.8;
+}
+.track-playing-badge {
+    -fx-background-color: -lumen-accent-text;
+    -fx-background-radius: 999;
+    -fx-alignment: center;
+    -fx-padding: 2;
+}
+.track-playing-badge-icon {
+    -fx-fill: #ffffff;
+    -fx-scale-x: 0.55;
+    -fx-scale-y: 0.55;
+}
+.volume-icon {
+    -fx-cursor: hand;
+    -fx-padding: 3;
+    -fx-background-radius: 4;
+}
+.volume-icon:hover {
+    -fx-background-color: -lumen-hover;
+}
+.volume-icon:muted .action-icon {
+    -fx-fill: -lumen-accent-text;
+    -fx-opacity: 0.85;
+}
+.track-playing-indicator {
+    -fx-fill: -lumen-accent-text;
+    -fx-scale-x: 0.65;
+    -fx-scale-y: 0.65;
+}
+/* Phase 3 Batch 3: Lyric size tiers and immersive typography */
+.immersive-size-chip {
+    -fx-background-color: -lumen-field;
+    -fx-border-color: -lumen-divider;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 999;
+    -fx-background-radius: 999;
+    -fx-padding: 3 9;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -lumen-muted;
+    -fx-cursor: hand;
+}
+.immersive-size-chip:hover {
+    -fx-background-color: -lumen-hover;
+    -fx-text-fill: -lumen-text;
+    -fx-border-color: -lumen-accent-text;
+}
+.immersive-size-chip:armed {
+    -fx-background-color: -lumen-selected;
+}
+
+#immersive-lyrics.lyric-size-small .list-cell {
+    -fx-font-size: 13.5px;
+}
+#immersive-lyrics.lyric-size-small .list-cell.current-lyric {
+    -fx-font-size: 17.5px;
+}
+
+#immersive-lyrics.lyric-size-medium .list-cell {
+    -fx-font-size: 15px;
+}
+#immersive-lyrics.lyric-size-medium .list-cell.current-lyric {
+    -fx-font-size: 20px;
+}
+
+#immersive-lyrics.lyric-size-large .list-cell {
+    -fx-font-size: 18.5px;
+}
+#immersive-lyrics.lyric-size-large .list-cell.current-lyric {
+    -fx-font-size: 25px;
+}
+
+/* Phase 3 Batch 4: QuickSearch Spotlight palette, Zen Timer Pods, and empty state polish */
+.quick-search-badge {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 6;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-background-color: -lumen-field;
+    -fx-border-color: -lumen-divider;
+    -fx-border-width: 0.5;
+    -fx-text-fill: -lumen-muted;
+}
+.quick-search-badge.badge-track {
+    -fx-background-color: -lumen-hover;
+    -fx-text-fill: -lumen-accent-text;
+    -fx-border-color: -lumen-divider;
+}
+.quick-search-badge.badge-playlist {
+    -fx-background-color: -lumen-panel;
+    -fx-text-fill: -lumen-text;
+    -fx-border-color: -lumen-divider;
+}
+.quick-search-badge.badge-command {
+    -fx-background-color: -lumen-selected;
+    -fx-text-fill: -lumen-accent-text;
+    -fx-border-color: -lumen-divider;
+}
+.quick-search-cell-action {
+    -fx-font-size: 11px;
+    -fx-text-fill: -lumen-muted;
+    -fx-padding: 2 6;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-color: -lumen-divider;
+    -fx-border-width: 0.5;
+    -fx-opacity: 0.65;
+}
+#quick-search-results .list-cell:hover .quick-search-cell-action,
+#quick-search-results .list-cell:selected .quick-search-cell-action {
+    -fx-opacity: 1.0;
+    -fx-text-fill: -lumen-accent-text;
+    -fx-border-color: -lumen-accent-text;
+}
+.quick-search-hints {
+    -fx-padding: 4 2 0 2;
+}
+.quick-search-hint-key {
+    -fx-font-size: 11px;
+    -fx-text-fill: -lumen-muted;
+    -fx-padding: 2 6;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-background-color: -lumen-field;
+    -fx-border-color: -lumen-divider;
+    -fx-border-width: 0.5;
+}
+
+/* Zen Timer Pods in FocusPane */
+.zen-timer-pods {
+    -fx-padding: 8 0;
+}
+.zen-pod {
+    -fx-background-color: -lumen-panel;
+    -fx-background-radius: 12;
+    -fx-border-color: -lumen-divider;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 14 16;
+}
+.zen-pod:hover {
+    -fx-border-color: -lumen-accent-text;
+}
+.zen-pod-heading {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -lumen-accent-text;
+}
+.zen-pod-time {
+    -fx-font-family: 'Consolas', 'Segoe UI Mono', monospace;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -lumen-text;
+    -fx-padding: 2 0 4 0;
 }
