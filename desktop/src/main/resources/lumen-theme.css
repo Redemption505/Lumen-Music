@@ -411,7 +411,11 @@
 .vinyl-placeholder { -fx-text-fill: #ecf4f7; -fx-font-size: 48px; }
 .immersive-heading { -fx-font-size: 13px; -fx-font-weight: bold; }
 .immersive-right { -fx-padding: 10 4 0 0; }
-.immersive-right .immersive-current-lyric { -fx-padding: 10 0 1 0; }
+.immersive-right .immersive-current-lyric {
+    -fx-border-color: transparent transparent transparent -lumen-accent-text;
+    -fx-border-width: 0 0 0 3;
+    -fx-padding: 3 0 3 10;
+}
 .immersive-empty-lyrics { -fx-font-size: 16px; -fx-line-spacing: 8; }
 .lumen-theme .vinyl-disc { -fx-border-color: #f2c27344; -fx-effect: dropshadow(gaussian, #080a1c99, 24, 0.12, 0, 10); }
 .lumen-theme .vinyl-label { -fx-background-color: #684638; }
@@ -436,22 +440,41 @@
 #sidebar-settings > .title > .text { -fx-fill: -lumen-muted; }
 #sidebar-settings > .title > .arrow-button > .arrow { -fx-background-color: -lumen-muted; }
 #sidebar-settings > .content { -fx-padding: 6 0 0 0; }
-.sidebar-playlists { -fx-padding: 0 0 3 9; }
+.sidebar-playlists {
+    -fx-padding: 2 0 4 10;
+    -fx-border-color: transparent transparent transparent -lumen-divider;
+    -fx-border-width: 0 0 0 1.5;
+    -fx-border-insets: 2 0 2 12;
+}
 .sidebar-playlist-list {
     -fx-background-color: transparent;
     -fx-control-inner-background: transparent;
     -fx-padding: 0;
     -fx-background-insets: 0;
 }
+.sidebar-playlist-list .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+}
 .sidebar-playlist-list .list-cell {
     -fx-background-color: transparent;
     -fx-text-fill: -lumen-muted;
     -fx-font-size: 12px;
-    -fx-padding: 9 10 9 18;
-    -fx-background-radius: 9;
+    -fx-padding: 7 10 7 12;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
 }
-.sidebar-playlist-list .list-cell:filled:hover { -fx-background-color: -lumen-hover; }
-.sidebar-playlist-list .list-cell:filled:selected { -fx-background-color: -lumen-selected; -fx-text-fill: -lumen-text; }
+.sidebar-playlist-list .list-cell:filled:hover {
+    -fx-background-color: -lumen-hover;
+    -fx-text-fill: -lumen-text;
+}
+.sidebar-playlist-list .list-cell:filled:selected {
+    -fx-background-color: -lumen-selected;
+    -fx-text-fill: -lumen-accent-text;
+    -fx-font-weight: bold;
+}
 #queue-manage .button, #queue-manage .menu-button { -fx-font-size: 11px; -fx-padding: 7 9; }
 #queue-selected-favorite:active, #favorite-selected-favorite:active, #playlist-selected-favorite:active { -fx-text-fill: -lumen-accent-text; }
 .cover-pane, .track-artwork { -fx-background-radius: 9; }
@@ -1242,10 +1265,68 @@
     -fx-font-size: 11.5px;
     -fx-text-fill: -lumen-muted;
 }
-.player-library-status {
+#library-status, .player-library-status {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -lumen-muted;
+    -fx-background-color: -lumen-field;
+    -fx-background-radius: 4;
+    -fx-border-color: -lumen-divider;
+    -fx-border-width: 0.8;
+    -fx-border-radius: 4;
+    -fx-padding: 1 6 2 6;
+    -fx-opacity: 0.95;
+}
+#library-status:hover, .player-library-status:hover {
+    -fx-background-color: -lumen-hover;
+    -fx-text-fill: -lumen-text;
+}
+
+/* Part 2.4: Settings Section Summary Badge */
+.settings-summary-badge {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -lumen-muted;
+    -fx-background-color: -lumen-panel;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-color: -lumen-divider;
+    -fx-border-width: 0.8;
+    -fx-padding: 1 8;
+    -fx-opacity: 0.85;
+}
+.settings-section > .title:hover .settings-summary-badge {
+    -fx-background-color: -lumen-hover;
+    -fx-text-fill: -lumen-text;
+    -fx-opacity: 1.0;
+}
+
+/* Part 2.3: Tonearm Playing Badge & Source Badge */
+.immersive-tonearm-badge {
+    -fx-font-size: 11px;
+    -fx-padding: 3 12;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-width: 0.8;
+}
+.immersive-tonearm-badge.badge-idle {
+    -fx-background-color: transparent;
+    -fx-border-color: -lumen-divider;
+    -fx-text-fill: -lumen-muted;
+}
+.immersive-tonearm-badge.badge-playing {
+    -fx-background-color: -lumen-hover;
+    -fx-border-color: -lumen-divider;
+    -fx-text-fill: -lumen-accent-text;
+    -fx-font-weight: bold;
+}
+#immersive-track-source, .immersive-source-badge {
     -fx-font-size: 11px;
     -fx-text-fill: -lumen-muted;
-    -fx-opacity: 0.85;
+    -fx-background-color: -lumen-field;
+    -fx-background-radius: 4;
+    -fx-border-color: -lumen-divider;
+    -fx-border-width: 0.8;
+    -fx-border-radius: 4;
+    -fx-padding: 2 8;
 }
 
 /* Batch 3: Theme Swatch Capsule Buttons */

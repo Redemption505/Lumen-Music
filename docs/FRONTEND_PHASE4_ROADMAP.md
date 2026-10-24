@@ -1,5 +1,7 @@
 # 第四阶段前端路线图
 
+本文保留 `lumen-0.2.2-20261024.2` 的历史范围；后续收藏/本地入口、唱针等已进入[前端第二阶段](FRONTEND_STAGE2_ACCEPTANCE.md)，当前身份见[候选说明](PHASE4_RELEASE_CANDIDATE.md)。
+
 ## 当前范围
 
 本轮限定为首页与现有页面微调、歌单主操作区和查找定位，以及按钮对比度、首页悬停、底栏对齐三项修复。该范围已经验收；全部设计设想仍未完成。实现与证据见[实施范围](FRONTEND_PHASE4_IMPLEMENTATION.md)和[第四阶段验收](FRONTEND_PHASE4_ACCEPTANCE.md)。

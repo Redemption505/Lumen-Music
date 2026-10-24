@@ -86,6 +86,7 @@ public final class LumenFxApp extends Application {
     private final Label localStatus = new Label("正在读取本地音乐…");
     private final ComboBox<String> localFolder = new ComboBox<>();
     private final TextField localSearch = new TextField();
+    private final Label localFilterCount = new Label();
     private LocalMusicStore localMusicStore;
     private boolean localCatalogueExisted;
     private boolean localImportBusy;
@@ -177,6 +178,7 @@ public final class LumenFxApp extends Application {
     private final Label immersiveTrackTitle = new Label("还没有播放歌曲");
     private final Label immersiveTrackArtist = new Label("从首页选一首喜欢的音乐");
     private final Label immersiveTrackSource = new Label();
+    private final Label immersiveTonearmBadge = new Label("○ 唱针已抬起 · 待机");
     private Button immersiveSourceButton;
     private final ComboBox<LyricsClient.Candidate> lyricCandidates = new ComboBox<>();
     private final TextField lyricQuery = new TextField();
@@ -612,12 +614,27 @@ public final class LumenFxApp extends Application {
         localSearch.textProperty().addListener((ignored, before, after) -> filterLocalMusic());
         localFolder.valueProperty().addListener((ignored, before, after) -> filterLocalMusic());
         localTracks.addListener((javafx.collections.ListChangeListener<Track>) change -> refreshLocalFolders());
+        Button localPlayAll = new Button("▶ 播放全部");
+        localPlayAll.setId("local-play-all");
+        localPlayAll.getStyleClass().add("playlist-play-all");
+        localPlayAll.setDisable(visibleLocalTracks.isEmpty());
+        localPlayAll.setOnAction(event -> {
+            if (!visibleLocalTracks.isEmpty()) select(List.copyOf(visibleLocalTracks), 0);
+        });
+        visibleLocalTracks.addListener((javafx.collections.ListChangeListener<Track>) change ->
+                localPlayAll.setDisable(visibleLocalTracks.isEmpty()));
+        localFilterCount.setId("local-filter-count");
+        localFilterCount.getStyleClass().addAll("muted", "playlist-filter-count");
+        localFilterCount.setVisible(false);
+        localFilterCount.setManaged(false);
         localStatus.setId("local-music-status");
         localStatus.setWrapText(true);
         localStatus.getStyleClass().add("muted");
+        HBox localSearchRow = new HBox(10, localSearch, localFolder, localFilterCount);
+        localSearchRow.setAlignment(Pos.CENTER_LEFT);
         localPane.getChildren().add(1, new VBox(10,
-                new FlowPane(8, 8, importButton, importFolder, refreshLocal, locateLocal, removeLocal),
-                new HBox(10, localSearch, localFolder), localStatus));
+                new FlowPane(8, 8, localPlayAll, importButton, importFolder, refreshLocal, locateLocal, removeLocal),
+                localSearchRow, localStatus));
         Tab localTab = new Tab("本地文件", localPane);
         localTab.setClosable(false);
         localPane.setOnDragOver(event -> {
@@ -673,7 +690,36 @@ public final class LumenFxApp extends Application {
         HBox favoriteHeader = new HBox(12, favoriteHeading, organizeFavorites, catalogButton);
         favoriteHeader.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(favoriteHeading, Priority.ALWAYS);
-        favoritePane.getChildren().add(0, favoriteHeader);
+
+        Button favoritePlayAll = new Button("▶ 播放全部");
+        favoritePlayAll.setId("favorite-play-all");
+        favoritePlayAll.getStyleClass().add("playlist-play-all");
+        favoritePlayAll.setDisable(favorites.isEmpty());
+        favoritePlayAll.setOnAction(event -> {
+            if (!favorites.isEmpty()) select(favorites, 0);
+        });
+        favorites.addListener((javafx.collections.ListChangeListener<Track>) change ->
+                favoritePlayAll.setDisable(favorites.isEmpty()));
+
+        TextField favoriteFilter = new TextField();
+        favoriteFilter.setId("favorite-quick-filter");
+        favoriteFilter.setPromptText("快速查找收藏...");
+        favoriteFilter.getStyleClass().add("playlist-filter-field");
+        favoriteFilter.setPrefWidth(160);
+        favoriteFilter.setDisable(favorites.isEmpty());
+        Label favoriteFilterCount = new Label();
+        favoriteFilterCount.setId("favorite-filter-count");
+        favoriteFilterCount.getStyleClass().addAll("muted", "playlist-filter-count");
+        favoriteFilterCount.setVisible(false);
+        favoriteFilterCount.setManaged(false);
+
+        installTrackLocator(favoriteFilter, favoriteFilterCount, favoriteList, favorites);
+
+        HBox favoritePrimaryActions = new HBox(10, favoritePlayAll, favoriteFilter, favoriteFilterCount);
+        favoritePrimaryActions.setAlignment(Pos.CENTER_LEFT);
+        favoritePrimaryActions.setId("favorite-primary-actions");
+        VBox favoritePageHeader = new VBox(12, favoriteHeader, favoritePrimaryActions);
+        favoritePane.getChildren().add(0, favoritePageHeader);
         VBox.setVgrow(favoriteList, Priority.ALWAYS);
         Tab favoriteTab = new Tab("收藏", favoritePane);
         favoriteTab.setClosable(false);
@@ -828,39 +874,13 @@ public final class LumenFxApp extends Application {
         filterCount.setVisible(false);
         filterCount.setManaged(false);
 
-        playlistFilter.textProperty().addListener((ignored, before, filterText) -> {
-            String q = filterText == null ? "" : filterText.trim().toLowerCase();
-            if (q.isEmpty()) {
-                filterCount.setVisible(false);
-                filterCount.setManaged(false);
-                return;
-            }
-            int matches = 0;
-            int firstMatch = -1;
-            for (int i = 0; i < playlistTracks.size(); i++) {
-                Track t = playlistTracks.get(i);
-                if (t.title().toLowerCase().contains(q) || t.artist().toLowerCase().contains(q)) {
-                    matches++;
-                    if (firstMatch < 0) firstMatch = i;
-                }
-            }
-            if (matches > 0) {
-                filterCount.setText("找到 " + matches + " 首");
-                filterCount.setVisible(true);
-                filterCount.setManaged(true);
-                playlistList.scrollTo(firstMatch);
-                playlistList.getSelectionModel().clearAndSelect(firstMatch);
-            } else {
-                filterCount.setText("无匹配");
-                filterCount.setVisible(true);
-                filterCount.setManaged(true);
-            }
-        });
+        installTrackLocator(playlistFilter, filterCount, playlistList, playlistTracks);
 
         HBox playlistPrimaryActions = new HBox(10, playAllButton, playlistFilter, filterCount);
         playlistPrimaryActions.setAlignment(Pos.CENTER_LEFT);
         playlistPrimaryActions.setPadding(new Insets(4, 0, 0, 0));
 
+        String[] locatorPlaylistId = {null};
         playlistPicker.valueProperty().addListener((ignored, before, selected) -> {
             playlistPageName.setText(selected == null ? "选择左侧歌单" : selected.name());
             playlistPageCount.setText(selected == null ? "展开左侧“我的歌单”，选择一个歌单查看曲目"
@@ -872,7 +892,10 @@ public final class LumenFxApp extends Application {
             boolean empty = selected == null || selected.tracks().isEmpty();
             playAllButton.setDisable(empty);
             playlistFilter.setDisable(empty);
-            playlistFilter.setText("");
+            if (selected != null && !java.util.Objects.equals(locatorPlaylistId[0], selected.id())) {
+                playlistFilter.clear();
+                locatorPlaylistId[0] = selected.id();
+            }
         });
         Button editPresentation = new Button("封面与说明");
         editPresentation.setId("playlist-edit-presentation");
@@ -971,13 +994,19 @@ public final class LumenFxApp extends Application {
         performerTip.textProperty().bind(immersiveTrackArtist.textProperty());
         immersiveTrackArtist.setTooltip(performerTip);
         immersiveTrackSource.setId("immersive-track-source");
-        immersiveTrackSource.getStyleClass().add("muted");
+        immersiveTrackSource.getStyleClass().addAll("muted", "immersive-source-badge");
         immersiveTrackSource.setMinWidth(0);
         immersiveTrackSource.setMaxWidth(Double.MAX_VALUE);
         immersiveTrackSource.setTextOverrun(OverrunStyle.ELLIPSIS);
+        immersiveTrackSource.visibleProperty().bind(immersiveTrackSource.textProperty().isNotEmpty());
+        immersiveTrackSource.managedProperty().bind(immersiveTrackSource.visibleProperty());
         Tooltip sourceTip = readableTooltip("");
         sourceTip.textProperty().bind(immersiveTrackSource.textProperty());
         immersiveTrackSource.setTooltip(sourceTip);
+        immersiveTonearmBadge.setId("immersive-tonearm-badge");
+        immersiveTonearmBadge.getStyleClass().addAll("immersive-tonearm-badge", "badge-idle");
+        playbackUiState.addListener((ignored, before, state) -> updateTonearmBadge(state));
+        updateTonearmBadge(playbackUiState.get());
         Label immersiveLine = new Label();
         immersiveLine.setId("immersive-current-lyric");
         immersiveLine.textProperty().bind(currentLyric.textProperty());
@@ -1155,7 +1184,10 @@ public final class LumenFxApp extends Application {
         immersiveMore.setOnAction(event -> immersiveMenu.show(immersiveMore, Side.BOTTOM, 0, 4));
         lyricCalibration.setVisible(false);
         lyricCalibration.setManaged(false);
-        VBox immersiveLeft = new VBox(18, immersiveArtwork, immersiveActions, lyricCalibration);
+        HBox tonearmRow = new HBox(immersiveTonearmBadge);
+        tonearmRow.setAlignment(Pos.CENTER);
+        tonearmRow.setPadding(new Insets(0, 0, 2, 0));
+        VBox immersiveLeft = new VBox(12, tonearmRow, immersiveArtwork, immersiveActions, lyricCalibration);
         immersiveLeft.getStyleClass().add("immersive-left");
         immersiveLeft.setAlignment(Pos.CENTER);
         immersiveLeft.setMinWidth(0);
@@ -1387,7 +1419,7 @@ public final class LumenFxApp extends Application {
         desktopImmersive.setOnAction(event -> { petOnDesktopImmersive = desktopImmersive.isSelected(); updatePetPlacement.run(); saveAppearance(); });
         desktopMinimized.setOnAction(event -> { petOnDesktopMinimized = desktopMinimized.isSelected(); updatePetPlacement.run(); saveAppearance(); });
         stage.iconifiedProperty().addListener((ignored, before, after) -> updatePetPlacement.run());
-        TitledPane aiSection = settingsSection("AI 推荐", "settings-ai", new VBox(5, aiSettings));
+        TitledPane aiSection = settingsSection("AI 推荐", "settings-ai", new VBox(5, aiSettings), "智能推荐 · 灵感联想");
         Label historyPrivacy = new Label("听歌记录仅保存在本机");
         historyPrivacy.getStyleClass().add("muted");
         historyPrivacy.setWrapText(true);
@@ -1435,11 +1467,11 @@ public final class LumenFxApp extends Application {
         VBox cachePanel = persistentCache == null ? new VBox(new Label("音频缓存不可用"))
                 : CacheSettingsDialog.createPanel(persistentCache);
         TitledPane audioSection = settingsSection("音频", "settings-audio",
-                new VBox(8, audioMethod, preload, shortFade, normalize, normalizationStatus, cachePanel));
+                new VBox(8, audioMethod, preload, shortFade, normalize, normalizationStatus, cachePanel), "音量平衡 · 增益");
         audioSection.expandedProperty().addListener((ignored, before, expanded) -> {
             if (expanded && cachePanel.getUserData() instanceof Runnable refresh) refresh.run();
         });
-        TitledPane hotkeysSection = settingsSection("快捷键", "settings-hotkeys", createHotkeySettings());
+        TitledPane hotkeysSection = settingsSection("快捷键", "settings-hotkeys", createHotkeySettings(), "全局按键与操作设置");
         CheckBox reduceMotion = new CheckBox("减少动态效果");
         reduceMotion.setId("reduce-motion");
         reduceMotion.setSelected(MotionPreferences.reduced());
@@ -1475,9 +1507,27 @@ public final class LumenFxApp extends Application {
             themeSwatchBar.getChildren().add(swatch);
         }
         updateThemeSwatches();
+        Label visualSummary = new Label();
+        Runnable updateVisualSummary = () -> {
+            String theme = switch (themeMode) {
+                case LUMEN -> "暖金黑胶";
+                case DARK -> "墨黑深色";
+                case LIGHT -> "暖白明亮";
+                case DYNAMIC -> "黑胶流光";
+                case BACKGROUND -> "个性壁纸";
+            };
+            visualSummary.setText(theme + (MotionPreferences.reduced() ? " · 减弱动效" : " · 标准动效"));
+        };
+        themeButton.textProperty().addListener((ignored, before, text) -> updateVisualSummary.run());
+        updateVisualSummary.run();
+        reduceMotion.setOnAction(event -> {
+            MotionPreferences.setReduced(reduceMotion.isSelected());
+            saveAppearance();
+            updateVisualSummary.run();
+        });
         VBox appearanceControls = new VBox(10, appearanceHint, appearanceRecoveryNotice, themeSwatchBar, themeButton, accentPicker,
                 chooseBackground, reduceMotion);
-        TitledPane visualSettings = settingsSection("外观与动效", "visual-settings", appearanceControls);
+        TitledPane visualSettings = settingsSection("外观与动效", "visual-settings", appearanceControls, visualSummary);
         visualSettings.setExpanded(true);
         TitledPane companionSettings = settingsSection("桌宠与陪伴", "companion-settings",
                 new VBox(10, petControls, desktopImmersive, desktopMinimized, openFocus));
@@ -1997,7 +2047,9 @@ public final class LumenFxApp extends Application {
         retryStartupButton = actionButton("重试连接", "retry-startup", () -> beginRuntimeStartup(true));
         retryStartupButton.setVisible(false);
         retryStartupButton.setManaged(false);
-        VBox playbackDetails = new VBox(3, nowPlaying, status, new HBox(8, libraryStatus, retryStartupButton));
+        HBox libraryStatusRow = new HBox(8, libraryStatus, retryStartupButton);
+        libraryStatusRow.setAlignment(Pos.CENTER_LEFT);
+        VBox playbackDetails = new VBox(3, nowPlaying, status, libraryStatusRow);
         playbackDetails.getStyleClass().add("player-track-details");
         playbackDetails.setMinWidth(100);
         playbackDetails.setPrefWidth(235);
@@ -4558,6 +4610,21 @@ public final class LumenFxApp extends Application {
         filterLocalMusic();
     }
 
+    private void updateTonearmBadge(JavaFxAudioPlayer.State state) {
+        boolean playing = state == JavaFxAudioPlayer.State.PLAYING;
+        immersiveTonearmBadge.setText(switch (state) {
+            case PLAYING -> "◉ 唱针已落盘 · 演奏中";
+            case PAUSED -> "○ 唱针已抬起 · 已暂停";
+            case LOADING -> "○ 唱针待落盘 · 加载中";
+            case STALLED -> "○ 唱针已抬起 · 缓冲中";
+            case FAILED -> "○ 唱针已抬起 · 播放失败";
+            case ENDED -> "○ 唱针已抬起 · 已结束";
+            default -> "○ 唱针已抬起 · 待机";
+        });
+        immersiveTonearmBadge.getStyleClass().removeAll("badge-idle", "badge-playing");
+        immersiveTonearmBadge.getStyleClass().add(playing ? "badge-playing" : "badge-idle");
+    }
+
     private void filterLocalMusic() {
         String query = localSearch.getText().trim().toLowerCase(java.util.Locale.ROOT);
         String folder = localFolder.getValue();
@@ -4565,6 +4632,16 @@ public final class LumenFxApp extends Application {
                 || folder.equals(localParent(track))) && (query.isBlank()
                 || (track.title() + " " + track.artist() + " " + localFileName(track))
                         .toLowerCase(java.util.Locale.ROOT).contains(query)));
+        if (localFilterCount != null) {
+            if (!query.isBlank() || (folder != null && !folder.equals("全部文件夹"))) {
+                localFilterCount.setText("显示 " + visibleLocalTracks.size() + " / " + localTracks.size() + " 首");
+                localFilterCount.setVisible(true);
+                localFilterCount.setManaged(true);
+            } else {
+                localFilterCount.setVisible(false);
+                localFilterCount.setManaged(false);
+            }
+        }
     }
 
     private static String localFileName(Track track) {
@@ -5043,12 +5120,66 @@ public final class LumenFxApp extends Application {
         }
     }
 
+    /** Locate matches without filtering rows or changing the playback queue. */
+    private static void installTrackLocator(TextField input, Label count, ListView<Track> view,
+            javafx.collections.ObservableList<Track> tracks) {
+        TrackLocator locator = new TrackLocator();
+        Runnable refresh = () -> {
+            locator.setItems(List.copyOf(tracks));
+            locator.setQuery(input.getText());
+            boolean searching = !input.getText().isBlank();
+            count.setVisible(searching);
+            count.setManaged(searching);
+            count.setText(locator.matches().isEmpty() ? "无匹配" : "找到 " + locator.matches().size() + " 首");
+            if (searching) {
+                view.getSelectionModel().clearSelection();
+                int index = locator.currentIndex();
+                if (index >= 0) {
+                    view.scrollTo(index);
+                    view.getSelectionModel().clearAndSelect(index);
+                }
+            }
+            input.setDisable(tracks.isEmpty());
+        };
+        input.textProperty().addListener((ignored, before, after) -> refresh.run());
+        tracks.addListener((javafx.collections.ListChangeListener<Track>) change -> refresh.run());
+        input.setOnKeyPressed(event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.ENTER && !locator.matches().isEmpty()) {
+                int index = locator.nextIndex();
+                view.scrollTo(index);
+                view.getSelectionModel().clearAndSelect(index);
+                count.setText("找到 " + locator.matches().size() + " 首 (" + (locator.cursor() + 1)
+                        + "/" + locator.matches().size() + ")");
+                event.consume();
+            }
+        });
+        refresh.run();
+    }
+
     private static TitledPane settingsSection(String title, String id, javafx.scene.Node content) {
+        return settingsSection(title, id, content, (Label) null);
+    }
+
+    private static TitledPane settingsSection(String title, String id, javafx.scene.Node content, String summaryText) {
+        return settingsSection(title, id, content, summaryText == null ? null : new Label(summaryText));
+    }
+
+    private static TitledPane settingsSection(String title, String id, javafx.scene.Node content, Label summaryBadge) {
         TitledPane section = new TitledPane(title, content);
         section.setId(id);
         section.setExpanded(false);
         section.setAnimated(false);
         section.getStyleClass().add("settings-section");
+        if (summaryBadge != null) {
+            summaryBadge.getStyleClass().add("settings-summary-badge");
+            summaryBadge.setMinWidth(0);
+            summaryBadge.setMaxWidth(220);
+            summaryBadge.setTextOverrun(OverrunStyle.ELLIPSIS);
+            summaryBadge.visibleProperty().bind(section.expandedProperty().not());
+            summaryBadge.managedProperty().bind(summaryBadge.visibleProperty());
+            section.setGraphic(summaryBadge);
+            section.setContentDisplay(ContentDisplay.RIGHT);
+        }
         return section;
     }
 
@@ -7038,7 +7169,7 @@ public final class LumenFxApp extends Application {
             });
         } catch (IOException error) { updateStatus.setText("上次更新结果暂不可读，记录已保留"); }
         FlowPane actions = new FlowPane(10, 10, select, export);
-        return settingsSection("版本与反馈", "settings-version", new VBox(10, version, identifier, changes, actions, updateStatus));
+        return settingsSection("版本与反馈", "settings-version", new VBox(10, version, identifier, changes, actions, updateStatus), "v" + build.version() + " · 内测候选");
     }
 
     private void selectLocalUpdate(Button button) {

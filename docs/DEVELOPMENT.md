@@ -123,6 +123,17 @@ demo 集成需要另外启动 `PYTHONPATH=service python -m lumen_service --prov
 
 扩展离屏驱动覆盖五主题、六强调色的歌单按钮计算配色及普通/继续听两种首页卡片悬停边框；禁用状态另外核验透明度。完整视觉驱动检查不同时间文字宽度下实际播放键/轨道中心及位移负例，也验证歌单查找定位保留全部列表与播放队列。专用首页驱动只有在滚回顶部后检查首屏标题，避免把正常滚动裁切误报为缺陷。
 
+第二阶段交互专项复用同一视觉fixture，先重新 `test-compile`，安排独占桌面后运行：
+
+```powershell
+./scripts/playback-scene-smoke.ps1 -RuntimeHome '<显式依赖与VLC目录>' `
+    -Python $env:LUMEN_PYTHON -Java (Join-Path $env:JAVA_HOME 'bin/java.exe') `
+    -Profile All -SmokeLauncher com.lumenmusic.FrontendStage2SmokeLauncher `
+    -ArtifactDirectory 'visual-language-smoke/frontend-stage2'
+```
+
+入口使用当前源码classes；验证安装JAR时改用 `-AppHome` 并核对类加载来源。专项覆盖收藏/本地播放全部、列表快照变化后的查找与Enter循环、唱针及摘要。状态注入与真实本地播放分别记录；专项不代替完整视觉、首页、原生退出或安装验收。当前结果见[第二阶段验收](FRONTEND_STAGE2_ACCEPTANCE.md)。
+
 候选长听与快速操作入口可直接从对应 SOURCE 编译测试驱动，不需要他人的 `target/test-classes`：
 
 ```powershell

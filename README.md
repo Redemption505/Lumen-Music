@@ -37,7 +37,7 @@
 
 ## 开始使用
 
-当前仓库提供源码，**尚无公开二进制 Release**。第四轮前端改进及三项界面修复已进入 v0.2.2 新候选；源码与实际安装版双缩放、原资料页面、迷你返回及正常退出验收通过。身份与交付范围见[候选说明](docs/PHASE4_RELEASE_CANDIDATE.md)和[第四阶段前端验收](docs/FRONTEND_PHASE4_ACCEPTANCE.md)。
+当前仓库提供源码，**尚无公开二进制 Release**。前端第二阶段的收藏/本地播放全部、查找循环定位、唱针及摘要改进和本轮修复已进入新候选；源码与实际安装JAR双缩放、原资料页面、迷你返回和正常退出验收通过。身份及范围见[候选说明](docs/PHASE4_RELEASE_CANDIDATE.md)和[第二阶段验收](docs/FRONTEND_STAGE2_ACCEPTANCE.md)。
 
 如果你已经收到内测包：
 

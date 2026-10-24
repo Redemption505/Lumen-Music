@@ -29,6 +29,8 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -111,6 +113,11 @@ public final class VisualLanguageSmoke extends Application {
                 + " x " + fxValue(() -> stage.getOutputScaleY()));
         activateForFocusCheck(stage);
         await(15_000, () -> fxValue(() -> picker().getItems().size() == 2), "fixture playlists not loaded");
+        if (getParameters().getRaw().contains("--stage2-only")) {
+            await(15_000, () -> fxValue(() -> field("localCatalogueReady", CompletableFuture.class).isDone()), "local catalogue not ready");
+            stage2Check();
+            return;
+        }
         await(15_000, () -> fxValue(() -> field("versionCatalog", VersionCatalog.class).findByResourceId(first.id()).isPresent()), "fixture performer metadata not loaded");
         playlistLocatorCheck();
         phase = "real local playback and browse restoration";
@@ -255,6 +262,328 @@ public final class VisualLanguageSmoke extends Application {
         });
         System.out.println("PASS reduced motion immediately freezes background and removes transition while navigation/audio remain usable");
         miniStyleCheck();
+    }
+
+    private void stage2Check() throws Exception {
+        Path nested = root.resolve("nested-folder");
+        Files.createDirectories(nested);
+        Path nestedWav = nested.resolve("beta.wav");
+        Files.copy(root.resolve("visual-local-180s.wav"), nestedWav);
+        Track localA = new Track("stage2-local-a", "Alpha Match", "Artist One", 180, "local",
+                root.resolve("visual-local-180s.wav").toUri(), null, 0, null);
+        Track localB = new Track("stage2-local-b", "Beta Match", "Artist Two", 180, "local",
+                nestedWav.toUri(), null, 0, null);
+        Track favoriteA = new Track("stage2-favorite-a", "Match Alpha", "Artist A", 180, "local",
+                root.resolve("visual-local-180s.wav").toUri(), null, 0, null);
+        Track favoriteB = new Track("stage2-favorite-b", "Match Beta", "Artist B", 180, "local",
+                nestedWav.toUri(), null, 0, null);
+        Track favoriteNoise = new Track("stage2-favorite-noise", "Other title", "Other artist", 180, "local",
+                root.resolve("visual-local-180s.wav").toUri(), null, 0, null);
+        Track playlistA = new Track("stage2-playlist-a", "Match One", "Artist A", 180, "local",
+                root.resolve("visual-local-180s.wav").toUri(), null, 0, null);
+        Track playlistB = new Track("stage2-playlist-b", "Match Two", "Artist B", 180, "local",
+                nestedWav.toUri(), null, 0, null);
+        LibraryClient.Playlist p1 = new LibraryClient.Playlist("stage2-playlist-1", "Stage2 playlist",
+                List.of(playlistA, playlistB));
+        LibraryClient.Playlist p2 = new LibraryClient.Playlist("stage2-playlist-2", "Stage2 empty",
+                List.of());
+        List<LibraryClient.Playlist> playlists = List.of(p1, p2);
+        setSnapshot(List.of(), playlists);
+        fx(() -> field("localTracks", javafx.collections.ObservableList.class).setAll(localA, localB));
+
+        runCase("favorite play-all empty is disabled", () -> fx(() -> {
+            click("nav-favorites");
+            check(((ButtonBase) node("favorite-play-all")).isDisabled(), "empty favorite play-all is enabled");
+            check(((TextField) node("favorite-quick-filter")).isDisabled(), "empty favorite filter is enabled");
+        }));
+        runCase("local play-all empty is disabled", () -> fx(() -> {
+            field("localTracks", javafx.collections.ObservableList.class).clear();
+            click("nav-local");
+            check(((ButtonBase) node("local-play-all")).isDisabled(), "empty local play-all is enabled");
+        }));
+        runCase("local play-all uses visible ordering and nonempty state", () -> fx(() -> {
+            field("localTracks", javafx.collections.ObservableList.class).setAll(localA, localB);
+            click("nav-local");
+            check(!((ButtonBase) node("local-play-all")).isDisabled(), "nonempty local play-all is disabled");
+            ((TextField) node("local-search")).clear();
+            ((ComboBox<String>) node("local-folder-filter")).setValue("全部文件夹");
+            click("local-play-all");
+            checkQueueIds(List.of(localA.id(), localB.id()), "local play-all queue order");
+            ((TextField) node("local-search")).setText("Beta");
+            click("local-play-all");
+            checkQueueIds(List.of(localB.id()), "filtered local play-all queue");
+        }));
+        runCase("local query and folder counts", () -> fx(() -> {
+            ((TextField) node("local-search")).setText("Match");
+            Label count = (Label) node("local-filter-count");
+            check(count.isVisible() && count.getText().equals("显示 2 / 2 首"), "query count wrong: " + count.getText());
+            ((ComboBox<String>) node("local-folder-filter")).setValue(nested.toString());
+            check(count.isVisible() && count.getText().equals("显示 1 / 2 首"), "folder count wrong: " + count.getText());
+            ((TextField) node("local-search")).setText("no-such-track");
+            check(count.getText().equals("显示 0 / 2 首"), "zero-match count wrong: " + count.getText());
+            ((TextField) node("local-search")).clear();
+            ((ComboBox<String>) node("local-folder-filter")).setValue("全部文件夹");
+            check(!count.isVisible() && !count.isManaged(), "unfiltered count should be hidden");
+        }));
+
+        runCase("favorite play-all nonempty queue order", () -> {
+            setSnapshot(List.of(favoriteB, favoriteA), playlists);
+            fx(() -> {
+                click("nav-favorites");
+                check(!((ButtonBase) node("favorite-play-all")).isDisabled(), "nonempty favorite play-all is disabled");
+                click("favorite-play-all");
+                checkQueueIds(List.of(favoriteB.id(), favoriteA.id()), "favorite play-all queue order");
+            });
+        });
+        runCase("favorite Enter cycles and no-match clears", () -> fx(() -> {
+            TextField filter = (TextField) node("favorite-quick-filter");
+            Label count = (Label) node("favorite-filter-count");
+            filter.setText("Match");
+            check(count.getText().equals("找到 2 首"), "favorite match count wrong: " + count.getText());
+            checkSelectedId("favorites-list", favoriteB.id(), "first favorite match");
+            pressEnter(filter);
+            checkSelectedId("favorites-list", favoriteA.id(), "second favorite match");
+            filter.setText("absent");
+            check(count.getText().equals("无匹配"), "favorite no-match text wrong");
+            filter.clear();
+            check(!count.isVisible() && !count.isManaged(), "cleared favorite query left count visible");
+        }));
+        runCase("playlist Enter cycles and no-match clears", () -> fx(() -> {
+            click("nav-playlists");
+            picker().setValue(picker().getItems().stream().filter(item -> p1.id().equals(item.id())).findFirst().orElseThrow());
+            TextField filter = (TextField) node("playlist-quick-filter");
+            Label count = (Label) node("playlist-filter-count");
+            filter.setText("Match");
+            check(count.getText().equals("找到 2 首"), "playlist match count wrong: " + count.getText());
+            checkSelectedId("playlist-tracks", playlistA.id(), "first playlist match");
+            pressEnter(filter);
+            checkSelectedId("playlist-tracks", playlistB.id(), "second playlist match");
+            filter.setText("absent");
+            check(count.getText().equals("无匹配"), "playlist no-match text wrong");
+            filter.clear();
+            check(!count.isVisible() && !count.isManaged(), "cleared playlist query left count visible");
+        }));
+
+        runCase("favorite removal refreshes filtered count", () -> {
+            setSnapshot(List.of(favoriteA, favoriteB), playlists);
+            fx(() -> {
+                click("nav-favorites");
+                TextField filter = (TextField) node("favorite-quick-filter");
+                filter.setText("Match");
+            });
+            setSnapshot(List.of(favoriteB), playlists);
+            fx(() -> {
+                Label count = (Label) node("favorite-filter-count");
+                check(count.getText().equals("找到 1 首"), "after snapshot expected one match, found: " + count.getText());
+            });
+        });
+        runCase("favorite removal refreshes Enter indices", () -> {
+            setSnapshot(List.of(favoriteA, favoriteB), playlists);
+            fx(() -> {
+                click("nav-favorites");
+                ((TextField) node("favorite-quick-filter")).setText("Match");
+            });
+            setSnapshot(List.of(favoriteB), playlists);
+            fx(() -> {
+                pressEnter((TextField) node("favorite-quick-filter"));
+                checkSelectedId("favorites-list", favoriteB.id(), "post-refresh favorite selection");
+            });
+        });
+        runCase("favorite addition refreshes filtered count", () -> {
+            setSnapshot(List.of(favoriteA), playlists);
+            fx(() -> {
+                click("nav-favorites");
+                ((TextField) node("favorite-quick-filter")).setText("Match");
+            });
+            setSnapshot(List.of(favoriteA, favoriteB), playlists);
+            fx(() -> {
+                Label count = (Label) node("favorite-filter-count");
+                check(count.getText().equals("找到 2 首"), "after favorite addition expected two matches, found: " + count.getText());
+            });
+        });
+        runCase("favorite reorder refreshes Enter cycle", () -> {
+            setSnapshot(List.of(favoriteA, favoriteNoise, favoriteB), playlists);
+            fx(() -> {
+                click("nav-favorites");
+                ((TextField) node("favorite-quick-filter")).setText("Match");
+            });
+            setSnapshot(List.of(favoriteNoise, favoriteA, favoriteB), playlists);
+            fx(() -> {
+                TextField filter = (TextField) node("favorite-quick-filter");
+                pressEnter(filter);
+                pressEnter(filter);
+                checkSelectedId("favorites-list", favoriteA.id(), "two Enter presses after reorder should wrap to first match");
+            });
+        });
+        runCase("added favorite is included in Enter cycle", () -> {
+            setSnapshot(List.of(favoriteA), playlists);
+            fx(() -> {
+                click("nav-favorites");
+                ((TextField) node("favorite-quick-filter")).setText("Match");
+            });
+            setSnapshot(List.of(favoriteA, favoriteB), playlists);
+            fx(() -> {
+                pressEnter((TextField) node("favorite-quick-filter"));
+                checkSelectedId("favorites-list", favoriteB.id(), "added favorite cycle selection");
+            });
+        });
+        runCase("playlist content mutation refreshes count", () -> {
+            setSnapshot(List.of(favoriteB), List.of(p1));
+            fx(() -> {
+                click("nav-playlists");
+                picker().setValue(picker().getItems().stream().filter(item -> p1.id().equals(item.id())).findFirst().orElseThrow());
+                ((TextField) node("playlist-quick-filter")).setText("Match");
+            });
+            LibraryClient.Playlist changed = new LibraryClient.Playlist(p1.id(), p1.name(), List.of(playlistB));
+            setSnapshot(List.of(favoriteB), List.of(changed));
+            fx(() -> {
+                Label count = (Label) node("playlist-filter-count");
+                check(count.getText().equals("找到 1 首"), "after snapshot expected one playlist match, found: " + count.getText());
+            });
+        });
+        runCase("playlist content mutation refreshes Enter indices", () -> {
+            setSnapshot(List.of(favoriteB), List.of(p1));
+            fx(() -> {
+                click("nav-playlists");
+                picker().setValue(picker().getItems().stream().filter(item -> p1.id().equals(item.id())).findFirst().orElseThrow());
+                ((TextField) node("playlist-quick-filter")).setText("Match");
+            });
+            LibraryClient.Playlist changed = new LibraryClient.Playlist(p1.id(), p1.name(), List.of(playlistB));
+            setSnapshot(List.of(favoriteB), List.of(changed));
+            fx(() -> {
+                pressEnter((TextField) node("playlist-quick-filter"));
+                checkSelectedId("playlist-tracks", playlistB.id(), "post-refresh playlist selection");
+            });
+        });
+
+        runCase("tonearm follows actual local play and pause", () -> {
+            fx(() -> {
+                click("nav-local");
+                ((TextField) node("local-search")).clear();
+                ((ComboBox<String>) node("local-folder-filter")).setValue("全部文件夹");
+                click("local-play-all");
+            });
+            awaitPlaying(localA.id());
+            fx(() -> check(((Label) node("immersive-tonearm-badge")).getText().contains("演奏中"),
+                    "playing badge did not update"));
+            fx(() -> click("play-button"));
+            await(5_000, () -> fxValue(() -> audio().state() == JavaFxAudioPlayer.State.PAUSED), "synthetic WAV did not pause");
+            fx(() -> check(((Label) node("immersive-tonearm-badge")).getText().contains("已暂停"), "paused badge did not update"));
+        });
+        runCase("tonearm STALLED injection is not reported as playing", () -> {
+            boolean badgeSaysPlaying;
+            try {
+                fx(() -> invoke("onPlaybackState", new Class<?>[] {JavaFxAudioPlayer.State.class}, JavaFxAudioPlayer.State.STALLED));
+                badgeSaysPlaying = fxValue(() -> ((Label) node("immersive-tonearm-badge")).getText().contains("演奏中"));
+                System.out.println("INJECTED ENGINE STATE: STALLED; not a real network/buffering reproduction; badgeSaysPlaying=" + badgeSaysPlaying);
+            } finally {
+                fx(() -> invoke("onPlaybackState", new Class<?>[] {JavaFxAudioPlayer.State.class}, JavaFxAudioPlayer.State.PAUSED));
+            }
+            check(!badgeSaysPlaying, "injected STALLED state is displayed as playing");
+        });
+        runCase("settings summaries and intentionally absent groups", () -> fx(() -> {
+            click("sidebar-settings");
+            layout();
+            var badges = stage.getScene().getRoot().lookupAll(".settings-summary-badge").stream()
+                    .filter(Label.class::isInstance).map(Label.class::cast).map(Label::getText).toList();
+            for (String expected : List.of("智能推荐 · 灵感联想", "音量平衡 · 增益", "全局按键与操作设置", "v" + BuildInfo.current().version() + " · 内测候选"))
+                check(badges.contains(expected), "missing settings summary: " + expected + "; actual=" + badges);
+            check(stage.getScene().lookup("#companion-settings").lookup(".settings-summary-badge") == null,
+                    "companion settings unexpectedly has a summary badge");
+            check(stage.getScene().lookup("#settings-data").lookup(".settings-summary-badge") == null,
+                    "data settings unexpectedly has a summary badge");
+            TitledPane visual = (TitledPane) node("visual-settings");
+            check(visual.isExpanded(), "visual section fixture is not expanded");
+            check(!visual.getGraphic().isVisible(), "expanded visual summary should be hidden");
+            screenshot(stage.getScene(), "stage2-settings-summaries.png");
+        }));
+
+        runCase("tonearm engine states and real-state binding", () -> fx(() -> {
+            try {
+                for (JavaFxAudioPlayer.State state : List.of(JavaFxAudioPlayer.State.LOADING,
+                        JavaFxAudioPlayer.State.STALLED, JavaFxAudioPlayer.State.FAILED,
+                        JavaFxAudioPlayer.State.ENDED, JavaFxAudioPlayer.State.IDLE)) {
+                    field("playbackUiState", javafx.beans.property.ObjectProperty.class).set(state);
+                    Label badge = (Label) node("immersive-tonearm-badge");
+                    check(!badge.getText().contains("演奏中") && !badge.getStyleClass().contains("badge-playing"),
+                            "non-playing engine state appears active: " + state);
+                    if (state == JavaFxAudioPlayer.State.STALLED) check(badge.getText().contains("缓冲中"), "stalled label is not explicit");
+                    if (state == JavaFxAudioPlayer.State.LOADING) check(badge.getText().contains("加载中"), "loading label is not explicit");
+                }
+            } finally {
+                field("playbackUiState", javafx.beans.property.ObjectProperty.class).set(JavaFxAudioPlayer.State.PAUSED);
+            }
+        }));
+        runCase("appearance summary follows theme and reduced motion", () -> fx(() -> {
+            click("sidebar-settings");
+            TitledPane visual = (TitledPane) node("visual-settings");
+            visual.setExpanded(false);
+            Label summary = (Label) visual.getGraphic();
+            check(summary.isVisible() && summary.isManaged(), "collapsed live summary is hidden");
+            chooseTheme(ThemeController.Mode.LIGHT);
+            check(summary.getText().startsWith("暖白明亮"), "theme summary is stale");
+            CheckBox reduced = (CheckBox) node("reduce-motion");
+            if (!reduced.isSelected()) reduced.fire();
+            check(summary.getText().contains("减弱动效"), "motion summary is stale");
+            visual.setExpanded(true);
+            check(!summary.isVisible() && !summary.isManaged(), "expanded summary did not hide");
+        }));
+        for (ThemeController.Mode mode : ThemeController.Mode.values()) {
+            for (int[] size : new int[][] {{1280, 800}, {860, 600}}) {
+                final String sample = mode + " " + size[0];
+                runCase("new scene bounds " + sample, () -> {
+                    fx(() -> { chooseTheme(mode); stage.setWidth(size[0]); stage.setHeight(size[1]); click("nav-favorites"); });
+                    settle();
+                    fx(() -> { fits(node("favorite-play-all")); fits(node("favorite-quick-filter")); readable((Labeled) node("favorite-play-all"), 4.5); screenshot(stage.getScene(), "stage2-" + mode.name().toLowerCase() + "-favorites-" + size[0] + ".png"); click("nav-local"); });
+                    settle();
+                    fx(() -> { fits(node("local-play-all")); fits(node("local-search")); fits(node("local-folder-filter")); readable((Labeled) node("local-play-all"), 4.5); screenshot(stage.getScene(), "stage2-" + mode.name().toLowerCase() + "-local-" + size[0] + ".png"); click("open-immersive"); });
+                    settle();
+                    fx(() -> { fits(node("immersive-tonearm-badge")); fits(node("immersive-track-source")); screenshot(stage.getScene(), "stage2-" + mode.name().toLowerCase() + "-immersive-" + size[0] + ".png"); click("immersive-collapse"); click("sidebar-settings"); });
+                    settle();
+                    fx(() -> { noHorizontalScroll(node("settings-scroll")); screenshot(stage.getScene(), "stage2-" + mode.name().toLowerCase() + "-settings-" + size[0] + ".png"); });
+                });
+            }
+        }
+        if (!caseFailures.isEmpty()) {
+            System.err.println("STAGE2 CASE FAILURES: " + caseFailures.size());
+            caseFailures.forEach(System.err::println);
+            throw new AssertionError("stage2 acceptance has " + caseFailures.size() + " failing case(s)");
+        }
+        System.out.println("PASS all stage2 independent window cases");
+    }
+
+    private final List<String> caseFailures = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+    private void runCase(String name, Checked action) {
+        phase = name;
+        try { action.run(); System.out.println("PASS " + name); }
+        catch (Throwable error) {
+            String detail = name + ": " + error;
+            caseFailures.add(detail);
+            System.err.println("FAIL " + detail);
+            error.printStackTrace(System.err);
+        }
+    }
+
+    private void setSnapshot(List<Track> favorites, List<LibraryClient.Playlist> playlists) throws Exception {
+        fx(() -> invoke("applyLibrary", new Class<?>[] {LibraryClient.Snapshot.class},
+                new LibraryClient.Snapshot(favorites, playlists)));
+    }
+
+    private void checkQueueIds(List<String> expected, String context) {
+        List<String> actual = field("queue", PlayerQueue.class).snapshot().tracks().stream().map(Track::id).toList();
+        check(actual.equals(expected), context + ": expected=" + expected + ", actual=" + actual);
+    }
+
+    private void checkSelectedId(String listId, String expected, String context) {
+        Track selected = list(listId).getSelectionModel().getSelectedItem();
+        check(selected != null && expected.equals(selected.id()), context + ": expected=" + expected
+                + ", actual=" + (selected == null ? "null" : selected.id()));
+    }
+
+    private void pressEnter(TextField field) {
+        field.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.ENTER,
+                false, false, false, false));
     }
 
     private void miniStyleCheck() throws Exception {
