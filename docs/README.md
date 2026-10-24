@@ -2,7 +2,7 @@
 
 按使用、开发与验证目的选择入口。项目概览和源码启动见 [仓库首页](../README.md)，版本变化见 [CHANGELOG](../CHANGELOG.md)。
 
-当前 Windows 内测候选为 **v0.2.2 / `lumen-0.2.2-20261022.1`**，构建身份与校验方式以 [候选说明](PHASE4_RELEASE_CANDIDATE.md) 为准。GitHub 尚无二进制 Release；文档中的 `build/` 路径是未随源码上传的本地材料，不是下载入口。独立朋友电脑和原首次启动闪退者复测仍待完成。
+当前 Windows 内测候选为 **v0.2.2**，构建身份与校验方式以 [候选说明](PHASE4_RELEASE_CANDIDATE.md) 为准。GitHub 尚无二进制 Release；文档中的 `build/` 路径是未随源码上传的本地材料，不是下载入口。独立朋友电脑和原首次启动闪退者复测仍待完成。
 
 ## 使用者
 
