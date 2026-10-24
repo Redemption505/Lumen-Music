@@ -555,7 +555,7 @@ public final class LumenFxApp extends Application {
             moodChips.getChildren().add(chip);
         }
         FlowPane discoveryActions = new FlowPane(8, 8, homeRadio, refreshRecommendations);
-        VBox moodCard = new VBox(8, moodTitle, moodRow, moodChips, discoveryActions);
+        VBox moodCard = new VBox(7, moodTitle, moodRow, moodChips, discoveryActions);
         moodCard.setId("recommendation-intent");
         moodCard.getStyleClass().add("recommendation-intent");
         Label recommendationHeading = new Label("推荐列表");
@@ -809,6 +809,58 @@ public final class LumenFxApp extends Application {
         Tooltip descriptionTip = readableTooltip("");
         descriptionTip.textProperty().bind(playlistDescription.textProperty());
         playlistDescription.setTooltip(descriptionTip);
+        Button playAllButton = new Button("▶ 播放全部");
+        playAllButton.setId("playlist-play-all");
+        playAllButton.getStyleClass().add("playlist-play-all");
+        playAllButton.setDisable(true);
+        playAllButton.setOnAction(event -> {
+            if (!playlistTracks.isEmpty()) select(playlistTracks, 0);
+        });
+        TextField playlistFilter = new TextField();
+        playlistFilter.setId("playlist-quick-filter");
+        playlistFilter.setPromptText("快速查找曲目...");
+        playlistFilter.getStyleClass().add("playlist-filter-field");
+        playlistFilter.setPrefWidth(160);
+        playlistFilter.setDisable(true);
+        Label filterCount = new Label();
+        filterCount.setId("playlist-filter-count");
+        filterCount.getStyleClass().addAll("muted", "playlist-filter-count");
+        filterCount.setVisible(false);
+        filterCount.setManaged(false);
+
+        playlistFilter.textProperty().addListener((ignored, before, filterText) -> {
+            String q = filterText == null ? "" : filterText.trim().toLowerCase();
+            if (q.isEmpty()) {
+                filterCount.setVisible(false);
+                filterCount.setManaged(false);
+                return;
+            }
+            int matches = 0;
+            int firstMatch = -1;
+            for (int i = 0; i < playlistTracks.size(); i++) {
+                Track t = playlistTracks.get(i);
+                if (t.title().toLowerCase().contains(q) || t.artist().toLowerCase().contains(q)) {
+                    matches++;
+                    if (firstMatch < 0) firstMatch = i;
+                }
+            }
+            if (matches > 0) {
+                filterCount.setText("找到 " + matches + " 首");
+                filterCount.setVisible(true);
+                filterCount.setManaged(true);
+                playlistList.scrollTo(firstMatch);
+                playlistList.getSelectionModel().clearAndSelect(firstMatch);
+            } else {
+                filterCount.setText("无匹配");
+                filterCount.setVisible(true);
+                filterCount.setManaged(true);
+            }
+        });
+
+        HBox playlistPrimaryActions = new HBox(10, playAllButton, playlistFilter, filterCount);
+        playlistPrimaryActions.setAlignment(Pos.CENTER_LEFT);
+        playlistPrimaryActions.setPadding(new Insets(4, 0, 0, 0));
+
         playlistPicker.valueProperty().addListener((ignored, before, selected) -> {
             playlistPageName.setText(selected == null ? "选择左侧歌单" : selected.name());
             playlistPageCount.setText(selected == null ? "展开左侧“我的歌单”，选择一个歌单查看曲目"
@@ -817,6 +869,10 @@ public final class LumenFxApp extends Application {
             playlistDescription.setVisible(!playlistDescription.getText().isBlank());
             playlistDescription.setManaged(playlistDescription.isVisible());
             playlistArtwork.update(selected);
+            boolean empty = selected == null || selected.tracks().isEmpty();
+            playAllButton.setDisable(empty);
+            playlistFilter.setDisable(empty);
+            playlistFilter.setText("");
         });
         Button editPresentation = new Button("封面与说明");
         editPresentation.setId("playlist-edit-presentation");
@@ -845,7 +901,7 @@ public final class LumenFxApp extends Application {
         playlistFeedback.getStyleClass().add("muted");
         playlistFeedback.setWrapText(true);
         playlistFeedback.textProperty().bind(libraryStatus.textProperty());
-        VBox playlistIdentity = new VBox(6, playlistPageName, playlistPageCount, playlistDescription);
+        VBox playlistIdentity = new VBox(8, playlistPageName, playlistPageCount, playlistDescription, playlistPrimaryActions);
         playlistIdentity.setMinWidth(0);
         HBox.setHgrow(playlistIdentity, Priority.ALWAYS);
         HBox playlistHeading = new HBox(16, playlistArtwork, playlistIdentity);
@@ -1954,10 +2010,18 @@ public final class LumenFxApp extends Application {
         libraryStatus.setMaxWidth(Double.MAX_VALUE);
         status.setTextOverrun(OverrunStyle.ELLIPSIS);
         libraryStatus.setTextOverrun(OverrunStyle.ELLIPSIS);
-        HBox transport = new HBox(18, repeat, previous, playButton, next);
+        Region repeatBalance = new Region();
+        repeatBalance.minWidthProperty().bind(repeat.widthProperty());
+        repeatBalance.prefWidthProperty().bind(repeat.widthProperty());
+        repeatBalance.maxWidthProperty().bind(repeat.widthProperty());
+        HBox transport = new HBox(18, repeat, previous, playButton, next, repeatBalance);
         transport.setAlignment(Pos.CENTER);
         transport.getStyleClass().add("player-transport");
-        HBox seekRow = new HBox(12, timing, progress);
+        Region timingSpacer = new Region();
+        timingSpacer.minWidthProperty().bind(timing.widthProperty());
+        timingSpacer.prefWidthProperty().bind(timing.widthProperty());
+        timingSpacer.maxWidthProperty().bind(timing.widthProperty());
+        HBox seekRow = new HBox(12, timing, progress, timingSpacer);
         seekRow.setAlignment(Pos.CENTER);
         HBox.setHgrow(progress, Priority.ALWAYS);
         progress.setMinWidth(0);

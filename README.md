@@ -37,7 +37,7 @@
 
 ## 开始使用
 
-当前仓库提供源码，**尚无公开二进制 Release**。第三阶段前端改进及六项修复已进入 v0.2.2 新候选；源码与实际安装版双缩放、原资料页面、迷你返回及正常退出验收通过。发行归档已同步，身份与范围见[候选说明](docs/PHASE4_RELEASE_CANDIDATE.md)和[第三阶段前端](docs/FRONTEND_PHASE3_ACCEPTANCE.md)。
+当前仓库提供源码，**尚无公开二进制 Release**。第四轮前端改进及三项界面修复已进入 v0.2.2 新候选；源码与实际安装版双缩放、原资料页面、迷你返回及正常退出验收通过。身份与交付范围见[候选说明](docs/PHASE4_RELEASE_CANDIDATE.md)和[第四阶段前端验收](docs/FRONTEND_PHASE4_ACCEPTANCE.md)。
 
 如果你已经收到内测包：
 

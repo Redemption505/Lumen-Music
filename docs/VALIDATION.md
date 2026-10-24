@@ -2,7 +2,7 @@
 
 ## 当前状态核对（2026-10-24）
 
-当前候选 **v0.2.2 / `lumen-0.2.2-20261024.1`**。第三阶段前端改进及六项回归修复已进入新候选。源码与实际安装JAR的125%/150%完整视觉均通过；真实同版本升级、原资料页面响应、迷你返回及正常退出通过。Java325项、双缩放扩展离屏检查通过；完整窗口及安装数据边界见[第三阶段前端](FRONTEND_PHASE3_ACCEPTANCE.md)、[前端交付](FRONTEND_RELEASE_ACCEPTANCE.md)和[候选身份](PHASE4_RELEASE_CANDIDATE.md)。
+当前候选 **v0.2.2 / `lumen-0.2.2-20261024.2`**。第四轮前端改进及三项界面修复已进入新候选。源码与实际安装JAR的125%/150%完整视觉均通过；真实同版本升级、原资料页面响应、迷你返回及正常退出通过。Java325项、双缩放扩展离屏检查通过；完整窗口及安装数据边界见[第四阶段前端](FRONTEND_PHASE4_ACCEPTANCE.md)、[前端交付](FRONTEND_RELEASE_ACCEPTANCE.md)和[候选身份](PHASE4_RELEASE_CANDIDATE.md)。
 
 原失败与旧启动样本保留对应日期/构建。源码提交的CI按[工程检查](https://github.com/Redemption505/Lumen-Music/actions/workflows/verify.yml)当前提交单独核对，不替代原生安装。独立朋友、系统重启首启和性能预算仍待验。
 

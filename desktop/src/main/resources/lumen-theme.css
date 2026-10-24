@@ -526,21 +526,27 @@
 .recommendation-surface { -fx-padding: 0; }
 
 /* Personal home uses the same stable reading surfaces as the other core pages. */
-.home-personal-heading { -fx-padding: 18 24 12 24; }
+.home-personal-heading { -fx-padding: 14 24 10 24; }
 .home-personal-body { -fx-padding: 0 24 24 24; }
 .home-personal-card {
-
-    -fx-padding: 16 18;
+    -fx-padding: 14 16;
     -fx-background-color: -lumen-panel;
     -fx-background-radius: 14;
     -fx-border-color: -lumen-divider;
     -fx-border-radius: 14;
-    -fx-min-height: 172;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 14, 0.08, 0, 2);
+    -fx-min-height: 168;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 12, 0.06, 0, 2);
+}
+.home-personal-card:hover {
+    -fx-border-color: -lumen-accent-text;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 16, 0.08, 0, 3);
 }
 #home-section-continue {
     -fx-background-color: linear-gradient(to bottom right, -lumen-selected, -lumen-panel 68%);
     -fx-border-color: -lumen-divider;
+}
+#home-section-continue:hover {
+    -fx-border-color: -lumen-accent-text;
 }
 .home-session-badge {
     -fx-font-size: 11px;
@@ -1279,18 +1285,21 @@
     -fx-background-insets: 0;
 }
 
-/* Batch 3: Immersive Stage Spotlight and Lyrics Hierarchy */
+/* Batch 3: Immersive Stage Spotlight and Vinyl Theater Experience */
 .immersive-shell {
     -fx-background-color: -lumen-bg;
 }
 .lumen-theme .immersive-shell {
-    -fx-background-color: radial-gradient(center 50% 35%, radius 70%, #2f2a24 0%, -lumen-bg 100%);
+    -fx-background-color: radial-gradient(center 38% 40%, radius 78%, #332c23 0%, #221d17 52%, -lumen-bg 100%);
 }
 .dark-theme .immersive-shell {
-    -fx-background-color: radial-gradient(center 50% 35%, radius 70%, #202428 0%, -lumen-bg 100%);
+    -fx-background-color: radial-gradient(center 38% 40%, radius 78%, #232932 0%, #171b21 52%, -lumen-bg 100%);
+}
+.light-theme .immersive-shell {
+    -fx-background-color: radial-gradient(center 38% 40%, radius 82%, #faf7f2 0%, #f0eae0 58%, -lumen-bg 100%);
 }
 .immersive-cover {
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 32, 0.16, 0, 10);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.48), 38, 0.14, 0, 12);
     -fx-border-color: -lumen-divider;
     -fx-border-width: 1;
     -fx-border-radius: 14;
@@ -1309,12 +1318,21 @@
     -fx-text-fill: -lumen-accent-text;
     -fx-font-weight: bold;
     -fx-opacity: 1.0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 8, 0.1, 0, 1);
 }
 .immersive-empty-lyrics {
     -fx-text-fill: -lumen-muted;
     -fx-font-size: 13px;
     -fx-line-spacing: 4;
     -fx-opacity: 0.85;
+}
+.immersive-actions .button {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 6 12;
+}
+.immersive-actions .button:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 8, 0.08, 0, 1);
 }
 
 /* Batch 3: Mini player and pet bubble refinement */
@@ -1545,4 +1563,74 @@
     -fx-font-weight: bold;
     -fx-text-fill: -lumen-text;
     -fx-padding: 2 0 4 0;
+}
+
+/* Phase 4 Batch 2: Playlist Hero Banner & Play All */
+.playlist-play-all {
+    -fx-background-color: -lumen-accent;
+    -fx-text-fill: -lumen-on-accent;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+    -fx-background-radius: 999;
+    -fx-padding: 7 18;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 10, 0.08, 0, 2);
+}
+.playlist-play-all:hover {
+    -fx-background-color: -lumen-accent-hover;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 14, 0.12, 0, 3);
+}
+.playlist-play-all:focused {
+    -fx-border-color: -lumen-focus;
+    -fx-border-radius: 999;
+    -fx-border-width: 1.5;
+}
+.playlist-play-all:disabled {
+    -fx-opacity: 0.55;
+}
+.playlist-filter-field {
+    -fx-background-color: -lumen-field;
+    -fx-text-fill: -lumen-text;
+    -fx-prompt-text-fill: -lumen-muted;
+    -fx-background-radius: 999;
+    -fx-border-color: -lumen-divider;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+    -fx-padding: 5 12;
+    -fx-font-size: 11.5px;
+}
+.playlist-filter-field:focused {
+    -fx-border-color: -lumen-focus;
+}
+.playlist-filter-count {
+    -fx-font-size: 11px;
+    -fx-padding: 2 6;
+    -fx-background-color: -lumen-panel;
+    -fx-background-radius: 4;
+    -fx-border-color: -lumen-divider;
+    -fx-border-radius: 4;
+}
+
+/* Phase 4 Batch 4: Mini Player, Settings & Theme Polish */
+.mini-player {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.36), 26, 0.12, 0, 8);
+}
+.mini-titlebar {
+    -fx-padding: 6 10 4 10;
+}
+.settings-page .titled-pane > .title {
+    -fx-padding: 12 16;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 8, 0.05, 0, 1);
+}
+.settings-page .titled-pane > .content {
+    -fx-padding: 16 18;
+    -fx-border-color: -lumen-divider;
+}
+#settings-back {
+    -fx-font-weight: bold;
+    -fx-padding: 6 14;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
 }

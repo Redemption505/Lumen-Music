@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -76,6 +77,18 @@ public final class FrontendRenderingSmoke extends Application {
         focus.resizeRelocate(width == 1280 ? 650 : 610, 450, Math.max(230, width - (width == 1280 ? 670 : 630)), 160);
         root.getChildren().add(focus);
 
+        PersonalHomePane home = new PersonalHomePane(new Pane(), new Pane(), new PersonalHomePane.Actions(
+                () -> { }, ignored -> { }, ignored -> { }, () -> { }, () -> { }, () -> { }, () -> { }, ignored -> { }),
+                ignored -> { }, ignored -> { });
+        home.resizeRelocate(600, 360, Math.max(400, width - 620), 220);
+        root.getChildren().add(home);
+
+        Button playAll = new Button("播放全部");
+        playAll.setId("playlist-play-all");
+        playAll.getStyleClass().add("playlist-play-all");
+        playAll.resizeRelocate(36, 555, 150, 40);
+        root.getChildren().add(playAll);
+
         Label commandBadge = new Label("命令");
         commandBadge.getStyleClass().addAll("quick-search-badge", "badge-command");
         commandBadge.resizeRelocate(36, 470, 80, 24);
@@ -122,7 +135,7 @@ public final class FrontendRenderingSmoke extends Application {
 
         checkLyricTiers(lyrics, root, mode, width);
         checkFocusTimerTypography(focus, root, mode, width);
-        checkThemePaints(commandBadge, resultAction, focus, root, mode, width);
+        checkThemePaints(commandBadge, resultAction, focus, home, playAll, theme, root, mode, width);
 
         ListCell<String> contextCell = contextCell(lyrics);
         double contextContrast = FrontendRenderAssertions.lyricContrast(contextCell, REQUIRED_CONTRAST);
@@ -137,6 +150,7 @@ public final class FrontendRenderingSmoke extends Application {
             checkRejectsLowOpacity(contextCell);
         }
         focus.close();
+        home.close();
         theme.close();
     }
 
@@ -185,8 +199,9 @@ public final class FrontendRenderingSmoke extends Application {
         root.applyCss();
     }
 
-    private static void checkThemePaints(Label badge, Label resultAction, FocusPane focus, Pane root,
-                                        ThemeController.Mode mode, int width) {
+    private static void checkThemePaints(Label badge, Label resultAction, FocusPane focus,
+                                         PersonalHomePane home, Button playAll, ThemeController theme,
+                                         Pane root, ThemeController.Mode mode, int width) {
         root.applyCss();
         root.layout();
         checkPaints(badge, "command badge", mode, width);
@@ -197,6 +212,94 @@ public final class FrontendRenderingSmoke extends Application {
         root.applyCss();
         root.layout();
         checkPaints((Region) pod, "hovered focus pod", mode, width);
+
+        checkPlaylistButtonStates(playAll, theme, root, mode, width);
+        checkHomeHoverBorders(home, root, mode, width);
+    }
+
+    private static void checkPlaylistButtonStates(Button button, ThemeController theme, Pane root,
+                                                  ThemeController.Mode mode, int width) {
+        PseudoClass hover = PseudoClass.getPseudoClass("hover");
+        PseudoClass focused = PseudoClass.getPseudoClass("focused");
+        for (ThemeController.Accent accent : ThemeController.Accent.values()) {
+            theme.setAccent(accent);
+            button.setDisable(false);
+            button.pseudoClassStateChanged(hover, false);
+            button.pseudoClassStateChanged(focused, false);
+            checkButtonContrast(button, root, mode, accent, width, "normal");
+
+            button.pseudoClassStateChanged(hover, true);
+            root.applyCss();
+            root.layout();
+            checkButtonContrast(button, root, mode, accent, width, "hover");
+
+            button.pseudoClassStateChanged(hover, false);
+            button.pseudoClassStateChanged(focused, true);
+            root.applyCss();
+            root.layout();
+            checkButtonContrast(button, root, mode, accent, width, "focus");
+            checkBorderPaints(button, "playlist play all focus " + accent, mode, width);
+
+            button.pseudoClassStateChanged(focused, false);
+            button.setDisable(true);
+            root.applyCss();
+            root.layout();
+            checkButtonContrast(button, root, mode, accent, width, "disabled");
+            check(close(button.getOpacity(), .55), "playlist disabled opacity mismatch theme=" + mode
+                    + " accent=" + accent + " width=" + width + " opacity=" + button.getOpacity());
+        }
+        button.setDisable(false);
+        root.applyCss();
+        root.layout();
+    }
+
+    private static void checkButtonContrast(Button button, Pane root, ThemeController.Mode mode,
+                                            ThemeController.Accent accent, int width, String state) {
+        root.applyCss();
+        root.layout();
+        check(button.getBackground() != null && !button.getBackground().getFills().isEmpty(),
+                "playlist background missing theme=" + mode + " accent=" + accent + " width=" + width + " state=" + state);
+        Paint background = button.getBackground().getFills().get(0).getFill();
+        Paint foreground = button.getTextFill();
+        check(background instanceof javafx.scene.paint.Color && foreground instanceof javafx.scene.paint.Color,
+                "playlist colors are not computed solid paints theme=" + mode + " accent=" + accent
+                        + " width=" + width + " state=" + state + " background=" + background
+                        + " foreground=" + foreground);
+        double contrast = contrast((javafx.scene.paint.Color) foreground, (javafx.scene.paint.Color) background);
+        check(contrast >= REQUIRED_CONTRAST, "playlist contrast below threshold theme=" + mode + " accent=" + accent
+                + " width=" + width + " state=" + state + " contrast=" + contrast);
+        System.out.printf("PASS playlist contrast theme=%s accent=%s width=%d state=%s contrast=%.2f%n",
+                mode, accent.name(), width, state, contrast);
+    }
+
+    private static double contrast(javafx.scene.paint.Color first, javafx.scene.paint.Color second) {
+        double a = luminance(first), b = luminance(second);
+        return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
+    }
+
+    private static double luminance(javafx.scene.paint.Color color) {
+        return .2126 * linear(color.getRed()) + .7152 * linear(color.getGreen()) + .0722 * linear(color.getBlue());
+    }
+
+    private static double linear(double channel) {
+        return channel <= .04045 ? channel / 12.92 : Math.pow((channel + .055) / 1.055, 2.4);
+    }
+
+    private static void checkHomeHoverBorders(PersonalHomePane home, Pane root,
+                                              ThemeController.Mode mode, int width) {
+        javafx.scene.Node card = home.lookup("#home-section-pinned");
+        javafx.scene.Node continuing = home.lookup("#home-section-continue");
+        check(card instanceof Region, "personal home card missing theme=" + mode + " width=" + width);
+        check(continuing instanceof Region, "continue home section missing theme=" + mode + " width=" + width);
+        check(card != continuing, "ordinary and continue hover fixtures must be distinct");
+        PseudoClass hover = PseudoClass.getPseudoClass("hover");
+        for (var node : List.of((Region) card, (Region) continuing)) {
+            node.pseudoClassStateChanged(hover, true);
+            root.applyCss();
+            root.layout();
+            checkBorderPaints(node, "hovered home " + node.getId(), mode, width);
+            node.pseudoClassStateChanged(hover, false);
+        }
     }
 
     private static void checkPaints(Region region, String description, ThemeController.Mode mode, int width) {

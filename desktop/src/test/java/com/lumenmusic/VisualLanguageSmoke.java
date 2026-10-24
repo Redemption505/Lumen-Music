@@ -73,6 +73,7 @@ public final class VisualLanguageSmoke extends Application {
     private AudioPlayer originalAudio;
     private PlayerQueue.Snapshot originalQueue;
     private long originalLoad;
+    private boolean alignmentNegativeChecked;
     private final EnumMap<ThemeController.Mode, Paint> savedFavoriteColors = new EnumMap<>(ThemeController.Mode.class);
 
     @Override public void start(Stage initial) {
@@ -111,6 +112,7 @@ public final class VisualLanguageSmoke extends Application {
         activateForFocusCheck(stage);
         await(15_000, () -> fxValue(() -> picker().getItems().size() == 2), "fixture playlists not loaded");
         await(15_000, () -> fxValue(() -> field("versionCatalog", VersionCatalog.class).findByResourceId(first.id()).isPresent()), "fixture performer metadata not loaded");
+        playlistLocatorCheck();
         phase = "real local playback and browse restoration";
         fx(() -> {
             openPlaylist(playlistId);
@@ -171,7 +173,10 @@ public final class VisualLanguageSmoke extends Application {
                 for (String scene : List.of("home", "playlist", "immersive", "settings")) {
                     phase = mode + " " + scene + " " + size[0] + "x" + size[1];
                     fx(() -> openScene(scene)); settle();
-                    fx(() -> checkScene(scene));
+                    fx(() -> {
+                        checkScene(scene);
+                        if (scene.equals("home") || scene.equals("playlist")) transportAlignmentCheck();
+                    });
                     // Let restored glyph opacity reach the next paint before retaining QA screenshots.
                     pause(100);
                     fx(() -> {
@@ -382,6 +387,81 @@ public final class VisualLanguageSmoke extends Application {
                 .map(ContextMenu.class::cast).filter(Window::isShowing)
                 .filter(menu -> menu.getOwnerNode() == node("immersive-more"))
                 .findFirst().orElse(null);
+    }
+
+    private void playlistLocatorCheck() throws Exception {
+        phase = "playlist play all and locator preserve list identity";
+        fx(() -> {
+            openPlaylist(emptyPlaylistId);
+            check(node("playlist-play-all").isDisabled() && node("playlist-quick-filter").isDisabled(),
+                    "empty playlist actions must be disabled");
+            openPlaylist(playlistId);
+            check(!node("playlist-play-all").isDisabled() && !node("playlist-quick-filter").isDisabled(),
+                    "populated playlist actions must be enabled");
+            var locator = (javafx.scene.control.TextField) node("playlist-quick-filter");
+            ListView<Track> tracks = list("playlist-tracks");
+            List<Track> before = List.copyOf(tracks.getItems());
+            PlayerQueue.Snapshot queueBefore = field("queue", PlayerQueue.class).snapshot();
+            locator.setText("Scroll row 23");
+            check(((Label) node("playlist-filter-count")).getText().equals("找到 1 首")
+                            && tracks.getSelectionModel().getSelectedItem().id().equals("visual-row-23"),
+                    "title locator did not select its match");
+            locator.setText("independent-no-match");
+            check(((Label) node("playlist-filter-count")).getText().equals("无匹配"),
+                    "locator lacks no-match feedback");
+            locator.setText("FixtureUploader");
+            check(tracks.getSelectionModel().getSelectedItem().id().equals("visual-upload"),
+                    "artist locator did not select its match");
+            check(tracks.getItems().equals(before) && field("queue", PlayerQueue.class).snapshot().equals(queueBefore),
+                    "locator filtered/reordered the list or changed playback");
+            locator.clear();
+            check(!node("playlist-filter-count").isVisible() && !node("playlist-filter-count").isManaged(),
+                    "cleared locator left its count visible");
+            click("playlist-play-all");
+            PlayerQueue queue = field("queue", PlayerQueue.class);
+            ListeningReporter.Context context = field("queueListeningContext", ListeningReporter.Context.class);
+            check(queue.tracks().stream().map(Track::id).toList().equals(before.stream().map(Track::id).toList())
+                            && queue.current().id().equals(first.id()) && context != null
+                            && context.playlistId().equals(playlistId),
+                    "play all lost playlist order, first track or listening context");
+        });
+        awaitPlaying(first.id());
+        System.out.println("PASS playlist locator title/artist/no-match/clear preserves all rows and queue; play all starts full ordered playlist with context");
+    }
+
+    private void transportAlignmentCheck() {
+        Label time = (Label) node("timing");
+        String original = time.getText();
+        try {
+            for (String sample : List.of("00:00 / 03:00", "1:23:45 / 12:34:56")) {
+                time.setText(sample); layout(); layout();
+                assertTransportCentred();
+            }
+            if (!alignmentNegativeChecked) {
+                Node button = node("play-button");
+                double originalX = button.getTranslateX();
+                try {
+                    button.setTranslateX(originalX + 8);
+                    try {
+                        assertTransportCentred();
+                        throw new AssertionError("alignment negative fixture was accepted");
+                    } catch (AssertionError expected) {
+                        check(expected.getMessage().startsWith("TRANSPORT_ALIGNMENT"),
+                                "unexpected alignment negative failure: " + expected.getMessage());
+                    }
+                } finally { button.setTranslateX(originalX); }
+                alignmentNegativeChecked = true;
+            }
+        } finally { time.setText(original); layout(); }
+    }
+
+    private void assertTransportCentred() {
+        Node play = node("play-button"), track = node("progress-slider").lookup(".track");
+        check(track != null, "progress track not rendered");
+        Bounds button = play.localToScene(play.getLayoutBounds()), rail = track.localToScene(track.getLayoutBounds());
+        double delta = (button.getMinX() + button.getMaxX() - rail.getMinX() - rail.getMaxX()) / 2;
+        check(Math.abs(delta) <= 1.0, "TRANSPORT_ALIGNMENT delta=" + delta + ", button=" + button + ", track=" + rail);
+        System.out.println("PASS transport alignment width=" + stage.getWidth() + " delta=" + delta + " time=" + ((Label) node("timing")).getText());
     }
 
     private void frontendRenderingCheck() throws Exception {

@@ -196,10 +196,10 @@ public final class PersonalHomePane extends BorderPane implements AutoCloseable 
         cards.put("pinned", pinned);
         cards.put("reunion", reunion);
         cards.put("discover", discover);
-        grid.setHgap(16);
-        grid.setVgap(16);
+        grid.setHgap(14);
+        grid.setVgap(14);
         grid.setId("home-sections");
-        VBox body = new VBox(18, grid, recommendations);
+        VBox body = new VBox(16, grid, recommendations);
         if (recommendations instanceof javafx.scene.layout.Region region) {
             region.setMinHeight(240);
             region.setPrefHeight(360);

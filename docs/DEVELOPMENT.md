@@ -121,6 +121,8 @@ demo 集成需要另外启动 `PYTHONPATH=service python -m lumen_service --prov
 
 `Profile Normal` 为正常缩放，`HiDpi` 为 1.5 倍，`All` 运行两者；`VisualOnly` 只覆盖视觉/布局，不能写成真实播放验收。共用脚本使用独立临时资料及本机 demo 服务；首页、收藏等包装入口复用各自合成 fixture。只有共用脚本接受 `RuntimeHome`，包装入口使用 `AppHome`。
 
+扩展离屏驱动覆盖五主题、六强调色的歌单按钮计算配色及普通/继续听两种首页卡片悬停边框；禁用状态另外核验透明度。完整视觉驱动检查不同时间文字宽度下实际播放键/轨道中心及位移负例，也验证歌单查找定位保留全部列表与播放队列。专用首页驱动只有在滚回顶部后检查首屏标题，避免把正常滚动裁切误报为缺陷。
+
 候选长听与快速操作入口可直接从对应 SOURCE 编译测试驱动，不需要他人的 `target/test-classes`：
 
 ```powershell

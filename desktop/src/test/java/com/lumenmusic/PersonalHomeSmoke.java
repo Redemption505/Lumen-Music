@@ -80,6 +80,20 @@ public final class PersonalHomeSmoke extends Application {
         driver.setDaemon(true); driver.start();
     }
 
+    private void checkFirstScreenHeading() {
+        ScrollPane scroll = (ScrollPane) node("home-scroll");
+        check(Math.abs(scroll.getVvalue()) < .0001, "first-screen check requires top scroll position");
+        Node heading = stage.getScene().lookup(".recommendation-heading");
+        Node viewport = scroll.lookup(".viewport");
+        check(heading != null && viewport != null, "home heading/viewport fixture missing");
+        Bounds text = heading.localToScene(heading.getLayoutBounds());
+        Bounds view = viewport.localToScene(viewport.getLayoutBounds());
+        double visible = Math.max(0, Math.min(text.getMaxY(), view.getMaxY()) - Math.max(text.getMinY(), view.getMinY()));
+        check(visible < .1 || visible >= text.getHeight() - .5,
+                "home first-screen heading partially clipped: visible=" + visible + ", height=" + text.getHeight());
+        System.out.println("PASS first-screen heading width=" + stage.getWidth() + " visible=" + visible);
+    }
+
     private void exercise() throws Exception {
         root = Path.of(required("LUMEN_LIBRARY_PATH")).toAbsolutePath().getParent();
         check(root != null && root.toString().contains("personal-home-smoke"), "disposable home profile required");
@@ -204,6 +218,7 @@ public final class PersonalHomeSmoke extends Application {
                     checkHomeBounds(); preserved();
                     FrontendStyleAssertions.home(stage.getScene());
                     ((ScrollPane) node("home-scroll")).setVvalue(0); layout();
+                    checkFirstScreenHeading();
                     screenshot(stage.getScene(), mode.name().toLowerCase() + "-home-top-" + size[0] + "x" + size[1] + ".png");
                     ((ScrollPane) node("home-scroll")).setVvalue(1); layout();
                     screenshot(stage.getScene(), mode.name().toLowerCase() + "-home-bottom-" + size[0] + "x" + size[1] + ".png");

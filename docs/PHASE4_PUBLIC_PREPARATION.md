@@ -1,6 +1,6 @@
 # 第四阶段 E：GitHub 源码与交付准备
 
-状态核对：2026-10-24。第三阶段前端改进及六项回归修复已进入新候选 `lumen-0.2.2-20261024.1`，实际安装、原资料保留及原生操作与退出通过。源码交付目标仍为 [Redemption505/Lumen-Music](https://github.com/Redemption505/Lumen-Music) 的私有 `main`，普通提交推送，保留原历史和可见性。当前提交的运行结果从[工程检查](https://github.com/Redemption505/Lumen-Music/actions/workflows/verify.yml)查阅，不使用旧 CI 证明新代码。没有发布二进制 Release，独立试用与第三方公开条件仍待验。
+状态核对：2026-10-24。第四轮前端改进及三项界面修复已进入新候选 `lumen-0.2.2-20261024.2`，实际安装、原资料保留及原生操作与退出通过。源码交付目标仍为 [Redemption505/Lumen-Music](https://github.com/Redemption505/Lumen-Music) 的私有 `main`，普通提交推送，保留原历史和可见性。当前提交的运行结果从[工程检查](https://github.com/Redemption505/Lumen-Music/actions/workflows/verify.yml)查阅，不使用旧 CI 证明新代码。没有发布二进制 Release，独立试用与第三方公开条件仍待验。
 
 ## 1. 当前交付边界
 
