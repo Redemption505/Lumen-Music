@@ -17,7 +17,7 @@
 | 对应源码 | 两包共用SOURCE.zip；BUILD-INFO.txt记录实际BuildId/工具链，SOURCE-SHA256SUMS.txt核对源文件 |
 | 校验入口 | ZIP旁.zip.sha256、包内SHA256SUMS.txt及发行核对脚本 |
 
-首次安装及v0.2.2同版本升级使用完整安装器；增量仅适用manifest声明的v0.2.1基线。[Windows指南](WINDOWS_GUIDE.md)说明安装和资料保护。GitHub提供私有源码，尚无公开二进制Release。
+首次安装及v0.2.2同版本升级使用完整安装器；增量仅适用manifest声明的v0.2.1基线。[Windows指南](WINDOWS_GUIDE.md)说明安装和资料保护。GitHub源码及已审阅历史已公开，尚无公开二进制Release。
 
 ## 已验收与限制
 

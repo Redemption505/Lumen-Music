@@ -204,7 +204,7 @@ Wrapper 固定分发 URL，目前未配置 `distributionSha256Sum`；Rust 固定
 | `.github/workflows/verify.yml` | Ubuntu、Temurin 21、Python 3.12基础测试与隔离 demo；Windows 完整 Java 单元检查及 PowerShell/Maven Wrapper demo | 远程实际成功、Windows JavaFX 界面、VLC/FLAC 发声、安装/升级/卸载及发行归档 |
 | Windows 基本 `check.ps1` | 本机的相同工程入口与隔离 demo 协议 | 安装版已更新、用户原始数据回归、朋友独立使用 |
 | Windows 场景和安装专项 | 显式 classes/JAR、合成或允许使用的媒体、缩放/UI/播放、真实安装目标与数据保护 | 未运行的其他目标镜像/系统、外部朋友实际反馈 |
-| 发行候选 | 冻结源码/BuildId、必要完整回归、真实安装版、完整/增量/SOURCE字节与校验和 | 外部发布成功；发布还需真实远程、可见性及相应授权 |
+| 发行候选 | 冻结源码/BuildId、必要完整回归、真实安装版、完整/增量/SOURCE字节与校验和 | 二进制发布成功；源码仓库已公开，二进制发布仍需最终附件及相应授权 |
 
 `python scripts/ci-demo.py --offline` 可运行与 Ubuntu 集成 job 相同的 Java/Python 协议入口；使用独立资料、动态端口、demo 身份核验及失败时自有服务清理。Windows job 复用 `check.ps1 -Component Demo`。本地准备在 Windows / Python3.12.14 / JDK23.0.2 实际验收成功路径、Maven 失败后清理和 Windows demo；远程 Ubuntu/Windows runner 与 Temurin21 的结果以 [GitHub Actions](https://github.com/Redemption505/Lumen-Music/actions) 对应提交为准，详见 [E 源码交付](PHASE4_PUBLIC_PREPARATION.md)。
 

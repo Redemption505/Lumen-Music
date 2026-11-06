@@ -4,7 +4,7 @@
 
 新增本地参考为 JNA 5.13.0/5.14.0 的 LICENSE、AL2.0、LGPL2.1 六份官方原文，以及 LRCLIB 当前 API 文档；四个 JNA JAR 声明与同版本官方文本匹配（仅规范化换行）。这些文本尚未进入现有安装包/发行 ZIP；取得它们不等于 native/libffi、NOTICE 或其他组件缺口已解决。图标创作来源及历史截图本轮已核，见[素材来源](ASSET_SOURCES.md)。
 
-当前结果、官方来源和公开前具体任务统一见[公开测试版准备](PUBLIC_PRERELEASE_READINESS.md)。本轮未修改已冻结安装器、SOURCE、发行包或依赖；实际公开及发布前由维护者确认。
+当前结果、官方来源和公开前具体任务统一见[公开测试版准备](PUBLIC_PRERELEASE_READINESS.md)。本轮未修改已冻结安装器、SOURCE、发行包或依赖；源码及已审阅历史现已公开，二进制发布前仍由维护者确认。
 
 以下明细描述历史 `lumen-0.2.2-20261009.2` 的原始材料收集，保留其身份、供应商与各项未决，不用当前镜像的相同组件字节改写旧包总摘要。本机新比较记录为 `build/public-prerelease-20261106/material-binding.json`，旧清单仍在原位置，不随源码上传。
 
@@ -25,7 +25,9 @@
 
 材料目录的 `existing/` 是 D 已有文本/源码的原字节副本；`supplemented/` 是本轮从匹配版本的现成缓存补出的许可、NOTICE、作者致谢或元数据。收集器给 AppHome 的全部 785 个文件记录哈希，包括构建镜像标记 `app/.jpackage.xml`。与实际安装只读相减后，仅此标记不在安装目录，其余 784 个运行文件全部 SHA-256 相同；差项证据（本地证据/归档：`build/phase4-public-e/installed-image-difference.json`，不随源码上传） 记录该范围。现有 `install-phase3-release.ps1` 明确将该非运行标记排除于安装验收，因此 D 的 784 与这里的 785 是不同清单范围，不是应用负载缺失，也不是 Hidden 属性差异。
 
-## 2. 已有与补齐材料
+## 2. 既有收集器材料基线
+
+下表保留原收集器快照，用于追溯旧材料身份，不是当前剩余清单。后续已完成JDK发行来源/对应源码、JavaFX实际SDK许可、JNA native和Rust标准库/Python等补齐；当前逐组件结论与可执行校验统一见[原生材料](NATIVE_REDISTRIBUTION.md)。
 
 | 对象 | D 已有 | 本轮本地准备 | 仍需核对 |
 | --- | --- | --- | --- |
@@ -61,4 +63,4 @@ python scripts/collect-release-materials.py `
 
 2026-10-09 的有限官方核对取得 [JNA 5.14.0 许可文件](https://github.com/java-native-access/jna/blob/5.14.0/LICENSE)，支持其 Java 许可可选择 Apache-2.0 或 LGPL-2.1 及之后版本；取得 [OpenJFX jfx21 许可文件](https://github.com/openjdk/jfx/blob/jfx21/LICENSE)，但该分支资料不能单独证明本机 21.0.12 native 组件及材料完整。[OpenJDK 归档入口](https://jdk.java.net/archive/) 返回 403，没有用它确认本机 JDK 的原始下载链。许可正文收集主要依据已验证本机归档，未下载新依赖，也没有为失败页面编造原文或授权结论。
 
-音源/平台接口、两类歌词、图标来源和公开展示素材仍遵循 [第三方来源核对](THIRD_PARTY_REVIEW.md) 的具体未决项。朋友独立电脑试用及原首次启动闪退反馈者复测仍无结果。此页完成本地可审阅材料准备；本轮源码上传的授权不覆盖材料附件、仓库改为公开或二进制 Release，材料复制也不代表上述条件已通过。
+音源/平台接口、两类歌词、图标来源和公开展示素材仍遵循 [第三方来源核对](THIRD_PARTY_REVIEW.md) 的具体未决项。朋友独立电脑试用及原首次启动闪退反馈者复测仍无结果。此页完成本地可审阅材料准备；源码上传后已另获仓库公开确认并完成匿名访问核对；该授权不覆盖材料附件或二进制 Release，材料复制也不代表上述条件已通过。

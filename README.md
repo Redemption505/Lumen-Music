@@ -51,7 +51,7 @@
 
 ## 从源码开始
 
-Windows 开发需准备完整 **JDK 21（推荐）** 和 **Python 3.10+**，配置 `JAVA_HOME`、`LUMEN_PYTHON` 或可用的 `PATH`。Maven 使用仓库自带 Wrapper；Python 服务仅依赖标准库。访问私有仓库需要相应 GitHub 权限。
+Windows 开发需准备完整 **JDK 21（推荐）** 和 **Python 3.10+**，配置 `JAVA_HOME`、`LUMEN_PYTHON` 或可用的 `PATH`。Maven 使用仓库自带 Wrapper；Python 服务仅依赖标准库。[GitHub 源码仓库](https://github.com/Redemption505/Lumen-Music)及已审阅历史现已公开，可匿名克隆；二进制候选尚未发布。
 
 在 PowerShell 中克隆，然后运行不打开播放器窗口的隔离协议检查：
 

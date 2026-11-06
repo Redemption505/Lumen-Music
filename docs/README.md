@@ -4,7 +4,7 @@
 
 当前 Windows 内测候选为 **v0.2.2**，具体构建身份与校验方式以 [候选说明](PHASE4_RELEASE_CANDIDATE.md) 为准。GitHub 尚无二进制 Release；文档中的 `build/` 路径是未随源码上传的本地材料，不是下载入口。独立朋友电脑和原首次启动闪退者复测仍待完成。
 
-首次 Windows Pre-release 的当前结论、公开范围和最小验收见[公开测试版准备](PUBLIC_PRERELEASE_READINESS.md)，项目自制图标、桌宠及截图见[素材来源](ASSET_SOURCES.md)，首发范围见[在线来源范围](ONLINE_SOURCE_SCOPE.md)，新增精确源码材料见[原生组件分发材料](NATIVE_REDISTRIBUTION.md)。公开与发布尚待最终确认。
+首次 Windows Pre-release 的当前结论、公开范围和最小验收见[公开测试版准备](PUBLIC_PRERELEASE_READINESS.md)，项目自制图标、桌宠及截图见[素材来源](ASSET_SOURCES.md)，首发范围见[在线来源范围](ONLINE_SOURCE_SCOPE.md)，新增精确源码材料见[原生组件分发材料](NATIVE_REDISTRIBUTION.md)。源码仓库及已审阅历史已公开，二进制 Pre-release 仍待最终确认。
 
 窗口/三个重启会话与独立电脑的剩余最小批次见[本地候选验收](LOCAL_PREVIEW_ACCEPTANCE.md)；当前用户暂不方便释放内存且无独立设备，未安排接管或重启。
 

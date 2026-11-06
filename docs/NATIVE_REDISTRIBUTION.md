@@ -1,27 +1,45 @@
 # Windows 原生组件：对应源码与许可材料
 
-更新：2026-11-06。当前材料核对对象是 `lumen-0.2.2-20261024.3` 使用的运行组件；本地优先构建不更换这些依赖。材料已在本地取得并校验，**尚未全部进入发行包，也未判定整个二进制可以公开再分发**。当前已取得、参考用途和真实缺口分别列明，避免重复收集或将相近版本当作精确来源。
+更新：2026-11-06。源码仓库及已审阅历史已公开，二进制 Pre-release 尚未发布。以下材料绑定本地优先候选 `lumen-0.2.2-local-20261106.1` 的实际文件；日用完整版本和标准 ZIP 未替换。材料取得、对应关系、最终随包交付分别判断。
 
-## 已取得的材料
+## 当前组件结论
 
-| 组件 | 精确身份和材料 | 已关闭与仍需核对 |
+| 组件 | 已核对的实际材料 | 剩余边界 |
 | --- | --- | --- |
-| JDK / JRE 23.0.2 | 本机完整 JDK 的 `SOURCE=.:git:a13b02ce6f85` 对应 [OpenJDK 提交](https://github.com/openjdk/jdk/tree/a13b02ce6f8545b9fce1263f0b5a219b55fb2522)。已取得完整源码归档，含 HotSpot、桌面原生代码、make、configure 和构建说明；117,239,606 字节，SHA-256 `dda0120d9ac77f27ff774a2019a6c9b284dba830bcd2d8cfedbe3573f5d17e78` | 对应修订的源码取得已完成；既有 224 份模块许可继续保留。依据为本机元数据与相同组件字节，未重建二进制；原始 JDK 下载链和适用分发方案仍按实际材料核对，不能单凭供应商名套用另一发行物的许可 |
-| JavaFX 21.0.12 | 已取得 base / controls / graphics / media 四个 Maven 精确 GAV 的 sources.jar；实际随包 `javafx.properties` 和 `VersionInfo.class` 均为 **21.0.12+2** | 四份 Java 源码已取得；native 精确源码/构建归属仍待确认。已取得的 [jfx21u 21.0.12+1](https://github.com/openjdk/jfx21u/tree/cbae1f63e74a91f90e0e713f70b62e3e8f1bc5f1) 只作同发行线参考，不能冒充 +2。另对四份sources.jar的2,137份Java文件与+1参考作有限对照：2,135同字节（忽略CRLF），HLSConnectionHolder有实际差异，VersionInfo为生成项未在相同路径找到，不能假定只是版本标记差别。查到 +1/+3 标签不代表 +2 不存在于其他来源；也不能用 Oracle JavaFX 下载许可套用 org.openjfx 的 Maven 二进制 |
-| VLC 3.0.23 | 已取得 [官方源码 tar.xz](https://download.videolan.org/pub/videolan/vlc/3.0.23/vlc-3.0.23.tar.xz)及同目录官方 SHA-256 校验文件，实际匹配；26,486,988 字节 | VLC 本身源码取得和完整性已完成；所复制 Windows 插件及底层库的实际构建参数、依赖/许可映射仍需补齐。源码中 contrib 的规则/版本用于定位依赖，不能单独证明完整 Windows 二进制构建闭包 |
-| JNA 5.13.0 / 5.14.0 | 四个实际构件对应 sources.jar；另取得两个精确 tag 的根许可及 native/libffi 源码子集。tag 提交为 `4962fd7758493b7395e86578705d8a32f6238872`、`c366bc4fd0c50a30ac8d2475603ec564f6611462`，子集每个文件有 SHA-256。六份官方许可原文及四 JAR 声明比对沿用上一轮 | Java 源码和原生源码子集已取得，拟采用 Java Apache-2.0 路径；native/libffi 的实际声明和随包 NOTICE 仍单独核对。子集不是完整跨平台仓库归档，不能声称验证了已不保留的全仓库归档哈希 |
-| Rust 侧车 | 离线取得 Windows `normal,build` 保守依赖图 **101 个**锁定源码 `.crate`，共 12,470,342 字节；所有包 SHA-256 与 Cargo.lock 相符，收集 **167 份**许可/版权文件 | 补齐旧 98 项普通图之外的 cc、find-msvc-tools、shlex 三个构建组件；保留 ring 的 native 源和构建脚本。该图不是“101 个都链接进程序”的证明；最终打包须纳入适用文本、归属与源码取得清单 |
-| Python / vlcj | Python 3.13.15、vlcj 4.11.0、vlcj-natives 4.8.3 已有匹配源码归档与材料，按已核对的不变字节复用 | 不重复下载或升级；最终包保留其许可、精确源码与 Python `_pth` 配置改动说明 |
+| OpenJDK 23.0.2 | 本机安装记录、[官方归档](https://jdk.java.net/archive/)和官方 SHA-256 对应 GPL OpenJDK Windows 发行物；224 份模块许可及核心 DLL 与本机完整 JDK 同字节。`SOURCE=a13b02ce6f85` 对应已取得的完整[源码修订](https://github.com/openjdk/jdk/tree/a13b02ce6f8545b9fce1263f0b5a219b55fb2522)，含 HotSpot、native、make/configure | 发行身份、精确修订源码取得及许可材料已核对；未重下或重建 209 MB 原二进制。最终包须保留模块许可及对应源码入口 |
+| JavaFX 21.0.12+2 | 四份 Maven sources.jar；候选 JAR 内 57/57 DLL 与[官方 Gluon SDK](https://download2.gluonhq.com/openjfx/21.0.12/openjfx-21.0.12_windows-x64_bin-sdk.zip)同字节，取得实际四模块 18 份许可/声明，含 JPEG 10、GLib 2.82.4、GStreamer 1.26.5、libffi 3.4.4 | **精确 +2 native 源码/补丁与构建修订仍未关闭。** 已有 +1 仅作参考；`cbae...` 是 annotated tag 对象，实际 +1 commit 为 `416b7b09df6b76d7f3d78cf20b53fa22d0f35f94`。相邻 tag 或相同 Java 文件不证明 native 对应 |
+| Microsoft VC/UCRT | 上述 57 DLL 中 5 个 VC runtime、41 个 UCRT/APISet；41/41 与现成 Windows SDK Redist 同字节且逐名列入[SDK REDIST](https://learn.microsoft.com/en-us/legal/windows-sdk/redist)。维护者已确认接受适用 Community 许可；Community 第4节、[VS REDIST](https://learn.microsoft.com/en-us/visualstudio/releases/2022/redistribution)、SDK RTF及CRT条款原文已保留 | 适用许可事实及46文件材料映射已核对；最终发行按各自条款保留权利说明。微软文件不适用项目/OpenJFX GPL；不需要为此购买付费VS |
+| JNA 5.13.0 / JPMS 5.14.0 | Java/native 选择 Apache-2.0，libffi 另保留其原始许可；四构件来源、六份官方全文、代码版权归属与两个精确 tag 的 52/52 native 成员同字节检查通过，含旧统计漏计的 AIX `.a` | 材料对应已核对；原生源码归档仍是 native/libffi 子集，不冒充全仓库。没有上游 NOTICE 文件时不虚构；项目归属清单明确为整理材料 |
+| VLC 3.0.23 | 两核心 DLL 与现有官方 tar 的 revision.txt/revision.c 同为 `3.0.23-2-0-g79128878dd`。368 文件保持；插件目录为363 DLL及2个libbluray JAR，363构建目标与原源树已定位 | **实际 Windows contrib/外部静态依赖的源码、补丁与许可闭包仍未关闭。** 116个配方候选和源文件声明不能证明全部实际启用，主VLC源码不能替代这些依赖 |
+| Rust 侧车 | Windows normal/build 的101个锁定crate与167份许可/版权文本；EXE内rustc完整提交与1.98.1一致，补官方精确 rust-src 组件（3,628文件）和76份原许可及标准库版权 | 材料输入已核对。保留各crate的MIT/Apache选择及AND组合义务；标准库源码不是完整编译器仓库，也不声称101个组件均链接 |
+| Python 3.13.15 | 实际文件与旧核验字节一致；精确CPython源码、完整Windows LICENSE、native构建版本/来源及 `_pth` 项目配置说明保留。OpenSSL3.0.21精确提交树24,662条未截断，NOTICE/COPYING路径覆盖检查及必要许可已补齐 | 基础与原生归属材料输入已核对；微软代码继续遵守其原条款，不统一归GPL。检查未扩大为所有Git子模块和每条源注释审计 |
+| vlcj 4.11.0 / vlcj-natives 4.8.3 | 两份匹配的sources.jar、GPLv3全文、原版权注释及发布POM | 材料输入已核对；最终保留版本、版权和源码访问关系 |
 
-Rust 的双许可选用方案为：存在 MIT 选项时选 MIT，Apache/BSL 选择 Apache-2.0；保留 `AND Unicode-3.0`、`AND ISC`、`AND BSD-3-Clause` 等组合义务。完整原始源码包中的其他许可文本也不删去；不把所有传递组件统一写成 MIT。
+## 可执行的材料与候选校验
 
-本地证据位于未上传的 `build/public-prerelease-followup-20261106/`：`native/manifest.json` 记录 15 件源码/参考归档和 JNA 子集成员，`native-verification.json` 是主代理逐项复核；`rust/manifest.json` 记录 101 个源码包、167 份文本、实际图及许可选择。旧材料身份与完整性核对仍见[材料准备](PHASE4_RELEASE_MATERIALS.md)。
+新增[离线校验器](../scripts/verify-prerelease-materials.py)，仅用 Python 3.11+ 标准库，不联网、不解压、不启动应用、不修改被检查镜像。它校验完整文件清单、BuildId/profile、每个材料的大小/SHA-256、组件覆盖和明确的人工核对结论。`reference` 不满足 `source` 角色；哈希一致不能自动证明许可充分。
 
-## 下一步的有限补齐范围
+维护者持有实际镜像和材料后运行：
 
-1. 从 JavaFX 实际构件的上游/构建元数据定位 **21.0.12+2** 的 native 源码修订及其附带第三方许可。只取得相邻 tag 不关闭此项；目前没有为材料方便而替换依赖。
-2. 对现有 VLC Windows 包取得其插件/底层库构建清单和对应来源方案，复用官方 3.0.23 源码与已有哈希，不重新抓取所有平台。不能用单个 COPYING 文本替代实际多组件归属。
-3. 将 JDK、JNA native、Rust 及已有 Python/vlcj 的材料按最终实际分发清单组装，保留必要的完整许可、版权与 NOTICE；核对源码取得路径和对应身份。采用网络提供对应源码的方案时，发布位置应同时提供清楚且可用的访问入口，见[GNU 说明](https://www.gnu.org/licenses/gpl-faq.html#AnonFTPAndSendSources)和[VideoLAN 说明](https://docs.videolan.me/vlc-user/en/support/faq/legalconcerns.html)。
-4. 完成材料组装后才冻结新的 SOURCE 与校验和；本地收集不是对旧安装 ZIP 的内容更新，也不是公开 Release。
+```powershell
+python scripts/verify-prerelease-materials.py `
+  --catalog build/prerelease-closeout-20261106/native-material-catalog-02.json `
+  --app-home build/local-preview/lumen-0.2.2-local-20261106.1/image/LumenMusicPreview `
+  --materials-root . `
+  --output build/prerelease-material-check-new `
+  --require-release-ready
+```
 
-网络来源与媒体内容边界另见[在线来源范围](ONLINE_SOURCE_SCOPE.md)，原生软件许可不能为媒体内容提供授权。首次公开与最终确认入口见[公开测试版准备](PUBLIC_PRERELEASE_READINESS.md)。
+`build/` 中的实际材料和catalog是本地维护证据，不随源码克隆提供；命令须换成操作者实际输入，输出用新目录。catalog含 `schemaVersion=1`、`image` 的 `buildId/releaseProfile/mainJar/files`、`materials` 的 `id/path/bytes/sha256/component/role`，以及 `components` 的 `id/imagePaths/materialIds/reviewState/reviewEvidence/openItems`。组件标识为jdk、javafx、jna、vlcj、vlc、rust、python及first-party的project；路径均相对于显式输入根，拒绝越界和重复。
+
+本轮复核 **786个候选文件、1062件材料** 的身份/完整性通过；`nativeMaterialGatePassed=false`。严格模式按预期返回2，保留上述JavaFX/VLC缺口；缺文件、篡改或候选清单不符返回1。该工具不验窗口、声音、重启或独立电脑，不能替代整个发布门槛。
+
+本地草稿已复制 **525份许可/声明原文**，附逐件校验和和 **120件source角色材料索引**。大源码归档仍引用已有原字节，未复制进草稿，草稿不是完成的SOURCE或可直接发布附件。首轮发现的23个旧测试字节码缓存已核对来源、时间/大小后移入证据目录保留；原786负载文件未更改，失败报告没有删除或放宽。
+
+当前唯一机器结果为 `build/prerelease-closeout-20261106/material-check-02/verification.json`；分项原始输入、补充核对及草稿均保留在同一未上传目录。不要将私有报告、本机路径或不完整草稿直接作为公开附件。
+
+## 下一步
+
+1. 取得 `OpenJFX-release #124 / 21.0.12+2` 的权威native修订、补丁及构建清单；已有Java源码、精确SDK配对和相邻tag不重复收集。
+2. 按实际VLC Windows构建启用清单，补contrib依赖源码/补丁及逐组件声明；不下载所有平台或把通用COPYING当完整闭包。[VideoLAN分发说明](https://docs.videolan.me/vlc-user/en/support/faq/legalconcerns.html)也要求按具体模块许可处理。
+3. 上述两项关闭后，将精确许可、微软条款和对应源码方案真正纳入最终包，冻结SOURCE、BuildId和校验和，再结合[候选最小验收](LOCAL_PREVIEW_ACCEPTANCE.md)请求二进制发布确认。源码已公开不等于此流程已完成。

@@ -28,7 +28,7 @@ jobs:
         env:
           PYTHONPATH: service
         run: python -m unittest discover -s service/tests -v
-      - name: Startup report tests
+      - name: Release tools and startup report tests
         run: python -m unittest discover -s scripts/tests -v
       - name: Axum stream proxy tests
         run: cargo test --manifest-path stream-proxy/Cargo.toml --locked
