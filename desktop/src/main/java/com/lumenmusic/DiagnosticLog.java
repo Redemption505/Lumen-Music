@@ -141,6 +141,8 @@ public final class DiagnosticLog {
     }
 
     static Path defaultFile() {
+        if (ReleaseProfile.current().localFirst())
+            return ReleaseProfile.current().appDataDirectory().resolve("diagnostics.xml");
         String configured = System.getenv("LUMEN_LIBRARY_PATH");
         if (configured != null && !configured.isBlank()) return Path.of(configured).toAbsolutePath().getParent().resolve("diagnostics.xml");
         String local = System.getenv("LOCALAPPDATA");

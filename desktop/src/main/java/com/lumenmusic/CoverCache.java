@@ -61,6 +61,8 @@ public final class CoverCache implements AutoCloseable {
     public synchronized CompletableFuture<byte[]> load(URI uri) {
         Objects.requireNonNull(uri);
         if (closed) return CompletableFuture.failedFuture(new IllegalStateException("Cover cache is closed"));
+        if (!profileAllows(uri, ReleaseProfile.current()))
+            return CompletableFuture.failedFuture(new IOException("本地测试版不加载在线封面"));
         CompletableFuture<byte[]> existing = inFlight.get(uri);
         if (existing != null) return existing;
         CompletableFuture<byte[]> result = new CompletableFuture<>();
@@ -146,6 +148,10 @@ public final class CoverCache implements AutoCloseable {
             catch (IOException unavailable) { /* A disk cache failure must not hide a downloaded cover. */ }
         }
         return bytes;
+    }
+
+    static boolean profileAllows(URI uri, ReleaseProfile profile) {
+        return profile.allowsCoverUri(uri);
     }
 
     private static byte[] readLimited(Path path) throws IOException {

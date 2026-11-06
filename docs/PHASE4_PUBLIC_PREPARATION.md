@@ -2,6 +2,16 @@
 
 状态核对：2026-10-24。前端第二阶段改进及本轮稳定性修复已进入新候选 `lumen-0.2.2-20261024.3`，实际安装、原资料保留及原生操作与退出通过。源码交付目标仍为 [Redemption505/Lumen-Music](https://github.com/Redemption505/Lumen-Music) 的私有 `main`，普通提交推送，保留原历史和可见性。当前提交的运行结果从[工程检查](https://github.com/Redemption505/Lumen-Music/actions/workflows/verify.yml)查阅，不使用旧 CI 证明新代码。没有发布二进制 Release，独立试用与第三方公开条件仍待验。
 
+## 首次公开测试版后续状态
+
+用户已选本地优先首发并保留日用完整版本。`lumen-0.2.2-local-20261106.1` 独立私有镜像、LRCLIB及策略回归已完成；Python379项中377通过/2公网跳过，Java定向两配置通过，内置服务及文件身份通过。窗口/三个重启会话/独立设备均尚未验，材料仍有精确native缺口。该镜像不是标准安装版/发行ZIP的替换，也不是公开发布。详见[公开准备](PUBLIC_PRERELEASE_READINESS.md)、[精确材料](NATIVE_REDISTRIBUTION.md)和[最小验收](LOCAL_PREVIEW_ACCEPTANCE.md)。
+
+本次授权范围为将审阅后的 Windows 源码和文档普通提交至私有 `main`，再核对该提交的[工程检查](https://github.com/Redemption505/Lumen-Music/actions/workflows/verify.yml)。不纳入并行 Android 改动、独立子仓库、下载材料、私有证据或二进制。源码公开另行确认；仓库可见性、标签和二进制 Release 均不随本次提交改变。
+
+## 首次公开测试版当前入口
+
+2026-11-06已完成历史隐私命中分类、素材来源核对及当前镜像的第三方材料绑定，详见[公开测试版准备](PUBLIC_PRERELEASE_READINESS.md)。用户同意保留历史邮箱并确认项目图标/桌宠创作来源；实际公开及发布仍须最终确认。本页下文保留既有私有源码交付事实，不是公开下载或本轮重新验收记录。
+
 ## 1. 当前交付边界
 
 当前交付身份、完整/增量包、同字节 SOURCE 及验收边界统一见[内测候选](PHASE4_RELEASE_CANDIDATE.md)和[前端交付验收](FRONTEND_RELEASE_ACCEPTANCE.md)。旧候选及归档保留可恢复副本；本轮 SOURCE 按新候选冻结，后续工作区内容不自动成为冻结包内容。

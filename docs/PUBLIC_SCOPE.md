@@ -1,6 +1,13 @@
 # 公开源码候选范围
 
-核对日期：2026-10-11（第三方现行资料访问基线为2026-10-08）。用户已授权将复核后的源码提交至 [Redemption505/Lumen-Music](https://github.com/Redemption505/Lumen-Music)，保持仓库现有私有可见性。本次上传开发源码、脚本、规范和合成截图，不上传安装器、第三方二进制、个人资料或本地材料归档，不创建 Release。范围由实际 Git 忽略与索引检查验证，来源及二进制未决项见[第三方核对](THIRD_PARTY_REVIEW.md)和[E 材料准备](PHASE4_RELEASE_MATERIALS.md)。
+更新：2026-11-06。当前仍为指定 GitHub 私有仓库；本轮授权首次 Windows Pre-release 的本地收尾，实际公开及发布由用户最终确认。已完成的源码交付不等同于公开二进制发布。当前对象和未决项统一见[公开测试版准备](PUBLIC_PRERELEASE_READINESS.md)。
+
+## 历史隐私检查
+
+本轮检查 16 个提交与 1,198 个本地 blob（含本地工具快照和不可达 blob），可发布历史 9 处命中均为人工合成测试字面量/URL，未发现真实凭据泄露证据。扫描器正负探针、命中逐项分类和既有 fixture 哈希均已核对；没有修改审阅白名单或历史。普通历史、工具快照和不可达本机链接分开记录，不上传 `.git` 或使用 mirror 推送。远程只读引用核对为与已审查基线相同的 main，无标签。
+
+维护者明确同意保留历史提交邮箱。10 张历史首页 PNG 已从 Git 原字节逐一查看，无个人曲库、私人路径或真实歌词；图标和桌宠创作来源由维护者确认，见[素材来源](ASSET_SOURCES.md)。这些结论不覆盖未知编码、二进制隐写、嵌套第三方源码包的所有内容或未来新增文件。全部脱敏检查证据保留在未上传的本地 `build/public-prerelease-20261106/`。
+
 
 ## 1. 三种对象分别验收
 
@@ -10,9 +17,9 @@
 | 发行包 `SOURCE.zip` | 与某个二进制对应的源码、构建信息及第三方源码材料 | 当前由 `scripts/package-release.ps1` 单独复制指定树；**不读取 `.gitignore`**。不能仅修改忽略规则就声称打包排除了凭据 |
 | 可公开发行附件/截图 | 最终安装器、更新包、对应源码、许可证、声明、校验和，以及允许展示的界面 | 必须核对冻结版本的实际字节与来源；旧包哈希不代表本轮修改，截图和媒体另验授权 |
 
-已交付候选 `lumen-0.2.2-20261010.1` 的 `SOURCE.zip` 包含485个文件，其中483个与该次构建的工作区输入字节一致，已收录 `.github/workflows/`、`.gitignore`、根 `AGENTS.md`、`CONTRIBUTING.md` 和 `CHANGELOG.md`。其主要源码树为 `desktop/src`、`desktop/.mvn`、`service/lumen_service`、`service/tests`、`stream-proxy/src`、`scripts`、`release`、`docs`，另有根 README、阶段文档、POM、Maven wrapper、Cargo.toml/Cargo.lock、三份第三方源码归档及 GPL 文本，并生成 `BUILD-INFO.txt`、`SOURCE-SHA256SUMS.txt`；不含 Git 历史。构建身份和验收见[候选说明](PHASE4_RELEASE_CANDIDATE.md)。
+历史候选 `lumen-0.2.2-20261010.1` 的 `SOURCE.zip` 包含485个文件，其中483个与该次构建的工作区输入字节一致，已收录 `.github/workflows/`、`.gitignore`、根 `AGENTS.md`、`CONTRIBUTING.md` 和 `CHANGELOG.md`。其主要源码树为 `desktop/src`、`desktop/.mvn`、`service/lumen_service`、`service/tests`、`stream-proxy/src`、`scripts`、`release`、`docs`，另有根 README、阶段文档、POM、Maven wrapper、Cargo.toml/Cargo.lock、三份第三方源码归档及 GPL 文本，并生成 `BUILD-INFO.txt`、`SOURCE-SHA256SUMS.txt`；不含 Git 历史。当前构建身份和验收见[候选说明](PHASE4_RELEASE_CANDIDATE.md)。
 
-当前打包规则另将 `.editorconfig` 和下表四个协作模板精确纳入未来 `SOURCE.zip`。这些本轮新增文件不会自动进入已冻结的20261010.1归档；再次打包时必须与目标二进制、构建身份和实际字节一并核对，不能声称旧归档已包含它们。
+打包规则另将 `.editorconfig` 和下表四个协作模板精确纳入后续 `SOURCE.zip`；它们不会自动进入已冻结的20261010.1历史归档。当前20261024.3的511个SOURCE文件、509个工作区输入及506个Git文件对应关系见[交付验收](FRONTEND_RELEASE_ACCEPTANCE.md)。再次打包须与目标二进制、构建身份和实际字节一并核对，本轮新增公开准备文档尚未进入既有归档。
 
 更新打包脚本从目标完整包复制 `SOURCE.zip`、许可证及第三方声明，不独立重新生成源码。完整包材料变化后，更新包也要按新目标重新组装并校验。不能将修改后的工作区与旧 SOURCE 说成同一份源码。
 
@@ -66,7 +73,7 @@
 | `test_discovery_http.py` / 1 | 合成曲库、人工provider和替换的AI检索/transport，目标为本机测试server |
 | `update_feedback_smoke_fixture.py` / 1 | 显式隔离fixture根目录，固定输入且AI关闭，不从真实个人目录取值 |
 
-旧 D `lumen-0.2.2-20261009.2` 的冻结 SOURCE 为467成员、465个当时工作区输入，仅作为历史归档。当前已交付20261010.1的485/483验收事实见[候选说明](PHASE4_RELEASE_CANDIDATE.md)。本轮仓库呈现文件属于后续开发源码；文档和白名单更新不会改写任何已归档 SOURCE 或二进制。C 的457文件初始候选与测试分类证据保留在 `build/phase4-delivery-c/public/`，当前候选文件数以重新运行范围扫描所得的实际清单为准。
+旧 D `lumen-0.2.2-20261009.2` 的冻结 SOURCE 为467成员、465个当时工作区输入；20261010.1的485/483仅作历史归档。当前身份见[候选说明](PHASE4_RELEASE_CANDIDATE.md)。本轮文档属于后续开发源码；文档和白名单更新不会改写任何已归档 SOURCE 或二进制。C 的457文件初始候选与测试分类证据保留在 `build/phase4-delivery-c/public/`，后续候选文件数以实际清单为准。
 
 以上仅覆盖白名单内当前 UTF-8 文本、实际索引字节及已分类的合成/图片依据；未知编码、二进制嵌入秘密及素材权利仍需具体复核。未读取真实个人状态、密钥、原始日志或备份负载，不声明启发式检查能够证明没有任何秘密。
 

@@ -4,6 +4,16 @@ v0.2.2 新增歌单封面与说明、备注可选日期字段，继续使用现�
 
 Python 服务基础地址：`http://127.0.0.1:8765`。元数据和错误响应为 UTF-8 XML；音频响应为 MP4 字节流。默认数据源为 B 站视频搜索，可通过 `--provider demo` 切换离线演示。Rust Axum 音频侧车默认监听 `http://127.0.0.1:8766`，转发下面的取流请求；Python 仍负责音频地址解析。
 
+## 本地优先构建的能力边界
+
+`--release-profile local-first` 时，`GET /api/health` 返回 `provider="local"` 及 `releaseProfile="local-first"`；full默认仍保留原health形状。没有运行时API可将该构建切回full。所有接口仍只监听回环地址。
+
+在线tracks/collections、recommendations、radio及在线收藏夹导入返回HTTP 503、`LOCAL_FIRST_UNAVAILABLE`；GET/HEAD音轨在访问代理前被拒绝。这是该profile的固定能力限制，不表示应自动重试。`/api/lyrics` 保留LRCLIB，网易云补充transport返回合法空候选，不产生请求。曲库、历史、元数据整理、已有在线条目备份/恢复保留；保存在线条目不意味着允许播放它。桌面另在队列与最终音源处拒绝非file URI，禁HTTP(S)封面及线上预载。
+
+策略和来源依据见[在线范围](ONLINE_SOURCE_SCOPE.md)，不同profile的默认目录和端口见[开发说明](DEVELOPMENT.md)。私有候选尚未完成GUI、真实音频或系统重启验收。
+
+## full构建的原有请求
+
 | 请求 | 状态 | 响应 |
 | --- | --- | --- |
 | `GET /api/health` | 200 | `<health status="ok" provider="bilibili" />` 或 `provider="demo"` |

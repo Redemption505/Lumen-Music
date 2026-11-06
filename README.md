@@ -39,6 +39,8 @@
 
 当前仓库提供源码，**尚无公开二进制 Release**。前端第二阶段的收藏/本地播放全部、查找循环定位、唱针及摘要改进和本轮修复已进入新候选；源码与实际安装JAR双缩放、原资料页面、迷你返回和正常退出验收通过。身份及范围见[候选说明](docs/PHASE4_RELEASE_CANDIDATE.md)和[第二阶段验收](docs/FRONTEND_STAGE2_ACCEPTANCE.md)。
 
+已选定本地优先的首次 Windows 测试版范围，独立私有候选已构建，窗口/重启/独立设备及部分材料仍待验；当前仍未发布。历史隐私、素材来源、第三方材料及剩余最小验收见[公开测试版准备](docs/PUBLIC_PRERELEASE_READINESS.md)。
+
 如果你已经收到内测包：
 
 1. 解压完整包，运行其中的 `LumenMusic-0.2.2-Setup.exe`。内置 Java、Python 和 VLC，无需另装开发工具。

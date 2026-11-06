@@ -9,9 +9,12 @@ from __future__ import annotations
 import json
 import math
 import re
+import threading
 import time
 import unicodedata
 from dataclasses import dataclass
+from datetime import timezone
+from email.utils import parsedate_to_datetime
 from typing import Any, Callable
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -25,7 +28,13 @@ _ENDPOINT = "https://lrclib.net/api/search"
 _NETEASE_SEARCH = "https://music.163.com/api/search/get"
 _NETEASE_LYRIC = "https://music.163.com/api/song/lyric"
 _MAX_BYTES = 2 * 1024 * 1024
-_USER_AGENT = "LumenMusic/0.1 (local desktop player)"
+_USER_AGENT = "LumenMusic/0.2.2 (https://github.com/Redemption505/Lumen-Music)"
+_LRCLIB_MIN_INTERVAL = 0.5
+_LRCLIB_RETRY_SPACING = 0.5
+_LRCLIB_DEFAULT_COOLDOWN = 30.0
+_lrclib_lock = threading.Lock()
+_lrclib_next_allowed = 0.0
+_lrclib_cooldown_until = 0.0
 _TIMED_LINE = re.compile(r"\[\d{1,3}:([0-5]\d)(?:[.:]\d{1,3})?\].*\S")
 _RISKY_TITLE = re.compile(
     r"(?:翻唱|cover|live|现场|混剪|混音|串烧|合辑|合集|playlist|mash[ -]?up|remix|"
@@ -198,26 +207,80 @@ def _structured_identities(title: str) -> tuple[tuple[str, str], ...]:
     return ((second, first), (first, second))
 
 
+def _retry_after_seconds(value: str | None) -> float | None:
+    if not value:
+        return None
+    value = value.strip()
+    if re.fullmatch(r"\d+", value):
+        # Avoid unbounded integer conversion; infinity is a safe monotonic
+        # deadline for a valid, extremely large Retry-After value.
+        if len(value) > 300:
+            return math.inf
+        return float(int(value))
+    try:
+        when = parsedate_to_datetime(value)
+        if when.tzinfo is None:
+            when = when.replace(tzinfo=timezone.utc)
+        return max(0.0, when.timestamp() - time.time())
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
 def _fetch(url: str, timeout_seconds: float) -> Any:
     body: bytes | None = None
-    for attempt in range(2):
-        headers = {"User-Agent": _USER_AGENT, "Accept": "application/json"}
-        if url.startswith("https://music.163.com/"):
-            headers["Referer"] = "https://music.163.com/"
-        request = Request(url, headers=headers)
-        try:
-            with urlopen(request, timeout=timeout_seconds) as response:
-                body = response.read(_MAX_BYTES + 1)
-            break
-        except HTTPError as error:
-            if error.code in (502, 503, 504) and attempt == 0:
-                time.sleep(0.25)
-                continue
-            if error.code == 429:
-                raise ProviderError("LYRICS_RATE_LIMITED", "歌词服务繁忙，请稍后再试", 503) from error
-            raise ProviderError("LYRICS_UPSTREAM_ERROR", f"歌词服务返回 HTTP {error.code}") from error
-        except (TimeoutError, URLError) as error:
-            raise ProviderError("LYRICS_UNAVAILABLE", "歌词服务暂不可用", 502) from error
+    is_lrclib = url.startswith("https://lrclib.net/")
+    is_netease = url.startswith("https://music.163.com/")
+    headers = {"User-Agent": _USER_AGENT, "Accept": "application/json"}
+    if is_netease:
+        headers["Referer"] = "https://music.163.com/"
+    request = Request(url, headers=headers)
+    if is_lrclib:
+        global _lrclib_next_allowed, _lrclib_cooldown_until
+        # Do not queue service workers behind an in-flight request.
+        if not _lrclib_lock.acquire(blocking=False):
+            raise ProviderError("LYRICS_RATE_LIMITED", "歌词服务繁忙，请稍后再试", 503)
+    try:
+        for attempt in range(2):
+            if is_lrclib:
+                now = time.monotonic()
+                if now < _lrclib_cooldown_until:
+                    raise ProviderError("LYRICS_RATE_LIMITED", "歌词服务繁忙，请稍后再试", 503)
+                spacing = _lrclib_next_allowed - now
+                if spacing > 0:
+                    time.sleep(min(spacing, _LRCLIB_RETRY_SPACING))
+                _lrclib_next_allowed = time.monotonic() + _LRCLIB_MIN_INTERVAL
+            try:
+                with urlopen(request, timeout=timeout_seconds) as response:
+                    body = response.read(_MAX_BYTES + 1)
+                break
+            except HTTPError as error:
+                error.close()
+                if error.code in (429, 503):
+                    if is_lrclib:
+                        retry = _retry_after_seconds((error.headers or {}).get("Retry-After"))
+                        delay = _LRCLIB_DEFAULT_COOLDOWN if retry is None else retry
+                        _lrclib_cooldown_until = time.monotonic() + delay
+                        _lrclib_next_allowed = max(_lrclib_next_allowed, _lrclib_cooldown_until)
+                    if error.code == 429:
+                        provider = "歌词服务" if is_lrclib else "华语歌词服务"
+                        raise ProviderError("LYRICS_RATE_LIMITED", f"{provider}繁忙，请稍后再试", 503) from error
+                    if is_lrclib:
+                        raise ProviderError("LYRICS_RATE_LIMITED", "歌词服务繁忙，请稍后再试", 503) from error
+                if error.code in (502, 503, 504) and attempt == 0:
+                    time.sleep(0.25)
+                    continue
+                provider = "歌词服务" if is_lrclib else "华语歌词服务"
+                raise ProviderError("LYRICS_UPSTREAM_ERROR", f"{provider}返回 HTTP {error.code}") from error
+            except (TimeoutError, URLError) as error:
+                provider = "歌词服务" if is_lrclib else "华语歌词服务"
+                raise ProviderError("LYRICS_UNAVAILABLE", f"{provider}暂不可用", 502) from error
+    finally:
+        if is_lrclib:
+            # Space the next request after completion as well as after its start;
+            # a slow response must not let queued user actions fire back-to-back.
+            _lrclib_next_allowed = max(_lrclib_next_allowed,
+                                       time.monotonic() + _LRCLIB_MIN_INTERVAL)
+            _lrclib_lock.release()
     assert body is not None
     if len(body) > _MAX_BYTES:
         raise ProviderError("LYRICS_INVALID_RESPONSE", "歌词响应过大")

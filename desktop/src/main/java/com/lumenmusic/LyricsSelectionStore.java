@@ -76,6 +76,8 @@ public final class LyricsSelectionStore {
 
     /** Uses the same per-user data root as the desktop app, with selections in their own subdirectory. */
     public static Path defaultDirectory() {
+        if (ReleaseProfile.current().localFirst())
+            return ReleaseProfile.current().appDataDirectory().resolve("lyrics-selections");
         String configured = System.getenv("LUMEN_LIBRARY_PATH");
         if (configured != null && !configured.isBlank()) {
             Path parent = Path.of(configured).toAbsolutePath().normalize().getParent();

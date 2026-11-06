@@ -55,12 +55,14 @@ import javafx.util.Duration;
 /** JavaFX desktop shell. Real local playback is independent from the demo search service. */
 public final class LumenFxApp extends Application {
     private final PlayerQueue queue = new PlayerQueue();
+    private static final ReleaseProfile RELEASE_PROFILE = ReleaseProfile.current();
+    private static final boolean LOCAL_FIRST = RELEASE_PROFILE.localFirst();
     private final ObservableList<Track> searchResults = FXCollections.observableArrayList();
     private final ObservableList<Track> recommendations = FXCollections.observableArrayList();
     private final ObservableList<Track> radioTracks = FXCollections.observableArrayList();
     private final RadioSession radio = new RadioSession();
     private final RadioClient radioClient = new RadioClient(URI.create(
-            System.getenv().getOrDefault("LUMEN_SERVICE_URL", "http://127.0.0.1:8765")));
+            RELEASE_PROFILE.serviceUri().toString()));
     private final Label radioStatus = new Label("电台尚未开启");
     private Dialog<Void> radioDialog;
     private long radioVersion;
@@ -184,30 +186,30 @@ public final class LumenFxApp extends Application {
     private final TextField lyricQuery = new TextField();
     private final Label lyricOffsetLabel = new Label("偏移 0.0 秒");
     private final LyricsClient lyricsClient = new LyricsClient(URI.create(
-            System.getenv().getOrDefault("LUMEN_SERVICE_URL", "http://127.0.0.1:8765")));
+            RELEASE_PROFILE.serviceUri().toString()));
     private final Label timing = new Label("00:00 / 00:00");
     private final Slider progress = new Slider(0, 1, 0);
     private final Button playButton = new Button("播放");
     private final Button favoriteButton = new Button("收藏当前");
     private final DemoAudioLibrary demoAudio = new DemoAudioLibrary();
     private final MusicClient client = new MusicClient(URI.create(
-            System.getenv().getOrDefault("LUMEN_SERVICE_URL", "http://127.0.0.1:8765")));
+            RELEASE_PROFILE.serviceUri().toString()));
     private final LibraryClient libraryClient = new LibraryClient(URI.create(
-            System.getenv().getOrDefault("LUMEN_SERVICE_URL", "http://127.0.0.1:8765")));
+            RELEASE_PROFILE.serviceUri().toString()));
     private final DiaryClient diaryClient = new DiaryClient(URI.create(
-            System.getenv().getOrDefault("LUMEN_SERVICE_URL", "http://127.0.0.1:8765")));
+            RELEASE_PROFILE.serviceUri().toString()));
     private final HomeClient homeClient = new HomeClient(URI.create(
-            System.getenv().getOrDefault("LUMEN_SERVICE_URL", "http://127.0.0.1:8765")));
+            RELEASE_PROFILE.serviceUri().toString()));
     private final VersionCatalogClient versionClient = new VersionCatalogClient(URI.create(
-            System.getenv().getOrDefault("LUMEN_SERVICE_URL", "http://127.0.0.1:8765")));
+            RELEASE_PROFILE.serviceUri().toString()));
     private VersionCatalog versionCatalog = new VersionCatalog(List.of());
     private final SmartPlaylistClient smartClient = new SmartPlaylistClient(URI.create(
-            System.getenv().getOrDefault("LUMEN_SERVICE_URL", "http://127.0.0.1:8765")));
+            RELEASE_PROFILE.serviceUri().toString()));
     private SmartPlaylistDialog smartDialog;
     private final BackupClient backupClient = new BackupClient(URI.create(
-            System.getenv().getOrDefault("LUMEN_SERVICE_URL", "http://127.0.0.1:8765")));
+            RELEASE_PROFILE.serviceUri().toString()));
     private final ListeningReporter listening = new ListeningReporter(URI.create(
-            System.getenv().getOrDefault("LUMEN_SERVICE_URL", "http://127.0.0.1:8765")));
+            RELEASE_PROFILE.serviceUri().toString()));
     private final ExecutorService libraryTasks = Executors.newSingleThreadExecutor(runnable -> {
         Thread thread = new Thread(runnable, "lumen-library");
         thread.setDaemon(true);
@@ -231,7 +233,7 @@ public final class LumenFxApp extends Application {
     private URI preparedToRetain;
     private Track trackToCache;
     private final AiSettingsClient aiSettingsClient = new AiSettingsClient(URI.create(
-            System.getenv().getOrDefault("LUMEN_SERVICE_URL", "http://127.0.0.1:8765")));
+            RELEASE_PROFILE.serviceUri().toString()));
     private final ExecutorService onlineDownloads = Executors.newFixedThreadPool(2, runnable -> {
         Thread thread = new Thread(runnable, "lumen-online-audio");
         thread.setDaemon(true);
@@ -374,7 +376,7 @@ public final class LumenFxApp extends Application {
         nextPreloader = new NextTrackPreloader(client, onlineAudio, persistentCache);
         localAudio = new JavaFxAudioPlayer(this::onPlaybackState, this::onAudioError);
         audio = localAudio;
-        Label brand = new Label("Lumen Music");
+        Label brand = new Label(LOCAL_FIRST ? "Lumen Music · 本地测试版" : "Lumen Music");
         brand.getStyleClass().add("brand");
         ImageView brandGlyph = new ImageView(getClass().getResource("/icons/lumen-256.png").toExternalForm());
         brandGlyph.setFitWidth(24);
@@ -436,12 +438,16 @@ public final class LumenFxApp extends Application {
 
         TextField query = new TextField();
         query.setId("search-query");
-        query.setPromptText("搜索音乐，或粘贴 BV 号 / 视频链接…");
+        query.setPromptText(LOCAL_FIRST ? "本地测试版暂不支持在线搜索或 BV 解析"
+                : "搜索音乐，或粘贴 BV 号 / 视频链接…");
+        query.setDisable(LOCAL_FIRST);
         ComboBox<String> searchKind = new ComboBox<>(FXCollections.observableArrayList("全部", "单曲", "合集"));
         searchKind.setId("search-kind");
         searchKind.setValue("全部");
+        searchKind.setDisable(LOCAL_FIRST);
         Button searchButton = new Button("搜索");
         searchButton.setId("search-button");
+        searchButton.setDisable(LOCAL_FIRST);
         searchButton.setOnAction(event -> search(query.getText(), searchKind.getValue()));
         query.setOnAction(event -> search(query.getText(), searchKind.getValue()));
         PauseTransition pastedBv = new PauseTransition(Duration.millis(320));
@@ -496,6 +502,7 @@ public final class LumenFxApp extends Application {
         Label searchTitle = new Label("搜索音乐");
         searchTitle.getStyleClass().add("page-title");
         Label searchHint = new Label("搜索关键词，或粘贴 BV 号 / 视频链接");
+        if (LOCAL_FIRST) searchHint.setText("本地测试版仅支持导入并搜索本地音乐");
         searchHint.getStyleClass().add("page-subtitle");
         searchHint.setWrapText(true);
         VBox searchPane = new VBox(14, searchTitle, searchHint, searchRow,
@@ -503,6 +510,7 @@ public final class LumenFxApp extends Application {
         searchPane.getStyleClass().add("content-page");
         searchStatus.setId("search-status");
         searchStatus.getStyleClass().add("muted");
+        if (LOCAL_FIRST) searchStatus.setText("本地测试版：在线搜索与 BV 解析已关闭");
         VBox.setVgrow(searchList, Priority.ALWAYS);
         searchPane.setPadding(new Insets(30, 32, 24, 32));
         Tab searchTab = new Tab("曲库搜索", searchPane);
@@ -518,9 +526,11 @@ public final class LumenFxApp extends Application {
         refreshRecommendationsButton = refreshRecommendations;
         decorateIcon(refreshRecommendations, "repeat", "action-icon");
         refreshRecommendations.setId("refresh-recommendations");
+        refreshRecommendations.setDisable(LOCAL_FIRST);
         refreshRecommendations.setOnAction(event -> loadRecommendations(""));
         Button playRecommendation = new Button("播放选中推荐");
         playRecommendation.setId("select-recommendation");
+        playRecommendation.setDisable(LOCAL_FIRST);
         playRecommendation.setOnAction(event -> select(recommendations,
                 recommendationList.getSelectionModel().getSelectedIndex()));
         recommendationStatus.setId("recommendation-status");
@@ -528,15 +538,18 @@ public final class LumenFxApp extends Application {
         recommendationStatus.setWrapText(true);
         recommendationStatus.setMinWidth(0);
         Button homeRadio = actionButton("私人电台", "home-radio", () -> showRadio(List.of(), homeRadioHint()));
+        homeRadio.setDisable(LOCAL_FIRST);
         decorateIcon(homeRadio, "sparkle", "action-icon");
         TextField homeQuery = new TextField();
         homeQuery.setId("home-query");
         homeQuery.setPromptText("想听点安静的钢琴");
+        homeQuery.setDisable(LOCAL_FIRST);
         homeQuery.setTextFormatter(new TextFormatter<String>(change ->
                 change.getControlNewText().length() <= 160 ? change : null));
         Button exploreMood = new Button("生成推荐");
         generateRecommendationsButton = exploreMood;
         exploreMood.setId("home-search-button");
+        exploreMood.setDisable(LOCAL_FIRST);
         exploreMood.getStyleClass().add("accent-button");
         HBox moodRow = new HBox(10, homeQuery, exploreMood);
         moodRow.getStyleClass().add("home-search-row");
@@ -548,6 +561,7 @@ public final class LumenFxApp extends Application {
         moodChips.getStyleClass().add("home-mood-chips");
         for (String mood : List.of("☕ 静心纯音", "🌙 夜色温柔", "⚡ 轻快律动", "🍃 放松治愈")) {
             Button chip = new Button(mood);
+            chip.setDisable(LOCAL_FIRST);
             chip.getStyleClass().add("home-mood-chip");
             chip.setFocusTraversable(false);
             chip.setOnAction(event -> {
@@ -571,6 +585,7 @@ public final class LumenFxApp extends Application {
         VBox.setVgrow(recommendationList, Priority.ALWAYS);
         recommendationList.setPlaceholder(emptyState("recommendation-empty", "还没有推荐",
                 "写下此刻想听的音乐，点击生成推荐；也可以刷新热门音乐。"));
+        if (LOCAL_FIRST) recommendationStatus.setText("本地测试版：发现、推荐与电台暂不可用");
         VBox discoveryContent = new VBox(10, moodCard, recommendationStatus);
         personalHome = new PersonalHomePane(discoveryContent, recommendationSurface,
                 new PersonalHomePane.Actions(this::continueHomePlayback, this::openHomePin,
@@ -684,6 +699,7 @@ public final class LumenFxApp extends Application {
             text.setWrapText(true);
         }
         Button catalogButton = actionButton("版本管理", "version-library", this::showVersionLibrary);
+        catalogButton.setDisable(LOCAL_FIRST);
         decorateIcon(catalogButton, "versions", "action-icon");
         Button organizeFavorites = actionButton("标签与智能歌单", "organize-favorites", () -> showSmartLibrary(null));
         decorateIcon(organizeFavorites, "tags", "action-icon");
@@ -824,6 +840,7 @@ public final class LumenFxApp extends Application {
         });
         Button importFavorite = new Button("导入公开收藏夹");
         importFavorite.setId("import-favorite");
+        importFavorite.setDisable(LOCAL_FIRST);
         importFavorite.setOnAction(event -> importPublicFavorite());
         Button exportBackup = new Button("导出数据备份");
         exportBackup.setId("export-backup");
@@ -932,9 +949,11 @@ public final class LumenFxApp extends Application {
         VBox playlistPageHeader = new VBox(12,
                 playlistHeading, playlistHeaderActions, playlistFeedback);
         playlistHeaderActions.getChildren().add(importFavorite);
-        playlistHeaderActions.getChildren().add(actionButton("从歌单开启电台", "playlist-radio", () -> {
+        Button playlistRadio = actionButton("从歌单开启电台", "playlist-radio", () -> {
             if (playlistPicker.getValue() != null) showRadio(playlistPicker.getValue().tracks(), "");
-        }));
+        });
+        playlistRadio.setDisable(LOCAL_FIRST);
+        playlistHeaderActions.getChildren().add(playlistRadio);
         VBox playlistPane = new VBox(12, playlistPicker, playlistPageHeader, trackManagementBar(playlistList), playlistList);
         playlistPane.setPadding(new Insets(30, 32, 24, 32));
         playlistPane.getStyleClass().add("content-page");
@@ -1305,6 +1324,7 @@ public final class LumenFxApp extends Application {
         Button aiSettings = new Button("AI 推荐设置");
         decorateIcon(aiSettings, "sparkle", "nav-icon");
         aiSettings.setId("ai-settings-button");
+        aiSettings.setDisable(LOCAL_FIRST);
         aiSettings.setOnAction(event -> showAiSettings(stage));
         Button cacheSettings = new Button("音频缓存设置");
         decorateIcon(cacheSettings, "cache", "nav-icon");
@@ -3454,6 +3474,10 @@ public final class LumenFxApp extends Application {
     }
 
     private void showRadio(List<Track> seeds, String hint) {
+        if (LOCAL_FIRST) {
+            status.setText("本地测试版暂不支持在线电台");
+            return;
+        }
         if (radioDialog != null) radioDialog.close();
         Dialog<Void> dialog = new Dialog<>();
         radioDialog = dialog;
@@ -3792,6 +3816,10 @@ public final class LumenFxApp extends Application {
     }
 
     private void playResource(Track track) {
+        if (LOCAL_FIRST && !isLocalPlayable(track)) {
+            status.setText("本地测试版只能播放本地音频；已保留这条曲目");
+            return;
+        }
         clearListeningContext();
         stopRadio();
         queue.select(List.of(track), 0);
@@ -4039,6 +4067,10 @@ public final class LumenFxApp extends Application {
     }
 
     private void showVersions(Track track) {
+        if (LOCAL_FIRST) {
+            libraryStatus.setText("本地测试版暂不支持在线版本检索");
+            return;
+        }
         libraryStatus.setText("正在载入歌曲版本…");
         libraryTasks.submit(() -> {
             try {
@@ -4068,6 +4100,10 @@ public final class LumenFxApp extends Application {
     }
 
     private void showVersionLibrary() {
+        if (LOCAL_FIRST) {
+            libraryStatus.setText("本地测试版暂不支持在线版本检索");
+            return;
+        }
         libraryTasks.submit(() -> {
             try {
                 VersionCatalog catalog = versionClient.load();
@@ -4151,10 +4187,18 @@ public final class LumenFxApp extends Application {
     }
 
     private void showSegmentDialog(Track track) {
+        if (LOCAL_FIRST && !isLocalPlayable(track)) {
+            status.setText("本地测试版只能为本地音频保存片段");
+            return;
+        }
         showSegmentDialog(track, null, null);
     }
 
     private void showSegmentBatch(Track track) {
+        if (LOCAL_FIRST && !isLocalPlayable(track)) {
+            status.setText("本地测试版暂不支持在线合集整理");
+            return;
+        }
         if (segmentBatchDialog != null && segmentBatchDialog.isShowing()) return;
         Track source = track.audioSource();
         if (loadedTrack != null && loadedTrack.audioSource().id().equals(source.id())) {
@@ -4187,6 +4231,10 @@ public final class LumenFxApp extends Application {
     }
 
     private void showSegmentDialog(Track track, Long startOverride, Long endOverride) {
+        if (LOCAL_FIRST && !isLocalPlayable(track)) {
+            status.setText("本地测试版只能为本地音频保存片段");
+            return;
+        }
         boolean editing = track.isSegment() && startOverride == null;
         Track source = track.audioSource();
         if (!editing && loadedTrack != null && loadedTrack.audioSource().id().equals(source.id())) {
@@ -4925,6 +4973,10 @@ public final class LumenFxApp extends Application {
     }
 
     private void importPublicFavorite() {
+        if (LOCAL_FIRST) {
+            libraryStatus.setText("本地测试版暂不支持导入在线收藏夹");
+            return;
+        }
         var dialog = new TextInputDialog();
         dialog.setTitle("导入 B 站公开收藏夹");
         dialog.initOwner(primaryStage);
@@ -5592,6 +5644,11 @@ public final class LumenFxApp extends Application {
 
     private void loadCurrent(boolean autoplay) { loadCurrent(autoplay, null); }
 
+    private static boolean isLocalPlayable(Track track) {
+        return track != null && track.audioSource().mediaUri() != null
+                && "file".equalsIgnoreCase(track.audioSource().mediaUri().getScheme());
+    }
+
     private void loadCurrent(boolean autoplay, Double resumeAt) {
         if (autoplay) sleepPaused = false;
         if (queueUndoButton != null) queueUndoButton.setDisable(queueEdits.isEmpty()
@@ -5604,7 +5661,14 @@ public final class LumenFxApp extends Application {
         pendingResumeSeconds = resumeAt;
         Track track = queue.current();
         if (track == null) return;
-        URI prepared = track.mediaUri() == null && "bilibili".equals(track.source()) && preloadEnabled
+        if (LOCAL_FIRST && !isLocalPlayable(track)) {
+            nextPreloader.cancel();
+            audio.stop();
+            playButton.setDisable(true);
+            status.setText("本地测试版只能播放本地音频；已保留这条曲目");
+            return;
+        }
+        URI prepared = !LOCAL_FIRST && track.mediaUri() == null && "bilibili".equals(track.source()) && preloadEnabled
                 ? nextPreloader.take(track, streamingAudio != null) : null;
         nextPreloader.cancel();
         if (loadedTrack == null || !loadedTrack.id().equals(track.id())) clearPracticeLoop();
@@ -5753,6 +5817,10 @@ public final class LumenFxApp extends Application {
 
     private void refreshNextPreparation() {
         if (nextPreloader == null) return;
+        if (LOCAL_FIRST) {
+            nextPreloader.cancel();
+            return;
+        }
         if (closing || !preloadEnabled || segmentPreview != null || practiceLoop.enabled() || sleepPaused
                 || loadedTrack == null || !loadedTrack.equals(queue.current()) || audio == null
                 || (audio.state() != JavaFxAudioPlayer.State.PLAYING
@@ -5811,6 +5879,12 @@ public final class LumenFxApp extends Application {
     }
 
     private void loadAudioRange(URI uri, boolean autoplay) {
+        if (!RELEASE_PROFILE.allowsAudioUri(uri)) {
+            audio.stop();
+            playButton.setDisable(true);
+            status.setText("本地测试版只能加载本地音频；已阻止在线音源");
+            return;
+        }
         autoplay = autoplay && !sleepPaused;
         Track track = loadedTrack;
         segmentSeekStartedNanos = System.nanoTime();
@@ -6179,6 +6253,10 @@ public final class LumenFxApp extends Application {
     }
 
     private void search(String query, String selection) {
+        if (LOCAL_FIRST) {
+            searchStatus.setText("本地测试版仅支持本地音乐搜索");
+            return;
+        }
         long version = ++searchVersion;
         long playbackAtSearch = loadVersion;
         boolean direct = isBvInput(query);
@@ -6236,6 +6314,10 @@ public final class LumenFxApp extends Application {
     }
 
     private void loadRecommendations(String hint) {
+        if (LOCAL_FIRST) {
+            recommendationStatus.setText("本地测试版暂不支持在线发现与推荐");
+            return;
+        }
         if (closing || generateRecommendationsButton.isDisabled()) return;
         long version = ++recommendationVersion;
         generateRecommendationsButton.setText("生成中…");
@@ -6330,6 +6412,10 @@ public final class LumenFxApp extends Application {
     }
 
     private void loadInitialPopular() {
+        if (LOCAL_FIRST) {
+            recommendationStatus.setText("本地测试版暂不支持在线发现与推荐");
+            return;
+        }
         CompletableFuture.supplyAsync(() -> {
             try { return aiSettingsClient.read(); }
             catch (Exception error) { throw new RuntimeException(error); }
@@ -6506,6 +6592,12 @@ public final class LumenFxApp extends Application {
     }
 
     private void retryPlaylistResources(List<Track> tracks) {
+        if (LOCAL_FIRST) {
+            if (tracks.stream().anyMatch(track -> track.mediaUri() == null
+                    || !"file".equalsIgnoreCase(track.mediaUri().getScheme())))
+                libraryStatus.setText("本地测试版保留了在线条目，但不会解析或播放它们");
+            return;
+        }
         // Invisible rows stay lazy; reopening retries only covers previously requested by a visible row.
         for (Track track : tracks) if (track.coverUri() != null && coverThumbnails.containsKey(track.coverUri())) {
             failedCovers.remove(track.coverUri());
@@ -7145,8 +7237,10 @@ public final class LumenFxApp extends Application {
         changes.setId("settings-release-notes"); changes.setEditable(false); changes.setWrapText(true);
         changes.setPrefRowCount(7); changes.setMinHeight(120); changes.setMaxHeight(200);
         Button select = new Button("选择本地更新包", icon("repeat", "action-icon"));
-        select.setId("settings-select-update"); select.setTooltip(new Tooltip("选择 Lumen Music 更新 ZIP"));
-        select.setDisable(LocalUpdatePackage.installationRoot().isEmpty());
+        select.setId("settings-select-update"); select.setTooltip(new Tooltip(LOCAL_FIRST
+                ? "本地测试版使用独立程序目录，不应用日用版本更新包"
+                : "选择 Lumen Music 更新 ZIP"));
+        select.setDisable(LOCAL_FIRST || LocalUpdatePackage.installationRoot().isEmpty());
         select.setOnAction(event -> selectLocalUpdate(select));
         Button export = new Button("导出诊断信息", icon("external", "action-icon"));
         export.setId("settings-export-diagnostics"); export.setTooltip(new Tooltip("导出诊断 ZIP"));
@@ -7169,10 +7263,16 @@ public final class LumenFxApp extends Application {
             });
         } catch (IOException error) { updateStatus.setText("上次更新结果暂不可读，记录已保留"); }
         FlowPane actions = new FlowPane(10, 10, select, export);
-        return settingsSection("版本与反馈", "settings-version", new VBox(10, version, identifier, changes, actions, updateStatus), "v" + build.version() + " · 内测候选");
+        String profileLabel = LOCAL_FIRST ? " · 本地测试版" : " · 内测候选";
+        if (LOCAL_FIRST) updateStatus.setText("本地测试版使用独立程序目录，更新请通过独立候选包进行");
+        return settingsSection("版本与反馈", "settings-version", new VBox(10, version, identifier, changes, actions, updateStatus), "v" + build.version() + profileLabel);
     }
 
     private void selectLocalUpdate(Button button) {
+        if (LOCAL_FIRST) {
+            updateStatus.setText("本地测试版不应用日用版本更新包，请使用独立候选包");
+            return;
+        }
         if (updateBusy) return;
         var install = LocalUpdatePackage.installationRoot();
         if (install.isEmpty()) { updateStatus.setText("当前运行方式不是安装版"); return; }
@@ -7263,6 +7363,7 @@ public final class LumenFxApp extends Application {
     }
 
     private static Path preferencesPath() {
+        if (LOCAL_FIRST) return RELEASE_PROFILE.preferencesPath();
         String configured = System.getenv("LUMEN_PREFERENCES_PATH");
         if (configured != null && !configured.isBlank()) return Path.of(configured).toAbsolutePath();
         String appData = System.getenv("APPDATA");
@@ -7275,6 +7376,7 @@ public final class LumenFxApp extends Application {
     }
 
     private static Path dataDirectory() {
+        if (LOCAL_FIRST) return RELEASE_PROFILE.dataDirectory();
         String configured = System.getenv("LUMEN_LIBRARY_PATH");
         if (configured != null && !configured.isBlank())
             return Path.of(configured).toAbsolutePath().getParent();

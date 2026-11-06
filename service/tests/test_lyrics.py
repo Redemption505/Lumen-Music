@@ -1,9 +1,10 @@
 import unittest
 from io import BytesIO
 from urllib.parse import parse_qs, urlsplit
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from unittest.mock import MagicMock, patch
 
+from lumen_service import lyrics
 from lumen_service.lyrics import _fetch, _netease_rows, lookup_lyrics
 from lumen_service.providers import ProviderError
 
@@ -19,6 +20,10 @@ def row(identity, title, artist, duration, synced="[00:01.00]hello"):
 
 
 class LyricLookupTests(unittest.TestCase):
+    def setUp(self):
+        lyrics._lrclib_next_allowed = 0.0
+        lyrics._lrclib_cooldown_until = 0.0
+
     def test_auto_match_requires_title_artist_duration_and_unique_candidate(self):
         result = lookup_lyrics("晴天", "周杰伦", 269, fetch_json=lambda url: [
             row(1, "晴天", "周杰伦", 269),
@@ -409,16 +414,161 @@ class LyricLookupTests(unittest.TestCase):
 
         self.assertIsNone(result.auto_id)
 
-    def test_fetch_retries_transient_502_503_504_once(self):
-        transient = HTTPError("https://lrclib.net/api/search", 503, "temporary", {}, BytesIO())
+    def test_fetch_retries_transient_502_and_identifies_lrclib_client(self):
         response = MagicMock()
         response.__enter__.return_value.read.return_value = b"[]"
-        with patch("lumen_service.lyrics.urlopen", side_effect=[transient, response]) as open_url, \
+        transient = HTTPError("https://lrclib.net/api/search", 502, "temporary", {}, BytesIO())
+        with patch.object(lyrics, "_lrclib_next_allowed", 0), \
+                patch("lumen_service.lyrics.time.monotonic", return_value=100.0), \
+                patch("lumen_service.lyrics.urlopen", side_effect=[transient, response]) as open_url, \
                 patch("lumen_service.lyrics.time.sleep") as sleep:
             self.assertEqual(_fetch("https://lrclib.net/api/search", 1.0), [])
 
         self.assertEqual(open_url.call_count, 2)
-        sleep.assert_called_once_with(0.25)
+        self.assertEqual([call.args[0] for call in sleep.call_args_list], [0.25, 0.5])
+        user_agent = open_url.call_args_list[0].args[0].get_header("User-agent")
+        self.assertEqual(user_agent,
+                         "LumenMusic/0.2.2 (https://github.com/Redemption505/Lumen-Music)")
+
+    def test_lrclib_honors_integer_retry_after_and_shared_cooldown(self):
+        response = HTTPError("https://lrclib.net/api/search", 429, "limited",
+                             {"Retry-After": "17"}, BytesIO())
+        with patch.object(lyrics, "_lrclib_next_allowed", 0) as next_allowed, \
+                patch("lumen_service.lyrics.time.monotonic", return_value=100.0), \
+                patch("lumen_service.lyrics.urlopen", side_effect=response) as open_url:
+            with self.assertRaises(ProviderError) as caught:
+                _fetch("https://lrclib.net/api/search", 1.0)
+            self.assertEqual(caught.exception.code, "LYRICS_RATE_LIMITED")
+            with self.assertRaises(ProviderError) as second:
+                _fetch("https://lrclib.net/api/search?q=again", 1.0)
+            self.assertEqual(lyrics._lrclib_next_allowed, 117.0)
+        self.assertEqual(second.exception.code, "LYRICS_RATE_LIMITED")
+        open_url.assert_called_once()
+
+    def test_sequential_lrclib_calls_apply_short_minimum_spacing(self):
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = b"[]"
+        with patch("lumen_service.lyrics.time.monotonic", return_value=100.0), \
+                patch("lumen_service.lyrics.time.sleep") as sleep, \
+                patch("lumen_service.lyrics.urlopen", return_value=response) as open_url:
+            self.assertEqual(_fetch("https://lrclib.net/api/search", 1.0), [])
+            self.assertEqual(_fetch("https://lrclib.net/api/search?q=next", 1.0), [])
+        self.assertEqual(open_url.call_count, 2)
+        sleep.assert_called_once_with(0.5)
+
+    def test_lrclib_http_date_retry_after_uses_shared_monotonic_deadline(self):
+        response = HTTPError("https://lrclib.net/api/search", 503, "busy",
+                             {"Retry-After": "Thu, 01 Jan 1970 00:02:00 GMT"}, BytesIO())
+        with patch.object(lyrics, "_lrclib_next_allowed", 0) as next_allowed, \
+                patch("lumen_service.lyrics.time.time", return_value=100.0), \
+                patch("lumen_service.lyrics.time.monotonic", return_value=40.0), \
+                patch("lumen_service.lyrics.urlopen", side_effect=response):
+            with self.assertRaises(ProviderError):
+                _fetch("https://lrclib.net/api/search", 1.0)
+            self.assertEqual(lyrics._lrclib_next_allowed, 60.0)
+
+    def test_invalid_and_excessive_retry_after_are_bounded(self):
+        for header, expected in (("nonsense", 130.0), ("999999", 1_000_099.0)):
+            with self.subTest(header=header):
+                response = HTTPError("https://lrclib.net/api/search", 429, "limited",
+                                     {"Retry-After": header}, BytesIO())
+                with patch.object(lyrics, "_lrclib_next_allowed", 0), \
+                        patch.object(lyrics, "_lrclib_cooldown_until", 0), \
+                        patch("lumen_service.lyrics.time.monotonic", return_value=100.0), \
+                        patch("lumen_service.lyrics.urlopen", side_effect=response):
+                    with self.assertRaises(ProviderError):
+                        _fetch("https://lrclib.net/api/search", 1.0)
+                    self.assertEqual(lyrics._lrclib_next_allowed, expected)
+
+    def test_extremely_long_valid_retry_after_never_expires_early(self):
+        response = HTTPError("https://lrclib.net/api/search", 429, "limited",
+                             {"Retry-After": "9" * 5000}, BytesIO())
+        with patch("lumen_service.lyrics.time.monotonic", return_value=100.0), \
+                patch("lumen_service.lyrics.urlopen", side_effect=response) as open_url:
+            with self.assertRaises(ProviderError):
+                _fetch("https://lrclib.net/api/search", 1.0)
+            with self.assertRaises(ProviderError):
+                _fetch("https://lrclib.net/api/search?q=again", 1.0)
+            self.assertEqual(lyrics._lrclib_cooldown_until, float("inf"))
+        open_url.assert_called_once()
+
+    def test_retry_after_reached_after_502_is_honored_for_429_and_503(self):
+        for status in (429, 503):
+            with self.subTest(status=status):
+                clock = [10.0]
+                lyrics._lrclib_next_allowed = 0.0
+                lyrics._lrclib_cooldown_until = 0.0
+
+                def sleep(seconds):
+                    clock[0] += seconds
+
+                errors = [HTTPError("https://lrclib.net/api/search", 502, "gateway", {}, BytesIO()),
+                          HTTPError("https://lrclib.net/api/search", status, "limited",
+                                    {"Retry-After": "12"}, BytesIO())]
+                with patch("lumen_service.lyrics.time.monotonic", side_effect=lambda: clock[0]), \
+                        patch("lumen_service.lyrics.time.sleep", side_effect=sleep), \
+                        patch("lumen_service.lyrics.urlopen", side_effect=errors) as open_url:
+                    with self.assertRaises(ProviderError) as caught:
+                        _fetch("https://lrclib.net/api/search", 1.0)
+                    self.assertEqual(caught.exception.code, "LYRICS_RATE_LIMITED")
+                    self.assertEqual(lyrics._lrclib_cooldown_until, 22.5)
+                self.assertEqual(open_url.call_count, 2)
+
+    def test_netease_second_retry_timeout_and_rate_limit_are_wrapped(self):
+        first = HTTPError("https://music.163.com/api/search/get", 503, "busy", {}, BytesIO())
+        for second, expected_code in ((URLError("timed out"), "LYRICS_UNAVAILABLE"),
+                                      (HTTPError("https://music.163.com/api/search/get", 429,
+                                                 "limited", {}, BytesIO()), "LYRICS_RATE_LIMITED")):
+            with self.subTest(expected_code=expected_code), \
+                    patch("lumen_service.lyrics.time.sleep"), \
+                    patch("lumen_service.lyrics.urlopen", side_effect=[first, second]):
+                with self.assertRaises(ProviderError) as caught:
+                    _fetch("https://music.163.com/api/search/get", 1.0)
+                self.assertEqual(caught.exception.code, expected_code)
+
+    def test_lrclib_requests_are_serial_and_netease_ignores_lrclib_cooldown(self):
+        import threading
+
+        entered = threading.Event()
+        release = threading.Event()
+        calls = []
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = b"[]"
+
+        def open_serial(request, timeout):
+            calls.append(request.full_url)
+            if len(calls) == 1:
+                entered.set()
+                self.assertTrue(release.wait(2))
+            return response
+
+        with patch.object(lyrics, "_lrclib_next_allowed", 0), \
+                patch("lumen_service.lyrics.time.monotonic", return_value=100.0), \
+                patch("lumen_service.lyrics.urlopen", side_effect=open_serial):
+            first = threading.Thread(target=lambda: _fetch("https://lrclib.net/api/search", 1.0))
+            first.start()
+            self.assertTrue(entered.wait(2))
+            errors = []
+            second = threading.Thread(target=lambda: self._capture_fetch_error(errors))
+            second.start()
+            second.join(0.5)
+            self.assertFalse(second.is_alive(), "busy-provider calls should fail promptly")
+            self.assertEqual(len(errors), 1)
+            self.assertEqual(errors[0].code, "LYRICS_RATE_LIMITED")
+            release.set()
+            first.join(2)
+            self.assertFalse(first.is_alive())
+            # LRCLIB's minimum interval/cooldown does not apply to NetEase.
+            self.assertEqual(_fetch("https://music.163.com/api/search/get", 1.0), [])
+        self.assertEqual(calls, ["https://lrclib.net/api/search",
+                                 "https://music.163.com/api/search/get"])
+
+    @staticmethod
+    def _capture_fetch_error(errors):
+        try:
+            _fetch("https://lrclib.net/api/search?second=1", 1.0)
+        except ProviderError as error:
+            errors.append(error)
 
 
 if __name__ == "__main__":

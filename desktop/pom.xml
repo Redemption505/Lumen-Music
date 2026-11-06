@@ -11,6 +11,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>21.0.12</javafx.version>
         <lumen.mainClass>com.lumenmusic.LumenLauncher</lumen.mainClass>
+        <lumen.release.profile>full</lumen.release.profile>
         <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
         <lumen.build.id>${maven.build.timestamp}</lumen.build.id>
     </properties>

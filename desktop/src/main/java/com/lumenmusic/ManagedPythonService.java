@@ -26,6 +26,12 @@ public final class ManagedPythonService implements AutoCloseable {
 
     public static ManagedPythonService start(URI base, Path serviceDirectory, String python,
                                              String provider, Path logFile) throws Exception {
+        return start(base, serviceDirectory, python, provider, ReleaseProfile.from("full"), logFile);
+    }
+
+    public static ManagedPythonService start(URI base, Path serviceDirectory, String python,
+                                             String provider, ReleaseProfile profile,
+                                             Path logFile) throws Exception {
         if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
         if (!"127.0.0.1".equals(base.getHost()) && !"localhost".equalsIgnoreCase(base.getHost()))
             throw new IllegalArgumentException("曲库服务必须使用本机地址");
@@ -56,11 +62,17 @@ public final class ManagedPythonService implements AutoCloseable {
             if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
             List<String> command = new ArrayList<>(executable);
             command.addAll(List.of("-m", "lumen_service", "--port", Integer.toString(port),
-                    "--provider", provider));
+                    "--provider", profile.serviceArgumentProvider(provider), "--release-profile", profile.id()));
             var builder = new ProcessBuilder(command).directory(serviceDirectory.toFile())
                     .redirectErrorStream(true)
                     .redirectOutput(ProcessBuilder.Redirect.appendTo(logFile.toFile()));
             builder.environment().put("PYTHONPATH", serviceDirectory.toAbsolutePath().toString());
+            if (profile.localFirst()) {
+                Path profileData = profile.appDataDirectory();
+                builder.environment().put("LUMEN_LIBRARY_PATH", profileData.resolve("library.json").toString());
+                builder.environment().put("LUMEN_HISTORY_PATH", profileData.resolve("history.json").toString());
+                builder.environment().put("LUMEN_AI_SETTINGS_PATH", profileData.resolve("ai-settings.json").toString());
+            }
             Process process;
             try { process = builder.start(); }
             catch (IOException error) { startError = error; continue; }

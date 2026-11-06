@@ -63,6 +63,22 @@ $env:LUMEN_AI_SETTINGS_PATH = Join-Path $devState 'ai-settings.json'
 
 `desktop.ps1` 不带 smoke 参数时运行桌面主入口；主入口仍会管理服务。不要将 `-Smoke` 与 `-UiSmoke` 混同：前者不打开播放窗口，只检查 HTTP/XML 搜索与队列行为。`-UiSmoke` 必须显式提供 `-SamplePath '<允许使用的本地音频>'`，不会再猜测历史媒体文件。`-RealSmoke`、`-OnlineSmoke`、`-JaySmoke` 是联网专用入口，不属于基础离线复现。
 
+### 本地优先测试镜像
+
+源码默认仍构建full，不改变日用完整版本。首次公开测试路线选用构建资源 `release.profile=local-first`：
+
+```powershell
+./scripts/package-local-preview.ps1 `
+  -RuntimeHome '<已有并经核对的Lumen运行镜像目录>' `
+  -BuildId '<全新唯一的本地测试构建号>'
+```
+
+该入口仅离线使用已声明/缓存的Maven依赖并复用显式提供的runtime/VLC/Python/侧车，不安装工具、不重新编译Rust、不创建安装器。产物在 `build/local-preview/<BuildId>/image/LumenMusicPreview/`；JAR必须实际含local-first属性才会打包。默认资料为 `%LOCALAPPDATA%/Lumen Music Local Preview`，服务18765、侧车18766；显式本机服务URL可用于隔离测试。日用目录、单实例锁和默认端口不混用。首次使用需已有完整JDK、声明依赖缓存和经核对的运行镜像，这不是新克隆的一步无依赖启动承诺。
+
+仅验证服务时，仍须按上文设置独立 `LUMEN_LIBRARY_PATH`、`LUMEN_HISTORY_PATH`、`LUMEN_AI_SETTINGS_PATH` 后执行 `python -m lumen_service --provider bilibili --release-profile local-first --port 18765`。这里的bilibili参数仅为保持CLI格式，本地profile忽略它并选择local provider，不构造B站或demo。独立路径由调用者/桌面启动器设置，不能拿CLI参数当作全部开发环境自动隔离的承诺。
+
+当前候选的已测/未测和后续输入安排见[本地候选验收](LOCAL_PREVIEW_ACCEPTANCE.md)；材料与发布范围见[公开准备](PUBLIC_PRERELEASE_READINESS.md)。构建成功不等于GUI、音频或安装验收。
+
 ## 3. 基本检查入口
 
 ```powershell

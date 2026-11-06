@@ -18,6 +18,7 @@ from .models import Track
 from .library import LibraryStore, LibraryError, LibraryFormatError, LibraryStorageError, StoredTrack
 from .history import HistoryError, HistoryFormatError, HistoryRuntime, HistoryStorageError, HistoryStore
 from .providers import BilibiliProvider, ProviderError, TrackProvider
+from .release_scope import FULL_PROFILE, LOCAL_FIRST_PROFILE, LocalOnlyProvider
 from .streaming import BilibiliAudioProxy
 from .providers import parse_bv
 from .discovery import build_taste_profile, local_hint_intents, normalize_hint, rank_tracks, recommend
@@ -380,6 +381,7 @@ def _handler_for(
     history_runtime: HistoryRuntime | None, history_fault: str | None,
     library_path: Path, history_path: Path,
     history_clock: Callable[[], float] | None,
+    release_profile: str,
 ) -> type[BaseHTTPRequestHandler]:
     data_lock = threading.RLock()
     ai_settings = AiSettingsStore(Path(os.environ.get("LUMEN_AI_SETTINGS_PATH")
@@ -405,6 +407,10 @@ def _handler_for(
                 return
             path = urlsplit(self.path).path
             if path == "/api/radio":
+                if release_profile == LOCAL_FIRST_PROFILE:
+                    self._send_xml(HTTPStatus.SERVICE_UNAVAILABLE,
+                                   _error_xml("LOCAL_FIRST_UNAVAILABLE", "本地优先版本不提供在线电台"))
+                    return
                 self._handle_radio()
                 return
             with data_lock:
@@ -462,9 +468,10 @@ def _handler_for(
                 return
 
             if request.path == "/api/health":
-                body = _xml_bytes(
-                    ElementTree.Element("health", {"status": "ok", "provider": provider.name})
-                )
+                health_attributes = {"status": "ok", "provider": provider.name}
+                if release_profile == LOCAL_FIRST_PROFILE:
+                    health_attributes["releaseProfile"] = release_profile
+                body = _xml_bytes(ElementTree.Element("health", health_attributes))
                 self._send_xml(HTTPStatus.OK, body, head_only)
                 return
 
@@ -474,7 +481,15 @@ def _handler_for(
                 artist = params.get("artist", [""])[0]
                 try:
                     duration = int(params.get("duration", ["0"])[0])
-                    result = lookup_lyrics(title, artist, duration)
+                    if release_profile == LOCAL_FIRST_PROFILE:
+                        result = lookup_lyrics(
+                            title, artist, duration,
+                            fetch_supplemental_json=lambda _url: {
+                                "code": 200, "result": {"songs": []},
+                            },
+                        )
+                    else:
+                        result = lookup_lyrics(title, artist, duration)
                 except ValueError:
                     self._send_xml(HTTPStatus.BAD_REQUEST,
                                    _error_xml("LYRICS_INVALID_QUERY", "歌词时长无效"), head_only)
@@ -495,6 +510,15 @@ def _handler_for(
                     })
                     ElementTree.SubElement(node, "lrc").text = candidate.synced_lyrics
                 self._send_xml(HTTPStatus.OK, _xml_bytes(root), head_only)
+                return
+
+            if release_profile == LOCAL_FIRST_PROFILE and (
+                    request.path == "/api/tracks" or request.path.startswith("/api/tracks/")
+                    or request.path == "/api/collections" or request.path.startswith("/api/collections/")
+                    or request.path == "/api/recommendations" or request.path == "/api/radio"):
+                self._send_xml(HTTPStatus.SERVICE_UNAVAILABLE,
+                               _error_xml("LOCAL_FIRST_UNAVAILABLE",
+                                          "本地优先版本不提供 B 站搜索、详情、分 P、在线发现或音轨代理"), head_only)
                 return
 
             if request.path == "/api/tracks":
@@ -1046,6 +1070,12 @@ def _handler_for(
             if parts[:2] != ["api", "library"]:
                 self._send_xml(HTTPStatus.NOT_FOUND, _error_xml("NOT_FOUND", "未知曲库路径"), head_only)
                 return
+            if (release_profile == LOCAL_FIRST_PROFILE and method == "POST"
+                    and parts == ["api", "library", "playlists", "import"]):
+                self._send_xml(HTTPStatus.SERVICE_UNAVAILABLE,
+                               _error_xml("LOCAL_FIRST_UNAVAILABLE", "本地优先版本不提供 B 站收藏夹导入"),
+                               head_only)
+                return
             if parts == ["api", "library", "organization"]:
                 self._handle_organization(method, head_only)
                 return
@@ -1325,10 +1355,14 @@ def create_server(
     library_store: LibraryStore | None = None,
     history_store: HistoryStore | None = None,
     history_clock: Callable[[], float] | None = None,
+    release_profile: str = FULL_PROFILE,
 ) -> ThreadingHTTPServer:
     """Create a loopback-only HTTP server. Port 0 selects a temporary free port."""
-    active_provider = provider or BilibiliProvider()
-    active_audio_proxy = audio_proxy
+    if release_profile not in (FULL_PROFILE, LOCAL_FIRST_PROFILE):
+        raise ValueError("release_profile must be 'full' or 'local-first'")
+    active_provider = (LocalOnlyProvider() if release_profile == LOCAL_FIRST_PROFILE
+                       else provider or BilibiliProvider())
+    active_audio_proxy = None if release_profile == LOCAL_FIRST_PROFILE else audio_proxy
     if active_audio_proxy is None and isinstance(active_provider, BilibiliProvider):
         active_audio_proxy = BilibiliAudioProxy(active_provider)
     library_fault = None
@@ -1352,5 +1386,6 @@ def create_server(
         ("127.0.0.1", port), _handler_for(active_provider, active_audio_proxy,
                                            library_store, library_fault,
                                            history_runtime, history_fault,
-                                           library_path, history_path, history_clock)
+                                           library_path, history_path, history_clock,
+                                           release_profile)
     )

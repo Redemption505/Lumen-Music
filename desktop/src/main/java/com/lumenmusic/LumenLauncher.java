@@ -12,8 +12,9 @@ public final class LumenLauncher {
     private static volatile StartupCoordinator<RuntimeServices> runtime;
 
     public static void main(String[] args) {
+        ReleaseProfile profile = ReleaseProfile.current();
         DiagnosticLog.installUncaughtExceptionHandler();
-        Path stateDirectory = serviceLog().getParent();
+        Path stateDirectory = serviceLog(profile).getParent();
         SingleInstanceGuard instance;
         try {
             instance = SingleInstanceGuard.acquire(stateDirectory);
@@ -23,13 +24,14 @@ public final class LumenLauncher {
         }
         if (instance == null) return;
         try (instance) {
-        URI base = URI.create(System.getenv().getOrDefault("LUMEN_SERVICE_URL", "http://127.0.0.1:8765"));
-        String provider = System.getenv().getOrDefault("LUMEN_PROVIDER", "bilibili");
+        URI base = profile.serviceUri();
+        String provider = profile.localFirst() ? profile.provider()
+                : System.getenv().getOrDefault("LUMEN_PROVIDER", "bilibili");
         Path vlcHome = findVlcHome();
         if (vlcHome != null) System.setProperty("lumen.vlc.home", vlcHome.toString());
-        if (!List.of("bilibili", "demo").contains(provider))
+        if (!(profile.localFirst() ? "local".equals(provider) : List.of("bilibili", "demo").contains(provider)))
             throw new IllegalArgumentException("LUMEN_PROVIDER 只支持 bilibili 或 demo");
-        runtime = new StartupCoordinator<>(() -> startServices(base, provider));
+        runtime = new StartupCoordinator<>(() -> startServices(base, provider, profile));
         try { LumenFxApp.main(args); }
         finally { closeRuntime(); }
         }
@@ -51,11 +53,11 @@ public final class LumenLauncher {
         if (current != null) current.close();
     }
 
-    private static RuntimeServices startServices(URI base, String provider) throws Exception {
+    private static RuntimeServices startServices(URI base, String provider, ReleaseProfile profile) throws Exception {
         ManagedPythonService service;
         try {
             service = ManagedPythonService.start(base, findServiceDirectory(),
-                    System.getenv("LUMEN_PYTHON"), provider, serviceLog());
+                    System.getenv("LUMEN_PYTHON"), provider, profile, serviceLog(profile));
         } catch (Exception error) {
             if (error instanceof InterruptedException) throw error;
             DiagnosticLog.recordStartup("SERVICE_START_ERROR");
@@ -68,8 +70,8 @@ public final class LumenLauncher {
             if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
             try {
                 URI streamBase = URI.create(System.getenv().getOrDefault(
-                        "LUMEN_STREAM_URL", "http://127.0.0.1:8766"));
-                proxy = ManagedStreamProxy.start(streamBase, base, findProxyExecutable(), serviceLog());
+                        "LUMEN_STREAM_URL", profile.streamUri().toString()));
+                proxy = ManagedStreamProxy.start(streamBase, base, findProxyExecutable(), serviceLog(profile));
                 System.setProperty("lumen.stream.base", streamBase.toString());
             } catch (Exception error) {
                 if (error instanceof InterruptedException) throw error;
@@ -144,10 +146,11 @@ public final class LumenLauncher {
         return null;
     }
 
-    private static Path serviceLog() {
+    private static Path serviceLog(ReleaseProfile profile) {
         String appData = System.getenv("LOCALAPPDATA");
         Path root = appData == null || appData.isBlank()
                 ? Path.of(System.getProperty("user.home"), ".local", "share") : Path.of(appData);
-        return root.resolve("Lumen Music").resolve("service.log");
+        return profile.localFirst() ? profile.appDataDirectory().resolve("service.log")
+                : root.resolve("Lumen Music").resolve("service.log");
     }
 }
