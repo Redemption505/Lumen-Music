@@ -1,10 +1,10 @@
 # 第四阶段 E：GitHub 源码与交付准备
 
-状态核对：2026-11-06。前端第二阶段改进及本轮稳定性修复已进入新候选 `lumen-0.2.2-20261024.3`，实际安装、原资料保留及原生操作与退出通过。[Redemption505/Lumen-Music](https://github.com/Redemption505/Lumen-Music) 的源码及已审阅历史已按用户确认公开，匿名可读；首次公开时的 `main` 基线为 `0cd57d7a4231e2c0c43d7a3cec3c5a49ce14efd2`，当时17个提交历史未改写。[对应CI run 42189276766](https://github.com/Redemption505/Lumen-Music/actions/runs/42189276766)双 job 成功，不使用旧 CI 证明新代码。没有发布二进制 Release，独立试用与第三方公开条件仍待验。
+状态核对：2026-11-09。前端第二阶段改进及本轮稳定性修复已进入新候选 `lumen-0.2.2-20261024.3`，实际安装、原资料保留及原生操作与退出通过。[Redemption505/Lumen-Music](https://github.com/Redemption505/Lumen-Music) 的源码及已审阅历史已按用户确认公开，匿名可读；首次公开时的 `main` 基线为 `0cd57d7a4231e2c0c43d7a3cec3c5a49ce14efd2`，当时17个提交历史未改写。[对应CI run 42189276766](https://github.com/Redemption505/Lumen-Music/actions/runs/42189276766)双 job 成功，不使用旧 CI 证明新代码。没有发布二进制 Release，独立试用与第三方公开条件仍待验。
 
 ## 首次公开测试版后续状态
 
-用户已选本地优先首发并保留日用完整版本。`lumen-0.2.2-local-20261106.1` 独立私有镜像、LRCLIB及策略回归已完成；Python379项中377通过/2公网跳过，Java定向两配置通过，内置服务及文件身份通过。窗口/三个重启会话/独立设备均尚未验，材料仍有精确native缺口。该镜像不是标准安装版/发行ZIP的替换，也不是公开发布。详见[公开准备](PUBLIC_PRERELEASE_READINESS.md)、[精确材料](NATIVE_REDISTRIBUTION.md)和[最小验收](LOCAL_PREVIEW_ACCEPTANCE.md)。
+用户已选本地优先首发并保留日用完整版本。`lumen-0.2.2-local-20261106.1` 独立私有镜像、LRCLIB及策略回归已完成；Python379项中377通过/2公网跳过，Java定向两配置通过，内置服务及文件身份通过。窗口/三个重启会话/独立设备均尚未验，11月9日已补齐原生材料输入；JavaFX具体build checkout未取得，版本对应以官方多源事实的工程论证说明，最终组包仍待完成。该镜像不是标准安装版/发行ZIP的替换，也不是公开发布。详见[公开准备](PUBLIC_PRERELEASE_READINESS.md)、[精确材料](NATIVE_REDISTRIBUTION.md)和[最小验收](LOCAL_PREVIEW_ACCEPTANCE.md)。
 
 本轮先完成审阅后的 Windows 源码和文档至私有 `main` 的普通提交及对应CI核对，随后按用户确认公开源码和历史。未纳入并行 Android 改动、独立子仓库、下载材料、私有证据或二进制；未创建标签或二进制 Release。
 
