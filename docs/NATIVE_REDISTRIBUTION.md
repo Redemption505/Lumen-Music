@@ -1,6 +1,6 @@
 # Windows 原生组件：对应源码与许可材料
 
-更新：2026-11-09。源码仓库及已审阅历史已公开，二进制 Pre-release 尚未发布。以下材料绑定本地优先候选 `lumen-0.2.2-local-20261106.1` 的实际文件；日用完整版本和标准 ZIP 未替换。材料取得、对应关系、最终随包交付分别判断。
+更新：2026-11-18。源码仓库及已审阅历史已公开，二进制 Pre-release 尚未发布。以下材料绑定本地优先候选 `lumen-0.2.2-local-20261106.1` 的实际文件；日用完整版本和标准 ZIP 未替换。材料取得、对应关系、最终随包交付分别判断。
 
 ## 当前组件结论
 
@@ -34,12 +34,16 @@ python scripts/verify-prerelease-materials.py `
 
 本轮复核 **786个候选文件、2,314件材料** 的身份/完整性通过，`nativeMaterialGatePassed=true`；严格模式退出0。该门槛是显式组件工程审阅与材料输入核验，不代表最终成品、窗口/声音、重启或独立电脑已验收，也不声称供应商直接证明了JavaFX build #124 checkout。校验器及8项回归代码未变，复用对应通过结果。
 
-已有525份许可草稿继续保留；新增VLC声明文件包含765段可追溯原文/源头声明，具备IJG、FreeType及MIT-KEMAR具体致谢。原始非UTF8内容有可逆映射和原字节哈希；没有改写条款或把所有组件统一归为GPL。最终NOTICE/SOURCE成品尚未组包。
+已有525份许可草稿继续保留；新增VLC声明文件包含765段可追溯原文/源头声明，具备IJG、FreeType及MIT-KEMAR具体致谢。原始非UTF8内容有可逆映射和原字节哈希；没有改写条款或把所有组件统一归为GPL。11月18日已将逐组件源、原许可和声明组装进便携包与对应 SOURCE。
 
-当前机器结果为 `build/native-materials-20261109/material-check/verification.json`；主代理增量核验见同目录`integration-verification.json`。`source-publication-manifest.json`显式选择212件source角色材料，其中VLC为92件来源档；这不是已生成SOURCE.zip。`build/`材料不随源码克隆提供，原始CI日志/下载记录及本机证据保持私有。
+当前机器结果为 `build/native-materials-20261109/material-check/verification.json`；主代理增量核验见同目录`integration-verification.json`。`source-publication-manifest.json`显式选择212件source角色材料，其中VLC为92件来源档；11月18日组装 SOURCE 时按此清单逐项取用。`build/`材料不随源码克隆提供，原始CI日志/下载记录及本机证据保持私有。
 
-## 下一步
+## 本地组包与构建输入核对
 
-1. 按显式公开清单组装匹配本候选的SOURCE、原许可、VLC声明和构建映射，冻结实际BuildId/校验和。不得按catalog的source角色全量复制：原mysofa77MB档含未编译测试数据的独立NC条款，保持私有；改用已排除16份数据、保留82文件原字节及可再分发默认数据的源码变体。该默认数据适用1994 MIT Media Laboratory署名条款，不是MIT软件许可证。
+11月18日生成 Windows x64 便携包及配套 SOURCE，逐个校验实际成品中的成员。VLC 部分纳入精准源码、原配方及补丁、组件声明，以及从本地归档准备构建输入的工具和指南。已从 SOURCE 实际校验并准备88项普通 contrib 输入和3项重新封装的 Git 输入，并验证 libmysofa 的校验补丁。完整 Win64 编译、修改静态 LGPL 组件后的重链接及 DLL 替换播放尚未运行。材料校验与运行结果各按实际范围记录。
+
+## 发行复核
+
+1. 对最终拟发布的 SOURCE、原许可、VLC 声明和构建映射，复核实际 BuildId、对应提交和校验和。不得按catalog的source角色全量复制：原mysofa77MB档含未编译测试数据的独立NC条款，保持私有；改用已排除16份数据、保留82文件原字节及可再分发默认数据的源码变体。该默认数据适用1994 MIT Media Laboratory署名条款，不是MIT软件许可证。
 2. 对新mysofa变体采用随附的明确SHA512替换补丁及本地tarballs映射；不能冒充原上游档或绕过校验。CMake、代码、实际配方行为不变。Git来源包按精确commit/完整Git树提供，不虚构不同压缩封装的上游校验值；最终构建过程尚未执行。
-3. 资源稳定且重新安排接管后完成[候选窗口验收](LOCAL_PREVIEW_ACCEPTANCE.md)，再补既定重启与独立电脑。实际二进制发布前由用户审阅附件、源码、已知限制并确认；本次只补材料，没有替换日用安装或发行ZIP。
+3. 11月13日已完成基本双缩放窗口/合成音频/正常退出验收；仅补[尚未覆盖的窗口流程](LOCAL_PREVIEW_ACCEPTANCE.md)，再补既定重启与独立电脑。该运行证据独立于材料校验门槛；实际二进制发布前仍由用户审阅附件、源码、已知限制并确认，没有替换日用安装或发行ZIP。
