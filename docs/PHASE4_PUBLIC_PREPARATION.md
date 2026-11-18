@@ -1,16 +1,10 @@
 # 第四阶段 E：GitHub 源码与交付准备
 
-状态核对：2026-11-18。前端第二阶段改进及本轮稳定性修复已进入新候选 `lumen-0.2.2-20261024.3`，实际安装、原资料保留及原生操作与退出通过。[Redemption505/Lumen-Music](https://github.com/Redemption505/Lumen-Music) 的源码及已审阅历史已按用户确认公开，匿名可读；首次公开时的 `main` 基线为 `0cd57d7a4231e2c0c43d7a3cec3c5a49ce14efd2`，当时17个提交历史未改写。[对应CI run 42189276766](https://github.com/Redemption505/Lumen-Music/actions/runs/42189276766)双 job 成功，不使用旧 CI 证明新代码。没有发布二进制 Release，独立试用与第三方公开条件仍待验。
+状态核对：2026-11-18。[Redemption505/Lumen-Music](https://github.com/Redemption505/Lumen-Music) 的源码及已审阅历史可匿名访问。首次公开源码时的 `main` 基线为 `0cd57d7a4231e2c0c43d7a3cec3c5a49ce14efd2`，对应 [CI 42189276766](https://github.com/Redemption505/Lumen-Music/actions/runs/42189276766) 两项通过。
 
-## 首次公开测试版后续状态
+首次公开二进制 [v0.2.2-preview.1](https://github.com/Redemption505/Lumen-Music/releases/tag/v0.2.2-preview.1) 已发布为 Windows Pre-release，标签指向 `7654a35`，对应 [CI 44239988681](https://github.com/Redemption505/Lumen-Music/actions/runs/44239988681) 两项通过。下载、使用及重启首启、独立电脑、VLC 重链接三项待验范围见[公开测试版与验收范围](PUBLIC_PRERELEASE_READINESS.md)。
 
-用户已选本地优先首发并保留日用完整版本。`lumen-0.2.2-local-20261106.1` 独立私有镜像、LRCLIB及策略回归已完成；Python379项中377通过/2公网跳过，Java定向两配置通过，内置服务及文件身份通过。11月13日基本双缩放窗口/合成音频/正常退出已通过，剩余窗口流程、三个重启会话及独立设备仍待验；11月9日已补齐原生材料输入；JavaFX具体build checkout未取得，版本对应以官方多源事实的工程论证说明，11月18日便携 ZIP、SOURCE 与 NOTICE 已本地组装，便携包在本机的隔离解压与服务模拟通过。该镜像不是标准安装版/发行ZIP的替换，也不是公开发布。详见[公开准备](PUBLIC_PRERELEASE_READINESS.md)、[精确材料](NATIVE_REDISTRIBUTION.md)和[最小验收](LOCAL_PREVIEW_ACCEPTANCE.md)。
-
-本轮先完成审阅后的 Windows 源码和文档至私有 `main` 的普通提交及对应CI核对，随后按用户确认公开源码和历史。未纳入并行 Android 改动、独立子仓库、下载材料、私有证据或二进制；未创建标签或二进制 Release。
-
-## 首次公开测试版当前入口
-
-2026-11-06已完成历史隐私命中分类、素材来源核对及当前镜像的第三方材料绑定，详见[公开测试版准备](PUBLIC_PRERELEASE_READINESS.md)。用户同意保留历史邮箱并确认项目图标/桌宠创作来源；源码及已审阅历史现已公开，二进制发布仍须最终确认。本页下文保留既有私有源码交付事实，不是二进制下载或本轮重新验收记录。
+下文保留 E 阶段的日用安装版和源码交付记录。
 
 ## 1. 当前交付边界
 

@@ -1,21 +1,24 @@
 # 版本记录
 
-本页记录功能与工程变化。`v0.2.2` 当前为 Windows 内测候选；GitHub 源码提交不等于已发布安装包。实际构建与验收范围见 [候选说明](docs/PHASE4_RELEASE_CANDIDATE.md)。
+本页记录功能与工程变化。公开版入口见 [GitHub Releases](https://github.com/Redemption505/Lumen-Music/releases)，日用安装版范围见 [内测候选说明](docs/PHASE4_RELEASE_CANDIDATE.md)。
 
-## 尚未发行
+## v0.2.2-preview.1 — 2026-11-18，Windows Pre-release
 
-- 源码仓库及已审阅历史已公开；同步文档状态，二进制测试包仍未发布。
-- 增加离线候选/原生材料校验器及篡改、身份、路径和参考源码边界回归；补齐精确组件许可与来源材料，保留JavaFX/VLC对应源码缺口。
+首次公开发布 [Windows x64 本地优先便携版](https://github.com/Redemption505/Lumen-Music/releases/tag/v0.2.2-preview.1)，BuildId 为 `lumen-0.2.2-local-20261106.1`。从发行页下载 Windows ZIP，完整解压后运行 `LumenMusicPreview/LumenMusicPreview.exe`，同页附对应 SOURCE ZIP 与校验和。
 
-- 增加独立的 Windows 本地优先构建：隔离资料、端口与启动身份，限制在线入口、音源、封面和更新路径；普通源码构建及日用完整版本保持原有范围。该候选尚未完成窗口、重启与独立电脑验收，未发布二进制。
+- 增加独立的 Windows 本地优先构建，隔离资料、端口与启动身份，关闭 B 站取流和网易云补充歌词。公开版保留本地曲库、播放、收藏歌单、备份和窗口控制。
+- 随包提供第三方许可、对应源码和构建材料，补充离线候选与原生材料校验。
 - 修正 LRCLIB 客户端标识、顺序请求间隔和共享退避，尊重整数及 HTTP 日期形式的 `Retry-After`，补充并发、错误释放及本地优先服务回归。
-- 补充历史隐私、项目素材来源、在线功能范围及精确原生材料说明；源码公开与二进制 Pre-release 分开确认。
+- 本机通过基本双缩放窗口、合成音频、正常退出和便携流程补验。重启后首次启动（0/3）、独立 Windows 电脑及 VLC Win64 完整编译、重链接与替换播放仍待验证。见[便携版验收](docs/LOCAL_PREVIEW_ACCEPTANCE.md)。
+
+### 同期工程变更
+
+- 补充历史隐私、项目素材来源、在线功能范围及精确原生材料说明。
 - 补充隔离的工程启动、界面响应与退出探针，见 [稳定性验收](docs/PHASE4_STABILITY_ACCEPTANCE.md)。
 - 整理 GitHub 源码仓库首页、贡献指南与工程规范，保留既有 GitHub 初始提交和本地源码历史。
 - 补充 Windows demo CI；Java/Python 集成使用隔离资料、动态端口、身份核验与失败清理。
 - Windows CI 运行完整 Java 单元检查；Win32 结构布局断言在 Windows 验证，通用逻辑仍在 Ubuntu 检查。
 - 增加明确的源码范围与暂存字节检查，历史专项脚本改为显式目标，并修正缺省环境变量恢复。
-- 梳理精确版本第三方材料及未决来源；尚未据此发布新的二进制 Release。
 
 ## v0.2.2 — 2026-10-24，前端第二阶段内测候选
 

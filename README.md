@@ -6,9 +6,9 @@
 
 [开始使用](#开始使用) · [功能](#你可以用-lumen-做什么) · [开发](#从源码开始) · [文档](docs/README.md) · [反馈](https://github.com/Redemption505/Lumen-Music/issues/new/choose)
 
-**Windows 10/11 x64 · v0.2.2 内测候选 · [GPLv3](LICENSE.txt)**
+**Windows 10/11 x64 · [v0.2.2-preview.1](https://github.com/Redemption505/Lumen-Music/releases/tag/v0.2.2-preview.1) Windows Pre-release · [GPLv3](LICENSE.txt)**
 
-[工程检查](https://github.com/Redemption505/Lumen-Music/actions/workflows/verify.yml) · [版本变化](CHANGELOG.md) · [当前候选与验收范围](docs/PHASE4_RELEASE_CANDIDATE.md)
+[工程检查](https://github.com/Redemption505/Lumen-Music/actions/workflows/verify.yml) · [版本变化](CHANGELOG.md) · [公开测试版与验收范围](docs/PUBLIC_PRERELEASE_READINESS.md)
 
 ![Lumen 深色主题：继续听、常驻歌单与个人首页](docs/assets/home-lumen.png)
 
@@ -22,6 +22,8 @@
 截图来自真实应用窗口，使用隔离的合成曲库；歌名、歌单和记录均为演示资料。
 
 ## 你可以用 Lumen 做什么
+
+下表概览桌面项目功能。公开便携版的具体功能范围见[开始使用](#开始使用)。
 
 | 场景 | 已有能力 |
 | --- | --- |
@@ -37,21 +39,25 @@
 
 ## 开始使用
 
-当前仓库提供源码，**尚无公开二进制 Release**。前端第二阶段的收藏/本地播放全部、查找循环定位、唱针及摘要改进和本轮修复已进入新候选；源码与实际安装JAR双缩放、原资料页面、迷你返回和正常退出验收通过。身份及范围见[候选说明](docs/PHASE4_RELEASE_CANDIDATE.md)和[第二阶段验收](docs/FRONTEND_STAGE2_ACCEPTANCE.md)。
+首次公开发布 [v0.2.2-preview.1](https://github.com/Redemption505/Lumen-Music/releases/tag/v0.2.2-preview.1)，适用于 Windows 10/11 x64。构建号为 `lumen-0.2.2-local-20261106.1`。
 
-已选定本地优先的首次 Windows 测试版范围，独立私有候选已构建，窗口/重启/独立设备及部分材料仍待验；当前仍未发布。历史隐私、素材来源、第三方材料及剩余最小验收见[公开测试版准备](docs/PUBLIC_PRERELEASE_READINESS.md)。
+[Windows x64 便携 ZIP](https://github.com/Redemption505/Lumen-Music/releases/download/v0.2.2-preview.1/LumenMusic-0.2.2-local-preview-windows-x64.zip) · [对应 SOURCE ZIP](https://github.com/Redemption505/Lumen-Music/releases/download/v0.2.2-preview.1/LumenMusic-0.2.2-local-preview-SOURCE.zip) · [SHA256SUMS.txt](https://github.com/Redemption505/Lumen-Music/releases/download/v0.2.2-preview.1/SHA256SUMS.txt)
 
-如果你已经收到内测包：
+1. 下载并完整解压 Windows ZIP，双击 `LumenMusicPreview/LumenMusicPreview.exe`。内置 Java、Python 和 VLC，解压后即可运行。
+2. 打开左侧“本地音乐”，导入文件或文件夹，双击曲目播放。点击红心可收藏，点击底部封面可进入沉浸页。
+3. 如需校验下载、查看资料位置或导出备份，见 [Windows 便携版指南](docs/WINDOWS_GUIDE.md#公开便携测试版)。
 
-1. 解压完整包，运行其中的 `LumenMusic-0.2.2-Setup.exe`。内置 Java、Python 和 VLC，无需另装开发工具。
-2. 打开“本地音乐”，导入文件或文件夹，双击歌曲播放；点击红心收藏，点击底部封面进入沉浸页。
-3. 在“设置 → 数据与隐私”导出数据备份；更新前先看[Windows 使用指南](docs/WINDOWS_GUIDE.md)。
+公开便携版提供本地曲库、收藏歌单、同步歌词、迷你播放器和 LRCLIB 在线查词。该构建关闭了 B 站搜索与取流、网易云补充歌词及依赖在线音源的发现功能。日用安装版用户可继续参阅[安装与升级说明](docs/WINDOWS_GUIDE.md#日用安装版范围)。
 
-首次安装和已有 v0.2.2 的同版本升级使用完整安装器；v0.2.1 增量包仅适用其清单声明的基线。**可移植备份不包含原音频和全部本机状态**，换电脑时需另行保存音频，详见[备份范围](docs/BACKUP_FORMAT.md)。
+本机已完成 125%／150% 基本窗口、合成音频、正常退出和便携流程补验。**三项待验收**见[验收范围](docs/PUBLIC_PRERELEASE_READINESS.md#5-三项待验收)：
+
+- Windows 重启后首次启动，实测 **0/3**。
+- 独立 Windows 电脑试用，目前有本机隔离模拟记录。
+- VLC Win64 完整编译、修改静态依赖后的重链接及替换播放。
 
 ## 从源码开始
 
-Windows 开发需准备完整 **JDK 21（推荐）** 和 **Python 3.10+**，配置 `JAVA_HOME`、`LUMEN_PYTHON` 或可用的 `PATH`。Maven 使用仓库自带 Wrapper；Python 服务仅依赖标准库。[GitHub 源码仓库](https://github.com/Redemption505/Lumen-Music)及已审阅历史现已公开，可匿名克隆；二进制候选尚未发布。
+Windows 开发需准备完整 **JDK 21（推荐）** 和 **Python 3.10+**，配置 `JAVA_HOME`、`LUMEN_PYTHON` 或可用的 `PATH`。Maven 使用仓库自带 Wrapper；Python 服务仅依赖标准库。[GitHub 源码仓库](https://github.com/Redemption505/Lumen-Music)及已审阅历史现已公开，可匿名克隆。
 
 在 PowerShell 中克隆，然后运行不打开播放器窗口的隔离协议检查：
 
@@ -98,7 +104,7 @@ Java 桌面端通过本机 HTTP/XML 调用 Python 服务；Rust 侧车处理音�
 
 **我的资料保存在哪里？**
 
-正常安装使用 `%LOCALAPPDATA%/Lumen Music` 和 `%APPDATA%/Lumen Music`。移除本地列表条目不会删除原音频；升级、卸载及备份的范围见[使用指南](docs/WINDOWS_GUIDE.md)。开发测试应使用独立资料。
+公开便携版使用 `%LOCALAPPDATA%/Lumen Music Local Preview`。日用安装版使用 `%LOCALAPPDATA%/Lumen Music` 和 `%APPDATA%/Lumen Music`。移除本地列表条目会保留原音频。资料及备份范围见 [Windows 使用指南](docs/WINDOWS_GUIDE.md)。
 
 ## 反馈与贡献
 

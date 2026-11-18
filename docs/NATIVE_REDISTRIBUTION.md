@@ -1,6 +1,6 @@
 # Windows 原生组件：对应源码与许可材料
 
-更新：2026-11-18。源码仓库及已审阅历史已公开，二进制 Pre-release 尚未发布。以下材料绑定本地优先候选 `lumen-0.2.2-local-20261106.1` 的实际文件；日用完整版本和标准 ZIP 未替换。材料取得、对应关系、最终随包交付分别判断。
+更新：2026-11-18。[v0.2.2-preview.1](https://github.com/Redemption505/Lumen-Music/releases/tag/v0.2.2-preview.1) 已发布。以下材料绑定公开便携版 `lumen-0.2.2-local-20261106.1` 的实际文件，源码和许可材料随 [SOURCE ZIP](https://github.com/Redemption505/Lumen-Music/releases/download/v0.2.2-preview.1/LumenMusic-0.2.2-local-preview-SOURCE.zip) 提供。
 
 ## 当前组件结论
 
@@ -44,6 +44,6 @@ python scripts/verify-prerelease-materials.py `
 
 ## 发行复核
 
-1. 对最终拟发布的 SOURCE、原许可、VLC 声明和构建映射，复核实际 BuildId、对应提交和校验和。不得按catalog的source角色全量复制：原mysofa77MB档含未编译测试数据的独立NC条款，保持私有；改用已排除16份数据、保留82文件原字节及可再分发默认数据的源码变体。该默认数据适用1994 MIT Media Laboratory署名条款，不是MIT软件许可证。
+1. 已复核公开 SOURCE、原许可、VLC 声明和构建映射的 BuildId、对应提交和校验和。发布包使用已排除16份测试数据、保留82文件原字节及可再分发默认数据的 mysofa 源码变体。该默认数据适用1994 MIT Media Laboratory署名条款。
 2. 对新mysofa变体采用随附的明确SHA512替换补丁及本地tarballs映射；不能冒充原上游档或绕过校验。CMake、代码、实际配方行为不变。Git来源包按精确commit/完整Git树提供，不虚构不同压缩封装的上游校验值；最终构建过程尚未执行。
-3. 11月13日已完成基本双缩放窗口/合成音频/正常退出验收；仅补[尚未覆盖的窗口流程](LOCAL_PREVIEW_ACCEPTANCE.md)，再补既定重启与独立电脑。该运行证据独立于材料校验门槛；实际二进制发布前仍由用户审阅附件、源码、已知限制并确认，没有替换日用安装或发行ZIP。
+3. 本机基本双缩放、播放、窗口补验及正常退出已完成。Windows 重启首启、独立电脑、VLC 完整编译与重链接后的替换播放仍待验，见[便携测试版验收](LOCAL_PREVIEW_ACCEPTANCE.md)。

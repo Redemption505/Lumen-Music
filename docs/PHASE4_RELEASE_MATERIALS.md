@@ -4,12 +4,12 @@
 
 新增本地参考为 JNA 5.13.0/5.14.0 的 LICENSE、AL2.0、LGPL2.1 六份官方原文，以及 LRCLIB 当前 API 文档；四个 JNA JAR 声明与同版本官方文本匹配（仅规范化换行）。这些文本尚未进入现有安装包/发行 ZIP；取得它们不等于 native/libffi、NOTICE 或其他组件缺口已解决。图标创作来源及历史截图本轮已核，见[素材来源](ASSET_SOURCES.md)。
 
-当前结果、官方来源和公开前具体任务统一见[公开测试版准备](PUBLIC_PRERELEASE_READINESS.md)。本轮未修改已冻结安装器、SOURCE、发行包或依赖；源码及已审阅历史现已公开，二进制发布前仍由维护者确认。
+本页记录日用构建的材料基线。首次公开便携包、对应 SOURCE 和剩余验证见[公开测试版与验收范围](PUBLIC_PRERELEASE_READINESS.md)。
 
 以下明细描述历史 `lumen-0.2.2-20261009.2` 的原始材料收集，保留其身份、供应商与各项未决，不用当前镜像的相同组件字节改写旧包总摘要。本机新比较记录为 `build/public-prerelease-20261106/material-binding.json`，旧清单仍在原位置，不随源码上传。
 
 
-本轮后续已取得15件源码/参考材料和Rust101个源码包，精确版本差异与剩余缺口见[原生组件分发材料](NATIVE_REDISTRIBUTION.md)；LRCLIB修复及用户选定的本地首发实现见[在线来源范围](ONLINE_SOURCE_SCOPE.md)。现有日用安装与标准发行包未换，新私有镜像不是公开发布。
+后续取得15件源码/参考材料和Rust101个源码包，精确版本差异与剩余缺口见[原生组件分发材料](NATIVE_REDISTRIBUTION.md)。公开便携构建中的 LRCLIB 修复及功能限制见[在线来源范围](ONLINE_SOURCE_SCOPE.md)。
 
 ## 1. 对象与证据
 

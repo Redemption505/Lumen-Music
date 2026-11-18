@@ -1,8 +1,27 @@
 # Windows 使用指南
 
-适用于 Windows 10/11 x64 的 Lumen Music 安装版。程序内置 Java、Python 和 VLC，无需开发工具、账号登录或 API Key 即可听本地音乐。在线搜索、在线歌词与发现需要联网，AI 设置可选。
+适用于 Windows 10/11 x64。Lumen Music 内置 Java、Python 和 VLC，本地播放无需开发工具、账号或 API Key。
 
-当前安装候选是 v0.2.2 / `lumen-0.2.2-20261024.3`，包含前端第二阶段改进及本轮稳定性修复。本机同版本升级及原资料保留通过，首页、歌单、本地音乐、迷你返回焦点与返回、正常退出和自有进程/端口释放均已原生验证；本轮未开始播放。此前 `lumen-0.2.2-20261010.1` 的五次原生运行结果保留原构建范围；系统重启首启、独立电脑及原闪退者复测仍待完成。完整包、增量包及对应源码的身份与旁置校验和按[候选说明](PHASE4_RELEASE_CANDIDATE.md)核对。试用时核对[朋友试用说明](FRIEND_TRIAL.md)中的唯一构建号。
+## 公开便携测试版
+
+[v0.2.2-preview.1](https://github.com/Redemption505/Lumen-Music/releases/tag/v0.2.2-preview.1) 是本地优先的 Windows Pre-release，构建号为 `lumen-0.2.2-local-20261106.1`。
+
+1. 下载 [Windows x64 便携 ZIP](https://github.com/Redemption505/Lumen-Music/releases/download/v0.2.2-preview.1/LumenMusic-0.2.2-local-preview-windows-x64.zip)。可用下面的 PowerShell 命令计算 ZIP 的 SHA-256，与 [SHA256SUMS.txt](https://github.com/Redemption505/Lumen-Music/releases/download/v0.2.2-preview.1/SHA256SUMS.txt) 中同名文件的值比对。
+
+   ```powershell
+   Get-FileHash .\LumenMusic-0.2.2-local-preview-windows-x64.zip -Algorithm SHA256
+   ```
+
+2. 将 ZIP 完整解压到普通文件夹，保留程序目录结构。打开解压后的 `LumenMusicPreview/LumenMusicPreview.exe`，左侧选择“本地音乐”导入文件或文件夹，双击歌曲播放。
+3. 可在“设置 → 版本与反馈”核对构建号，在“设置 → 数据与隐私”导出备份。便携版资料位于 `%LOCALAPPDATA%/Lumen Music Local Preview`，与日用安装版分别保存。
+
+公开便携版保留本地曲库、收藏与歌单、同步歌词、迷你播放器及 LRCLIB 在线查词。B 站搜索与取流、网易云补充歌词及依赖在线音源的发现功能已关闭。对应源码与第三方材料见 [SOURCE ZIP](https://github.com/Redemption505/Lumen-Music/releases/download/v0.2.2-preview.1/LumenMusic-0.2.2-local-preview-SOURCE.zip)。
+
+待验收项为 Windows 重启后首次启动（0/3）、独立 Windows 电脑试用及 VLC Win64 完整编译、修改静态依赖后的重链接与替换播放。覆盖与方法见[便携测试版验收](LOCAL_PREVIEW_ACCEPTANCE.md)。
+
+## 日用安装版范围
+
+以下安装、升级和卸载步骤面向已有日用内测包的使用者。其构建号为 `lumen-0.2.2-20261024.3`，完整包、增量包及对应源码的身份和校验和见[内测候选说明](PHASE4_RELEASE_CANDIDATE.md)。
 
 ## 安装与确认版本
 

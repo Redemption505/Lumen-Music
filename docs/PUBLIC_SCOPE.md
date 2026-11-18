@@ -1,6 +1,6 @@
 # 公开源码候选范围
 
-更新：2026-11-06。指定 GitHub 仓库的源码及已审阅历史已按用户确认公开，匿名读取已核对；二进制 Pre-release 仍待最终确认。已完成的源码交付不等同于公开二进制发布。当前对象和未决项统一见[公开测试版准备](PUBLIC_PRERELEASE_READINESS.md)。
+更新：2026-11-18。GitHub 源码及已审阅历史可匿名读取。首次公开二进制 [v0.2.2-preview.1](https://github.com/Redemption505/Lumen-Music/releases/tag/v0.2.2-preview.1) 为 Windows 本地优先便携版。实际附件、对应源码及待验收范围见[公开测试版与验收范围](PUBLIC_PRERELEASE_READINESS.md)。
 
 ## 历史隐私检查
 

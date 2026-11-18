@@ -4,7 +4,7 @@
 
 更多功能说明和验收记录见 [文档导航](docs/README.md)。反馈问题或建议时，从 [Issue 表单](https://github.com/Redemption505/Lumen-Music/issues/new/choose) 选择缺陷或功能建议，填写版本与完整构建号、复现步骤及预期/实际结果；截图和诊断片段先移除私人信息，不上传原始日志、个人备份、Cookie 或密钥。
 
-当前桌面目标为 Windows 10/11 x64，v0.2.2 仍是内测候选。贡献时以当前源码为准，明确实际验证的平台和目标构建。
+当前桌面目标为 Windows 10/11 x64。[v0.2.2-preview.1](https://github.com/Redemption505/Lumen-Music/releases/tag/v0.2.2-preview.1) 是本地优先的公开便携测试版。贡献时以当前源码为准，明确实际验证的平台和目标构建。
 
 ## 开始前
 

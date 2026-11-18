@@ -2,17 +2,15 @@
 
 按使用、开发与验证目的选择入口。项目概览和源码启动见 [仓库首页](../README.md)，版本变化见 [CHANGELOG](../CHANGELOG.md)。
 
-当前 Windows 内测候选为 **v0.2.2**，具体构建身份与校验方式以 [候选说明](PHASE4_RELEASE_CANDIDATE.md) 为准。GitHub 尚无二进制 Release；文档中的 `build/` 路径是未随源码上传的本地材料，不是下载入口。独立朋友电脑和原首次启动闪退者复测仍待完成。
+[v0.2.2-preview.1](https://github.com/Redemption505/Lumen-Music/releases/tag/v0.2.2-preview.1) 是首个 Windows x64 公开便携测试版。下载、解压和启动步骤见 [Windows 使用指南](WINDOWS_GUIDE.md#公开便携测试版)，对应构建、附件与三项待验收见[公开测试版与验收范围](PUBLIC_PRERELEASE_READINESS.md)。日用安装版另见[内测候选说明](PHASE4_RELEASE_CANDIDATE.md)。
 
-首次 Windows Pre-release 的当前结论、公开范围和最小验收见[公开测试版准备](PUBLIC_PRERELEASE_READINESS.md)，项目自制图标、桌宠及截图见[素材来源](ASSET_SOURCES.md)，首发范围见[在线来源范围](ONLINE_SOURCE_SCOPE.md)，新增精确源码材料见[原生组件分发材料](NATIVE_REDISTRIBUTION.md)。源码仓库及已审阅历史已公开，二进制 Pre-release 仍待最终确认。
-
-窗口/三个重启会话与独立电脑的剩余最小批次见[本地候选验收](LOCAL_PREVIEW_ACCEPTANCE.md)；当前用户暂不方便释放内存且无独立设备，未安排接管或重启。
+[便携版验收](LOCAL_PREVIEW_ACCEPTANCE.md)记录本机双缩放、合成音频、正常退出及补验。[在线来源范围](ONLINE_SOURCE_SCOPE.md)、[素材来源](ASSET_SOURCES.md)及[原生组件材料](NATIVE_REDISTRIBUTION.md)说明本次公开内容的依据。
 
 ## 使用者
 
 | 需要了解 | 文档 |
 | --- | --- |
-| 安装、开始听歌、升级与资料位置 | [Windows 使用指南](WINDOWS_GUIDE.md) |
+| 下载便携版、开始听歌、升级与资料位置 | [Windows 使用指南](WINDOWS_GUIDE.md) |
 | 安装目录、同版本升级与卸载 | [Windows 安装与卸载](WINDOWS_INSTALLER.md) |
 | 首页、继续听与常驻歌单 | [个人首页](PERSONAL_HOME.md) |
 | 歌单封面、说明、版本偏好与最近播放 | [收藏与记忆](COLLECTION_MEMORY.md)、[歌曲版本](SONG_VERSIONS.md)、[最近播放与桌宠](MUSIC_DIARY.md) |
